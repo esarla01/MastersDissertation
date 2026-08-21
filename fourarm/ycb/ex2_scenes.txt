@@ -1,0 +1,40 @@
+# EX2 scene list. One line per pair; each produces BOTH members.
+#
+#   pair <id> <flip_x,flip_y> <partner_x,partner_y>
+#     member A = mustard_lying   (0.096 m across -> URs only)
+#     member B = mustard_upright (0.058 m across -> all four arms)
+#
+#   null <id> <flip_x,flip_y> <partner_x,partner_y>
+#     both members lying, position jitter only. Whatever flip rate these
+#     produce is the noise floor: without it a measured 0.20 cannot be
+#     told from answer instability.
+#
+# Every flip position was verified through the REAL validator to give
+# [ur_w] lying and [ur_w, franka_n] upright, with the partner [ur_w] in
+# both, and to clear the arm footprints at their home poses. Positions that
+# do not satisfy BOTH were rejected: an early set dodged the arms by eye
+# and four of ten silently lost the flip, because franka_n cannot reach far
+# enough south to pick up an object bound for the north-west food basket.
+#
+# Nine pairs, not ten. Only 34 positions in the whole cell satisfy the flip
+# and the arm clearance together, and after spacing them apart no tenth had
+# a partner position far enough away. That is a fact about the cell and it
+# is disclosed rather than worked around.
+
+pair p01 -0.45,0.35   -0.15,-0.25
+pair p02 -0.25,0.35   -0.35,-0.45
+pair p03 -0.30,0.15   -0.30,0.55
+pair p04 -0.35,0.00   -0.25,0.40
+pair p05 -0.35,0.50   -0.55,-0.45
+pair p06 -0.55,0.35   -0.25,-0.30
+pair p07 -0.30,-0.15  -0.30,-0.55
+pair p08 -0.40,0.45   -0.20,-0.35
+
+null n01 -0.45,0.35   -0.15,-0.25
+null n02 -0.25,0.35   -0.35,-0.45
+null n03 -0.30,0.15   -0.30,0.55
+null n04 -0.35,0.00   -0.25,0.40
+null n05 -0.35,0.50   -0.55,-0.45
+null n06 -0.55,0.35   -0.25,-0.30
+null n07 -0.30,-0.15  -0.30,-0.55
+null n08 -0.40,0.45   -0.20,-0.35

@@ -1,0 +1,1009 @@
+{
+ "meta": {
+  "seed": 100,
+  "layout": "designed",
+  "allocator": "vlm1",
+  "condition": "A",
+  "disruptions": "none",
+  "prompt_version": "2026-08-01a",
+  "eligible_arms": false,
+  "timing": "distance",
+  "b2_objective": null,
+  "b2_contention": null,
+  "scene": "ycb",
+  "objects": 4,
+  "started_utc": "2026-08-13T18:42:46Z",
+  "schema_version": 4,
+  "settle_wait": 0,
+  "settle_phases": "tight",
+  "finished_utc": "2026-08-13T18:42:46Z",
+  "verdict": "CHECK"
+ },
+ "summary": {
+  "verdict": "CHECK",
+  "sorted": "3/4",
+  "makespan_ticks": 1509,
+  "tasks_done": 5,
+  "tasks_failed": 0,
+  "requeued": 0,
+  "contended_claims": 3,
+  "blocked_ticks_total": 348,
+  "events_summary": {
+   "near_miss": 1,
+   "arm_idle": 4
+  }
+ },
+ "objects": [
+  {
+   "name": "ycb_soup_can",
+   "category": "food",
+   "dist_cm": 15.2,
+   "sorted": true,
+   "spawn_xy": [
+    -0.82,
+    0.22
+   ]
+  },
+  {
+   "name": "ycb_banana",
+   "category": "food",
+   "dist_cm": 19.2,
+   "sorted": false,
+   "spawn_xy": [
+    0.05,
+    0.3
+   ]
+  },
+  {
+   "name": "ycb_gelatin_box",
+   "category": "food",
+   "dist_cm": 15.0,
+   "sorted": true,
+   "spawn_xy": [
+    0.82,
+    0.22
+   ]
+  },
+  {
+   "name": "ycb_meat_can",
+   "category": "food",
+   "dist_cm": 14.9,
+   "sorted": true,
+   "spawn_xy": [
+    -0.85,
+    -0.25
+   ]
+  }
+ ],
+ "per_arm": {
+  "franka_n": {
+   "completed_legs": 2,
+   "blocked_ticks": 11,
+   "travel_m": 7.331
+  },
+  "ur_e": {
+   "completed_legs": 1,
+   "blocked_ticks": 113,
+   "travel_m": 4.6364
+  },
+  "ur_w": {
+   "completed_legs": 2,
+   "blocked_ticks": 224,
+   "travel_m": 6.5787
+  },
+  "franka_s": {
+   "completed_legs": 0,
+   "blocked_ticks": 0,
+   "travel_m": 0.4917
+  }
+ },
+ "tasks": [
+  {
+   "id": 0,
+   "object": "ycb_soup_can",
+   "dest": [
+    -0.7,
+    0.5
+   ],
+   "dest_by": "model",
+   "arm": "ur_w",
+   "done": true,
+   "failed": false,
+   "attempts": 0,
+   "submit_tick": 0,
+   "claim_tick": 0,
+   "done_tick": 246,
+   "wait_ticks": 0,
+   "exec_start_tick": 0,
+   "travel_leg_m": 2.1245,
+   "blocked_ticks": 0,
+   "kind": "primary",
+   "waiting_on": null,
+   "required_zones": [
+    "nw"
+   ]
+  },
+  {
+   "id": 1,
+   "object": "ycb_banana",
+   "dest": [
+    -0.7,
+    0.5
+   ],
+   "dest_by": "model",
+   "arm": "franka_n",
+   "done": true,
+   "failed": false,
+   "attempts": 0,
+   "submit_tick": 0,
+   "claim_tick": 0,
+   "done_tick": 678,
+   "wait_ticks": 0,
+   "exec_start_tick": 0,
+   "travel_leg_m": 3.2899,
+   "blocked_ticks": 11,
+   "kind": "primary",
+   "waiting_on": null,
+   "required_zones": [
+    "center",
+    "nw"
+   ]
+  },
+  {
+   "id": 2,
+   "object": "ycb_gelatin_box",
+   "dest": [
+    -0.7,
+    0.5
+   ],
+   "dest_by": "model",
+   "arm": "franka_n",
+   "done": true,
+   "failed": false,
+   "attempts": 0,
+   "submit_tick": 0,
+   "claim_tick": 887,
+   "done_tick": 1508,
+   "wait_ticks": 887,
+   "exec_start_tick": 887,
+   "travel_leg_m": 2.6612,
+   "blocked_ticks": 0,
+   "kind": "primary",
+   "waiting_on": null,
+   "required_zones": [
+    "center",
+    "nw"
+   ]
+  },
+  {
+   "id": 3,
+   "object": "ycb_meat_can",
+   "dest": [
+    -0.7,
+    0.5
+   ],
+   "dest_by": "model",
+   "arm": "ur_w",
+   "done": true,
+   "failed": false,
+   "attempts": 0,
+   "submit_tick": 0,
+   "claim_tick": 332,
+   "done_tick": 876,
+   "wait_ticks": 332,
+   "exec_start_tick": 332,
+   "travel_leg_m": 2.7425,
+   "blocked_ticks": 224,
+   "kind": "primary",
+   "waiting_on": null,
+   "required_zones": [
+    "nw",
+    "sw"
+   ]
+  },
+  {
+   "id": 5,
+   "object": "ycb_gelatin_box",
+   "dest": [
+    0.0,
+    0.0
+   ],
+   "dest_by": "router",
+   "arm": "ur_e",
+   "done": true,
+   "failed": false,
+   "attempts": 0,
+   "submit_tick": 0,
+   "claim_tick": 0,
+   "done_tick": 438,
+   "wait_ticks": 0,
+   "exec_start_tick": 0,
+   "travel_leg_m": 3.7449,
+   "blocked_ticks": 113,
+   "kind": "handover_leg",
+   "waiting_on": null,
+   "required_zones": [
+    "center",
+    "ne"
+   ]
+  }
+ ],
+ "events": [
+  {
+   "tick": 295,
+   "type": "near_miss",
+   "arms": [
+    "ur_e",
+    "franka_s"
+   ],
+   "ee_dist_m": 0.239,
+   "ee_pos": {
+    "ur_e": [
+     0.11,
+     -0.02,
+     1.29
+    ],
+    "franka_s": [
+     0.0,
+     -0.21,
+     1.21
+    ]
+   },
+   "states": {
+    "ur_e": "TO_PLACE",
+    "franka_s": "IDLE"
+   },
+   "locks": {
+    "ur_e": [
+     "center"
+    ],
+    "franka_s": []
+   }
+  },
+  {
+   "tick": 331,
+   "type": "arm_idle",
+   "arm": "ur_w"
+  },
+  {
+   "tick": 522,
+   "type": "arm_idle",
+   "arm": "ur_e"
+  },
+  {
+   "tick": 886,
+   "type": "arm_idle",
+   "arm": "franka_n"
+  },
+  {
+   "tick": 955,
+   "type": "arm_idle",
+   "arm": "ur_w"
+  }
+ ],
+ "locks": {
+  "by_zone": {
+   "nw": {
+    "acquires": 4,
+    "reserves": 4
+   },
+   "center": {
+    "acquires": 3,
+    "reserves": 3
+   },
+   "ne": {
+    "acquires": 1,
+    "reserves": 1
+   },
+   "sw": {
+    "acquires": 1,
+    "reserves": 1
+   }
+  },
+  "ledger": [
+   {
+    "tick": 0,
+    "action": "reserve",
+    "zone": "nw",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 0,
+    "action": "reserve",
+    "zone": "center",
+    "arm": "franka_n"
+   },
+   {
+    "tick": 0,
+    "action": "reserve",
+    "zone": "nw",
+    "arm": "franka_n"
+   },
+   {
+    "tick": 0,
+    "action": "reserve",
+    "zone": "center",
+    "arm": "ur_e"
+   },
+   {
+    "tick": 0,
+    "action": "reserve",
+    "zone": "ne",
+    "arm": "ur_e"
+   },
+   {
+    "tick": 0,
+    "action": "acquire",
+    "zone": "nw",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 0,
+    "action": "acquire",
+    "zone": "ne",
+    "arm": "ur_e"
+   },
+   {
+    "tick": 0,
+    "action": "acquire",
+    "zone": "center",
+    "arm": "franka_n"
+   },
+   {
+    "tick": 121,
+    "action": "release",
+    "zone": "ne",
+    "arm": "ur_e"
+   },
+   {
+    "tick": 234,
+    "action": "release",
+    "zone": "center",
+    "arm": "franka_n"
+   },
+   {
+    "tick": 235,
+    "action": "acquire",
+    "zone": "center",
+    "arm": "ur_e"
+   },
+   {
+    "tick": 246,
+    "action": "release",
+    "zone": "nw",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 246,
+    "action": "acquire",
+    "zone": "nw",
+    "arm": "franka_n"
+   },
+   {
+    "tick": 332,
+    "action": "reserve",
+    "zone": "nw",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 332,
+    "action": "reserve",
+    "zone": "sw",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 332,
+    "action": "acquire",
+    "zone": "sw",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 438,
+    "action": "release",
+    "zone": "center",
+    "arm": "ur_e"
+   },
+   {
+    "tick": 454,
+    "action": "release",
+    "zone": "sw",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 678,
+    "action": "release",
+    "zone": "nw",
+    "arm": "franka_n"
+   },
+   {
+    "tick": 679,
+    "action": "acquire",
+    "zone": "nw",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 876,
+    "action": "release",
+    "zone": "nw",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 887,
+    "action": "reserve",
+    "zone": "center",
+    "arm": "franka_n"
+   },
+   {
+    "tick": 887,
+    "action": "reserve",
+    "zone": "nw",
+    "arm": "franka_n"
+   },
+   {
+    "tick": 887,
+    "action": "acquire",
+    "zone": "center",
+    "arm": "franka_n"
+   },
+   {
+    "tick": 1140,
+    "action": "release",
+    "zone": "center",
+    "arm": "franka_n"
+   },
+   {
+    "tick": 1141,
+    "action": "acquire",
+    "zone": "nw",
+    "arm": "franka_n"
+   },
+   {
+    "tick": 1508,
+    "action": "release",
+    "zone": "nw",
+    "arm": "franka_n"
+   }
+  ]
+ },
+ "metrics": {
+  "wait_ticks_mean": 243.8,
+  "wait_ticks_max": 887,
+  "sorted_correct": 3,
+  "sorted_total": 4,
+  "model_latency_ms_mean": 3109.2,
+  "min_arm_distance_m": {
+   "ur_w|ur_e": 0.617,
+   "ur_w|franka_s": 0.583,
+   "ur_w|franka_n": 0.391,
+   "ur_e|franka_s": 0.214,
+   "ur_e|franka_n": 0.561,
+   "franka_s|franka_n": 0.288
+  },
+  "travel_m_total": 19.0378,
+  "pad_wait_by_pad": {},
+  "pad_wait_ticks_total": 0,
+  "phase_dwell": [
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "TO_PICK",
+    "ticks_to_idle": 331
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "DESCEND",
+    "ticks_to_idle": 298
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "ATTACH",
+    "ticks_to_idle": 273
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "LIFT",
+    "ticks_to_idle": 272
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "TO_PLACE",
+    "ticks_to_idle": 236
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "LOWER",
+    "ticks_to_idle": 197
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "RELEASE",
+    "ticks_to_idle": 182
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "RETREAT",
+    "ticks_to_idle": 152
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "GO_HOME",
+    "ticks_to_idle": 133
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "PRE_TUCK",
+    "ticks_to_idle": 85
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "SETTLING",
+    "ticks_to_idle": 60
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "TO_PICK",
+    "ticks_to_idle": 522
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "DESCEND",
+    "ticks_to_idle": 469
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "ATTACH",
+    "ticks_to_idle": 443
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "LIFT",
+    "ticks_to_idle": 442
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "TO_PLACE",
+    "ticks_to_idle": 401
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "LOWER",
+    "ticks_to_idle": 215
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "RELEASE",
+    "ticks_to_idle": 205
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "RETREAT",
+    "ticks_to_idle": 175
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "GO_HOME",
+    "ticks_to_idle": 153
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "PRE_TUCK",
+    "ticks_to_idle": 84
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "SETTLING",
+    "ticks_to_idle": 61
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "TO_PICK",
+    "ticks_to_idle": 886
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "DESCEND",
+    "ticks_to_idle": 821
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "ATTACH",
+    "ticks_to_idle": 700
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "LIFT",
+    "ticks_to_idle": 699
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "TO_PLACE",
+    "ticks_to_idle": 652
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "LOWER",
+    "ticks_to_idle": 531
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "RELEASE",
+    "ticks_to_idle": 475
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "RETREAT",
+    "ticks_to_idle": 445
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "GO_HOME",
+    "ticks_to_idle": 412
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "PRE_TUCK",
+    "ticks_to_idle": 208
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "SETTLING",
+    "ticks_to_idle": 151
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "TO_PICK",
+    "ticks_to_idle": 623
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "DESCEND",
+    "ticks_to_idle": 566
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "ATTACH",
+    "ticks_to_idle": 541
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "LIFT",
+    "ticks_to_idle": 540
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "TO_PLACE",
+    "ticks_to_idle": 501
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "LOWER",
+    "ticks_to_idle": 200
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "RELEASE",
+    "ticks_to_idle": 179
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "RETREAT",
+    "ticks_to_idle": 149
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "GO_HOME",
+    "ticks_to_idle": 129
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "PRE_TUCK",
+    "ticks_to_idle": 79
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "SETTLING",
+    "ticks_to_idle": 55
+   }
+  ]
+ },
+ "allocator": {
+  "stats": {
+   "region_mismatches": 0,
+   "calls": 15,
+   "valid_first": 5,
+   "valid_after_feedback": 0,
+   "fallback": 0,
+   "noop": 5,
+   "errors": 0,
+   "rule_assigned": 0,
+   "oracle_resolved": 0,
+   "latency_ms_total": 46637.5,
+   "violations": {
+    "CAPABILITY": 2,
+    "NO_ROUTE": 2,
+    "ARM_NOT_IDLE": 1
+   },
+   "noop_watchdog_fired": 2
+  },
+  "log": [
+   {
+    "round": 1,
+    "result": "valid_first",
+    "task_id": 0,
+    "arm": "ur_w",
+    "basket": "basket_food",
+    "rejected": [],
+    "arm_by": "model",
+    "dest_by": "model",
+    "via_pad": null,
+    "pad_by": null,
+    "route_inserted": false,
+    "latency_ms": 3797.0,
+    "reason": "ur_w can reach and handle the soup can, and deliver it directly to the food basket in the same zone.",
+    "basket_expected": "basket_food",
+    "basket_correct": true,
+    "regions_declared": [
+     "nw"
+    ],
+    "regions_required": [
+     "nw"
+    ],
+    "region_mismatch": false
+   },
+   {
+    "round": 1,
+    "result": "valid_first",
+    "task_id": 1,
+    "arm": "franka_n",
+    "basket": "basket_food",
+    "rejected": [],
+    "arm_by": "model",
+    "dest_by": "model",
+    "via_pad": null,
+    "pad_by": null,
+    "route_inserted": false,
+    "latency_ms": 3414.0,
+    "reason": "franka_n can reach the banana and deliver it to the food basket in nw zone.",
+    "basket_expected": "basket_food",
+    "basket_correct": true,
+    "regions_declared": [
+     "center",
+     "nw"
+    ],
+    "regions_required": [
+     "center",
+     "nw"
+    ],
+    "region_mismatch": false
+   },
+   {
+    "round": 1,
+    "result": "valid_first",
+    "task_id": 2,
+    "arm": "ur_e",
+    "basket": "basket_food",
+    "rejected": [],
+    "arm_by": "model",
+    "dest_by": "model",
+    "via_pad": "center",
+    "pad_by": "router",
+    "route_inserted": true,
+    "latency_ms": 3528.8,
+    "reason": "ur_e can reach ycb_gelatin_box and deliver it to basket_food via handover at pad_ne.",
+    "basket_expected": "basket_food",
+    "basket_correct": true,
+    "regions_declared": [
+     "ne",
+     "nw"
+    ],
+    "regions_required": [
+     "ne",
+     "nw"
+    ],
+    "region_mismatch": false,
+    "avoidable_relay": false,
+    "direct_idle_arms": []
+   },
+   {
+    "round": 1,
+    "result": "noop",
+    "latency_ms": 6145.0,
+    "rejected": [
+     {
+      "attempt": 1,
+      "task_id": 3,
+      "arm": "franka_s",
+      "via_pad": null,
+      "basket": "basket_food",
+      "model_reason": "franka_s can pick up ycb_meat_can and deliver it to basket_food in nw zone",
+      "rejected_because": "arm franka_s cannot grasp object ycb_meat_can",
+      "violation": "CAPABILITY",
+      "violation_rule": "R3",
+      "unparseable": false
+     }
+    ],
+    "attempt": 2,
+    "reason": "franka_s cannot grasp ycb_meat_can due to its max_grasp_m limit; no other idle arm can handle the queued task"
+   },
+   {
+    "round": 242,
+    "result": "noop",
+    "latency_ms": 6006.2,
+    "rejected": [
+     {
+      "attempt": 1,
+      "task_id": 3,
+      "arm": "franka_s",
+      "via_pad": null,
+      "basket": "basket_food",
+      "model_reason": "franka_s can pick up ycb_meat_can and deliver it to basket_food in nw zone",
+      "rejected_because": "arm franka_s cannot grasp object ycb_meat_can",
+      "violation": "CAPABILITY",
+      "violation_rule": "R3",
+      "unparseable": false
+     }
+    ],
+    "attempt": 2,
+    "reason": "franka_s cannot grasp ycb_meat_can due to its max_grasp_m limit; no other idle arms are available"
+   },
+   {
+    "round": 333,
+    "result": "valid_first",
+    "task_id": 3,
+    "arm": "ur_w",
+    "basket": "basket_food",
+    "rejected": [],
+    "arm_by": "model",
+    "dest_by": "model",
+    "via_pad": null,
+    "pad_by": null,
+    "route_inserted": false,
+    "latency_ms": 3167.4,
+    "reason": "ur_w can reach ycb_meat_can and deliver it to basket_food in nw zone.",
+    "basket_expected": "basket_food",
+    "basket_correct": true,
+    "regions_declared": [
+     "nw",
+     "sw"
+    ],
+    "regions_required": [
+     "nw",
+     "sw"
+    ],
+    "region_mismatch": false
+   },
+   {
+    "round": 440,
+    "result": "noop",
+    "latency_ms": 6141.0,
+    "rejected": [
+     {
+      "attempt": 1,
+      "task_id": 2,
+      "arm": "franka_s",
+      "via_pad": null,
+      "basket": "basket_food",
+      "model_reason": "franka_s can reach the gelatin box at center pad and deliver it to the food basket in nw zone.",
+      "rejected_because": "arm franka_s cannot reach both the object and destination, and no handover route exists with it on the first leg",
+      "violation": "NO_ROUTE",
+      "violation_rule": "R5",
+      "unparseable": false
+     }
+    ],
+    "attempt": 2,
+    "reason": "No idle arm can reach both the object and destination for task 2; franka_s cannot reach the destination in nw zone, and no valid handover route exists."
+   },
+   {
+    "round": 524,
+    "result": "noop",
+    "latency_ms": 5745.8,
+    "rejected": [
+     {
+      "attempt": 1,
+      "task_id": 2,
+      "arm": "franka_n",
+      "via_pad": null,
+      "basket": "basket_food",
+      "model_reason": "franka_n can reach both the center pad and the destination in nw zone",
+      "rejected_because": "arm franka_n is not idle",
+      "violation": "ARM_NOT_IDLE",
+      "violation_rule": "R2",
+      "unparseable": false
+     }
+    ],
+    "attempt": 2,
+    "reason": "franka_n is not idle; ur_e and franka_s cannot reach the center pad where ycb_gelatin_box is located"
+   },
+   {
+    "round": 681,
+    "result": "noop",
+    "latency_ms": 5843.9,
+    "rejected": [
+     {
+      "attempt": 1,
+      "task_id": 2,
+      "arm": "ur_e",
+      "via_pad": null,
+      "basket": "basket_food",
+      "model_reason": "ur_e can reach both the center pad and the destination in nw zone.",
+      "rejected_because": "arm ur_e cannot reach both the object and destination, and no handover route exists with it on the first leg",
+      "violation": "NO_ROUTE",
+      "violation_rule": "R5",
+      "unparseable": false
+     }
+    ],
+    "attempt": 2,
+    "reason": "No idle arm can reach both the object ycb_gelatin_box at center and its destination in nw zone; waiting for ur_w to complete its current task."
+   },
+   {
+    "round": 888,
+    "result": "valid_first",
+    "task_id": 2,
+    "arm": "franka_n",
+    "basket": "basket_food",
+    "rejected": [],
+    "arm_by": "model",
+    "dest_by": "model",
+    "via_pad": null,
+    "pad_by": null,
+    "route_inserted": false,
+    "latency_ms": 2848.2,
+    "reason": "franka_n can reach both the center pad and the destination in nw zone",
+    "basket_expected": "basket_food",
+    "basket_correct": true,
+    "regions_declared": [
+     "center",
+     "nw"
+    ],
+    "regions_required": [
+     "center",
+     "nw"
+    ],
+    "region_mismatch": false
+   }
+  ]
+ }
+}

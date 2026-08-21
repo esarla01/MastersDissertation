@@ -1,0 +1,68 @@
+rows 1759 | errors dropped 103 | null scenes dropped 296
+
+CELL COMPLETENESS (expect 66; 33 per pose)
+gpt    P0 66  P1 66  P2 66  P3a 66  P3 66  P4 66  
+qwen   P0 66  P1 66  P2 66  P3a 66  P3 66  P4 66  
+gemini P0 66  P1 66  P2 66  P3a 66  P3 66  P4 66  
+
+CORRECT WIDTH, per-scene majority (n=11 per pose)
+rung  gpt ly/up      qwen ly/up     gemini ly/up
+P0   3/11 11/11    10/11 3/11    9/11 11/11    
+P1   2/11 11/11    11/11 1/11    9/11 11/11    
+P2   4/11 11/11    11/11 0/11    9/11 11/11    
+P3a  3/11 11/11    11/11 0/11    11/11 11/11   
+P3   8/11 11/11    11/11 0/11    11/11 11/11   
+P4   8/11 11/11    11/11 1/11    10/11 11/11   
+
+POSITIONS RESOLVED IN BOTH POSES (prose figure, n=11)
+P0   3/11      2/11      9/11      
+P1   2/11      1/11      9/11      
+P2   4/11      0/11      9/11      
+P3a  3/11      0/11      11/11     
+P3   8/11      0/11      11/11     
+P4   8/11      1/11      10/11     
+
+UNANIMOUS LYING SCENES ACROSS 3 REPEATS (out of 11)
+P0   5/11      9/11      7/11      
+P1   4/11      11/11     8/11      
+P2   4/11      11/11     5/11      
+P3a  4/11      11/11     5/11      
+P3   5/11      11/11     7/11      
+P4   6/11      11/11     8/11      
+
+FAILURE TAXONOMY: lying trials with wrong width (out of 33)
+model   rung wrong  says-up says-lying  silent
+gpt     P0      20       11          5       4
+gpt     P1      20       13          5       2
+gpt     P2      18        8          7       3
+gpt     P3a     23        8          3      12
+gpt     P3      11        9          2       0
+gpt     P4      12       10          2       0
+qwen    P0       3        0          0       3
+qwen    P1       0        0          0       0
+qwen    P2       0        0          0       0
+qwen    P3a      0        0          0       0
+qwen    P3       0        0          0       0
+qwen    P4       0        0          0       0
+gemini  P0       8        2          0       6
+gemini  P1       5        0          2       3
+gemini  P2       8        0          0       8
+gemini  P3a      6        0          1       5
+gemini  P3       4        0          4       0
+gemini  P4       4        0          4       0
+
+QWEN LEGALITY, lying scenes, per-scene majority
+  P0   8/11
+  P1   6/11
+  P2   7/11
+  P3a  11/11
+  P3   11/11
+  P4   11/11
+
+STATED WIDTH DISTRIBUTIONS (fallback claim; all rungs pooled)
+  gpt     lying    {0.096: 110, 0.058: 121}
+  gpt     upright  {0.058: 231}
+  qwen    lying    {0.096: 227, 0.058: 4}
+  qwen    upright  {0.096: 213, 0.058: 18}
+  gemini  lying    {0.096: 176, 0.058: 40, 0.191: 1}
+  gemini  upright  {0.058: 217, 0.096: 2}

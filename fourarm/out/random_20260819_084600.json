@@ -1,0 +1,2982 @@
+{
+ "meta": {
+  "seed": 104,
+  "layout": "set_b",
+  "allocator": "random",
+  "condition": null,
+  "disruptions": "none",
+  "prompt_version": "2026-08-01a",
+  "eligible_arms": false,
+  "timing": "distance",
+  "b2_objective": null,
+  "b2_contention": null,
+  "scene": "ycb",
+  "objects": 10,
+  "started_utc": "2026-08-19T08:52:00Z",
+  "schema_version": 4,
+  "settle_wait": 0,
+  "settle_phases": "tight",
+  "finished_utc": "2026-08-19T08:52:00Z",
+  "verdict": "CHECK"
+ },
+ "summary": {
+  "verdict": "CHECK",
+  "sorted": "9/10",
+  "makespan_ticks": 4863,
+  "tasks_done": 16,
+  "tasks_failed": 0,
+  "requeued": 0,
+  "contended_claims": 5,
+  "blocked_ticks_total": 432,
+  "events_summary": {
+   "handover_wait": 5,
+   "near_miss": 2,
+   "arm_idle": 15
+  }
+ },
+ "objects": [
+  {
+   "name": "ycb_tuna_can",
+   "category": "food",
+   "dist_cm": 15.6,
+   "sorted": true,
+   "spawn_xy": [
+    0.56,
+    -0.56
+   ]
+  },
+  {
+   "name": "ycb_sugar_box",
+   "category": "food",
+   "dist_cm": 15.0,
+   "sorted": true,
+   "spawn_xy": [
+    0.67,
+    0.09
+   ]
+  },
+  {
+   "name": "ycb_mac_n_cheese",
+   "category": "food",
+   "dist_cm": 15.0,
+   "sorted": true,
+   "spawn_xy": [
+    -0.2,
+    -0.21
+   ]
+  },
+  {
+   "name": "ycb_foam_brick",
+   "category": "kitchenware",
+   "dist_cm": 15.0,
+   "sorted": true,
+   "spawn_xy": [
+    0.22,
+    0.15
+   ]
+  },
+  {
+   "name": "ycb_scissors",
+   "category": "kitchenware",
+   "dist_cm": 15.0,
+   "sorted": true,
+   "spawn_xy": [
+    0.07,
+    -0.28
+   ]
+  },
+  {
+   "name": "ycb_bleach",
+   "category": "kitchenware",
+   "dist_cm": 10.9,
+   "sorted": true,
+   "spawn_xy": [
+    -0.59,
+    0.08
+   ]
+  },
+  {
+   "name": "ycb_bracket_small",
+   "category": "tools",
+   "dist_cm": 14.5,
+   "sorted": true,
+   "spawn_xy": [
+    0.78,
+    -0.17
+   ]
+  },
+  {
+   "name": "ycb_screw_99",
+   "category": "tools",
+   "dist_cm": 15.8,
+   "sorted": true,
+   "spawn_xy": [
+    0.23,
+    -0.48
+   ]
+  },
+  {
+   "name": "ycb_t_connector",
+   "category": "tools",
+   "dist_cm": 15.0,
+   "sorted": true,
+   "spawn_xy": [
+    0.25,
+    0.4
+   ]
+  },
+  {
+   "name": "ycb_caster",
+   "category": "tools",
+   "dist_cm": 19.9,
+   "sorted": false,
+   "spawn_xy": [
+    -0.41,
+    0.46
+   ]
+  }
+ ],
+ "per_arm": {
+  "franka_s": {
+   "completed_legs": 5,
+   "blocked_ticks": 0,
+   "travel_m": 16.8315
+  },
+  "franka_n": {
+   "completed_legs": 3,
+   "blocked_ticks": 156,
+   "travel_m": 8.6704
+  },
+  "ur_e": {
+   "completed_legs": 4,
+   "blocked_ticks": 0,
+   "travel_m": 16.2874
+  },
+  "ur_w": {
+   "completed_legs": 4,
+   "blocked_ticks": 276,
+   "travel_m": 14.9322
+  }
+ },
+ "tasks": [
+  {
+   "id": 0,
+   "object": "ycb_tuna_can",
+   "dest": [
+    -0.7,
+    0.5
+   ],
+   "dest_by": "given",
+   "arm": "ur_w",
+   "done": true,
+   "failed": false,
+   "attempts": 0,
+   "submit_tick": 0,
+   "claim_tick": 992,
+   "done_tick": 1284,
+   "wait_ticks": 992,
+   "exec_start_tick": 992,
+   "travel_leg_m": 2.9042,
+   "blocked_ticks": 0,
+   "kind": "primary",
+   "waiting_on": null,
+   "required_zones": [
+    "nw",
+    "sw"
+   ]
+  },
+  {
+   "id": 1,
+   "object": "ycb_sugar_box",
+   "dest": [
+    -0.7,
+    0.5
+   ],
+   "dest_by": "given",
+   "arm": "ur_w",
+   "done": true,
+   "failed": false,
+   "attempts": 0,
+   "submit_tick": 0,
+   "claim_tick": 2727,
+   "done_tick": 3000,
+   "wait_ticks": 2727,
+   "exec_start_tick": 2727,
+   "travel_leg_m": 2.975,
+   "blocked_ticks": 0,
+   "kind": "primary",
+   "waiting_on": null,
+   "required_zones": [
+    "center",
+    "nw"
+   ]
+  },
+  {
+   "id": 2,
+   "object": "ycb_mac_n_cheese",
+   "dest": [
+    -0.7,
+    0.5
+   ],
+   "dest_by": "given",
+   "arm": "ur_w",
+   "done": true,
+   "failed": false,
+   "attempts": 0,
+   "submit_tick": 0,
+   "claim_tick": 555,
+   "done_tick": 906,
+   "wait_ticks": 555,
+   "exec_start_tick": 555,
+   "travel_leg_m": 2.8669,
+   "blocked_ticks": 74,
+   "kind": "primary",
+   "waiting_on": null,
+   "required_zones": [
+    "center",
+    "nw"
+   ]
+  },
+  {
+   "id": 3,
+   "object": "ycb_foam_brick",
+   "dest": [
+    0.7,
+    0.5
+   ],
+   "dest_by": "given",
+   "arm": "franka_n",
+   "done": true,
+   "failed": false,
+   "attempts": 0,
+   "submit_tick": 0,
+   "claim_tick": 475,
+   "done_tick": 961,
+   "wait_ticks": 475,
+   "exec_start_tick": 475,
+   "travel_leg_m": 1.5652,
+   "blocked_ticks": 0,
+   "kind": "primary",
+   "waiting_on": null,
+   "required_zones": [
+    "center",
+    "ne"
+   ]
+  },
+  {
+   "id": 4,
+   "object": "ycb_scissors",
+   "dest": [
+    0.7,
+    0.5
+   ],
+   "dest_by": "given",
+   "arm": "ur_e",
+   "done": true,
+   "failed": false,
+   "attempts": 0,
+   "submit_tick": 0,
+   "claim_tick": 1,
+   "done_tick": 291,
+   "wait_ticks": 1,
+   "exec_start_tick": 1,
+   "travel_leg_m": 3.2068,
+   "blocked_ticks": 0,
+   "kind": "primary",
+   "waiting_on": null,
+   "required_zones": [
+    "center",
+    "ne"
+   ]
+  },
+  {
+   "id": 5,
+   "object": "ycb_bleach",
+   "dest": [
+    0.7,
+    0.5
+   ],
+   "dest_by": "given",
+   "arm": "ur_e",
+   "done": true,
+   "failed": false,
+   "attempts": 0,
+   "submit_tick": 0,
+   "claim_tick": 918,
+   "done_tick": 1193,
+   "wait_ticks": 918,
+   "exec_start_tick": 918,
+   "travel_leg_m": 3.1452,
+   "blocked_ticks": 0,
+   "kind": "primary",
+   "waiting_on": null,
+   "required_zones": [
+    "center",
+    "ne"
+   ]
+  },
+  {
+   "id": 6,
+   "object": "ycb_bracket_small",
+   "dest": [
+    -0.7,
+    -0.5
+   ],
+   "dest_by": "given",
+   "arm": "franka_s",
+   "done": true,
+   "failed": false,
+   "attempts": 0,
+   "submit_tick": 0,
+   "claim_tick": 3388,
+   "done_tick": 3846,
+   "wait_ticks": 3388,
+   "exec_start_tick": 3388,
+   "travel_leg_m": 2.0482,
+   "blocked_ticks": 0,
+   "kind": "primary",
+   "waiting_on": null,
+   "required_zones": [
+    "center",
+    "sw"
+   ]
+  },
+  {
+   "id": 7,
+   "object": "ycb_screw_99",
+   "dest": [
+    -0.7,
+    -0.5
+   ],
+   "dest_by": "given",
+   "arm": "franka_s",
+   "done": true,
+   "failed": false,
+   "attempts": 0,
+   "submit_tick": 0,
+   "claim_tick": 917,
+   "done_tick": 1442,
+   "wait_ticks": 917,
+   "exec_start_tick": 917,
+   "travel_leg_m": 2.5761,
+   "blocked_ticks": 0,
+   "kind": "primary",
+   "waiting_on": null,
+   "required_zones": [
+    "se",
+    "sw"
+   ]
+  },
+  {
+   "id": 8,
+   "object": "ycb_t_connector",
+   "dest": [
+    -0.7,
+    -0.5
+   ],
+   "dest_by": "given",
+   "arm": "franka_s",
+   "done": true,
+   "failed": false,
+   "attempts": 0,
+   "submit_tick": 0,
+   "claim_tick": 4406,
+   "done_tick": 4862,
+   "wait_ticks": 4406,
+   "exec_start_tick": 4406,
+   "travel_leg_m": 2.1344,
+   "blocked_ticks": 0,
+   "kind": "primary",
+   "waiting_on": null,
+   "required_zones": [
+    "center",
+    "sw"
+   ]
+  },
+  {
+   "id": 9,
+   "object": "ycb_caster",
+   "dest": [
+    -0.7,
+    -0.5
+   ],
+   "dest_by": "given",
+   "arm": "franka_s",
+   "done": true,
+   "failed": false,
+   "attempts": 0,
+   "submit_tick": 0,
+   "claim_tick": 1697,
+   "done_tick": 2276,
+   "wait_ticks": 1697,
+   "exec_start_tick": 1697,
+   "travel_leg_m": 2.6214,
+   "blocked_ticks": 0,
+   "kind": "primary",
+   "waiting_on": null,
+   "required_zones": [
+    "center",
+    "sw"
+   ]
+  },
+  {
+   "id": 10,
+   "object": "ycb_tuna_can",
+   "dest": [
+    -0.42,
+    -0.28
+   ],
+   "dest_by": "rule",
+   "arm": "franka_s",
+   "done": true,
+   "failed": false,
+   "attempts": 0,
+   "submit_tick": 0,
+   "claim_tick": 0,
+   "done_tick": 693,
+   "wait_ticks": 0,
+   "exec_start_tick": 0,
+   "travel_leg_m": 2.8452,
+   "blocked_ticks": 0,
+   "kind": "handover_leg",
+   "waiting_on": null,
+   "required_zones": [
+    "se",
+    "sw"
+   ]
+  },
+  {
+   "id": 14,
+   "object": "ycb_bleach",
+   "dest": [
+    0.0,
+    0.0
+   ],
+   "dest_by": "rule",
+   "arm": "ur_w",
+   "done": true,
+   "failed": false,
+   "attempts": 0,
+   "submit_tick": 0,
+   "claim_tick": 0,
+   "done_tick": 474,
+   "wait_ticks": 0,
+   "exec_start_tick": 0,
+   "travel_leg_m": 3.0291,
+   "blocked_ticks": 202,
+   "kind": "handover_leg",
+   "waiting_on": null,
+   "required_zones": [
+    "center",
+    "nw"
+   ]
+  },
+  {
+   "id": 26,
+   "object": "ycb_caster",
+   "dest": [
+    0.0,
+    0.0
+   ],
+   "dest_by": "rule",
+   "arm": "franka_n",
+   "done": true,
+   "failed": false,
+   "attempts": 0,
+   "submit_tick": 1128,
+   "claim_tick": 1128,
+   "done_tick": 1696,
+   "wait_ticks": 0,
+   "exec_start_tick": 1128,
+   "travel_leg_m": 2.1639,
+   "blocked_ticks": 156,
+   "kind": "handover_leg",
+   "waiting_on": null,
+   "required_zones": [
+    "center",
+    "nw"
+   ]
+  },
+  {
+   "id": 35,
+   "object": "ycb_sugar_box",
+   "dest": [
+    0.0,
+    0.0
+   ],
+   "dest_by": "rule",
+   "arm": "ur_e",
+   "done": true,
+   "failed": false,
+   "attempts": 0,
+   "submit_tick": 2434,
+   "claim_tick": 2434,
+   "done_tick": 2726,
+   "wait_ticks": 0,
+   "exec_start_tick": 2434,
+   "travel_leg_m": 3.2967,
+   "blocked_ticks": 0,
+   "kind": "handover_leg",
+   "waiting_on": null,
+   "required_zones": [
+    "center",
+    "ne"
+   ]
+  },
+  {
+   "id": 42,
+   "object": "ycb_bracket_small",
+   "dest": [
+    0.0,
+    0.0
+   ],
+   "dest_by": "rule",
+   "arm": "ur_e",
+   "done": true,
+   "failed": false,
+   "attempts": 0,
+   "submit_tick": 3079,
+   "claim_tick": 3079,
+   "done_tick": 3387,
+   "wait_ticks": 0,
+   "exec_start_tick": 3079,
+   "travel_leg_m": 3.5246,
+   "blocked_ticks": 0,
+   "kind": "handover_leg",
+   "waiting_on": null,
+   "required_zones": [
+    "center",
+    "se"
+   ]
+  },
+  {
+   "id": 47,
+   "object": "ycb_t_connector",
+   "dest": [
+    0.0,
+    0.0
+   ],
+   "dest_by": "rule",
+   "arm": "franka_n",
+   "done": true,
+   "failed": false,
+   "attempts": 0,
+   "submit_tick": 3976,
+   "claim_tick": 3976,
+   "done_tick": 4405,
+   "wait_ticks": 0,
+   "exec_start_tick": 3976,
+   "travel_leg_m": 2.0068,
+   "blocked_ticks": 0,
+   "kind": "handover_leg",
+   "waiting_on": null,
+   "required_zones": [
+    "center",
+    "ne"
+   ]
+  }
+ ],
+ "events": [
+  {
+   "tick": 0,
+   "type": "handover_wait",
+   "task": 9,
+   "pad": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "tick": 1,
+   "type": "handover_wait",
+   "task": 8,
+   "pad": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "tick": 25,
+   "type": "near_miss",
+   "arms": [
+    "ur_e",
+    "franka_s"
+   ],
+   "ee_dist_m": 0.221,
+   "ee_pos": {
+    "ur_e": [
+     0.26,
+     -0.26,
+     1.35
+    ],
+    "franka_s": [
+     0.25,
+     -0.36,
+     1.15
+    ]
+   },
+   "states": {
+    "ur_e": "TO_PICK",
+    "franka_s": "TO_PICK"
+   },
+   "locks": {
+    "ur_e": [
+     "center"
+    ],
+    "franka_s": [
+     "se"
+    ]
+   }
+  },
+  {
+   "tick": 330,
+   "type": "near_miss",
+   "arms": [
+    "ur_w",
+    "franka_n"
+   ],
+   "ee_dist_m": 0.25,
+   "ee_pos": {
+    "ur_w": [
+     -0.15,
+     0.02,
+     1.16
+    ],
+    "franka_n": [
+     -0.0,
+     0.21,
+     1.21
+    ]
+   },
+   "states": {
+    "ur_w": "TO_PLACE",
+    "franka_n": "IDLE"
+   },
+   "locks": {
+    "ur_w": [
+     "center"
+    ],
+    "franka_n": []
+   }
+  },
+  {
+   "tick": 369,
+   "type": "arm_idle",
+   "arm": "ur_e"
+  },
+  {
+   "tick": 370,
+   "type": "handover_wait",
+   "task": 6,
+   "pad": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "tick": 475,
+   "type": "handover_wait",
+   "task": 7,
+   "pad": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "tick": 554,
+   "type": "arm_idle",
+   "arm": "ur_w"
+  },
+  {
+   "tick": 916,
+   "type": "arm_idle",
+   "arm": "franka_s"
+  },
+  {
+   "tick": 917,
+   "type": "handover_wait",
+   "task": 1,
+   "pad": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "tick": 991,
+   "type": "arm_idle",
+   "arm": "ur_w"
+  },
+  {
+   "tick": 1127,
+   "type": "arm_idle",
+   "arm": "franka_n"
+  },
+  {
+   "tick": 1271,
+   "type": "arm_idle",
+   "arm": "ur_e"
+  },
+  {
+   "tick": 1367,
+   "type": "arm_idle",
+   "arm": "ur_w"
+  },
+  {
+   "tick": 1572,
+   "type": "arm_idle",
+   "arm": "franka_s"
+  },
+  {
+   "tick": 1830,
+   "type": "arm_idle",
+   "arm": "franka_n"
+  },
+  {
+   "tick": 2433,
+   "type": "arm_idle",
+   "arm": "franka_s"
+  },
+  {
+   "tick": 2807,
+   "type": "arm_idle",
+   "arm": "ur_e"
+  },
+  {
+   "tick": 3078,
+   "type": "arm_idle",
+   "arm": "ur_w"
+  },
+  {
+   "tick": 3470,
+   "type": "arm_idle",
+   "arm": "ur_e"
+  },
+  {
+   "tick": 3975,
+   "type": "arm_idle",
+   "arm": "franka_s"
+  },
+  {
+   "tick": 4531,
+   "type": "arm_idle",
+   "arm": "franka_n"
+  }
+ ],
+ "locks": {
+  "by_zone": {
+   "se": {
+    "acquires": 3,
+    "reserves": 3
+   },
+   "sw": {
+    "acquires": 6,
+    "reserves": 6
+   },
+   "center": {
+    "acquires": 13,
+    "reserves": 13
+   },
+   "nw": {
+    "acquires": 5,
+    "reserves": 5
+   },
+   "ne": {
+    "acquires": 5,
+    "reserves": 5
+   }
+  },
+  "ledger": [
+   {
+    "tick": 0,
+    "action": "reserve",
+    "zone": "se",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 0,
+    "action": "reserve",
+    "zone": "sw",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 0,
+    "action": "reserve",
+    "zone": "center",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 0,
+    "action": "reserve",
+    "zone": "nw",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 0,
+    "action": "acquire",
+    "zone": "nw",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 0,
+    "action": "acquire",
+    "zone": "se",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 1,
+    "action": "reserve",
+    "zone": "center",
+    "arm": "ur_e"
+   },
+   {
+    "tick": 1,
+    "action": "reserve",
+    "zone": "ne",
+    "arm": "ur_e"
+   },
+   {
+    "tick": 1,
+    "action": "acquire",
+    "zone": "center",
+    "arm": "ur_e"
+   },
+   {
+    "tick": 89,
+    "action": "release",
+    "zone": "nw",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 111,
+    "action": "acquire",
+    "zone": "ne",
+    "arm": "ur_e"
+   },
+   {
+    "tick": 291,
+    "action": "release",
+    "zone": "center",
+    "arm": "ur_e"
+   },
+   {
+    "tick": 291,
+    "action": "release",
+    "zone": "ne",
+    "arm": "ur_e"
+   },
+   {
+    "tick": 292,
+    "action": "acquire",
+    "zone": "center",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 346,
+    "action": "release",
+    "zone": "se",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 347,
+    "action": "acquire",
+    "zone": "sw",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 474,
+    "action": "release",
+    "zone": "center",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 475,
+    "action": "reserve",
+    "zone": "center",
+    "arm": "franka_n"
+   },
+   {
+    "tick": 475,
+    "action": "reserve",
+    "zone": "ne",
+    "arm": "franka_n"
+   },
+   {
+    "tick": 475,
+    "action": "acquire",
+    "zone": "center",
+    "arm": "franka_n"
+   },
+   {
+    "tick": 555,
+    "action": "reserve",
+    "zone": "center",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 555,
+    "action": "reserve",
+    "zone": "nw",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 628,
+    "action": "release",
+    "zone": "center",
+    "arm": "franka_n"
+   },
+   {
+    "tick": 629,
+    "action": "acquire",
+    "zone": "center",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 629,
+    "action": "acquire",
+    "zone": "ne",
+    "arm": "franka_n"
+   },
+   {
+    "tick": 693,
+    "action": "release",
+    "zone": "sw",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 735,
+    "action": "acquire",
+    "zone": "nw",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 906,
+    "action": "release",
+    "zone": "center",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 906,
+    "action": "release",
+    "zone": "nw",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 917,
+    "action": "reserve",
+    "zone": "se",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 917,
+    "action": "reserve",
+    "zone": "sw",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 917,
+    "action": "acquire",
+    "zone": "se",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 918,
+    "action": "reserve",
+    "zone": "center",
+    "arm": "ur_e"
+   },
+   {
+    "tick": 918,
+    "action": "reserve",
+    "zone": "ne",
+    "arm": "ur_e"
+   },
+   {
+    "tick": 918,
+    "action": "acquire",
+    "zone": "center",
+    "arm": "ur_e"
+   },
+   {
+    "tick": 961,
+    "action": "release",
+    "zone": "ne",
+    "arm": "franka_n"
+   },
+   {
+    "tick": 992,
+    "action": "reserve",
+    "zone": "nw",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 992,
+    "action": "reserve",
+    "zone": "sw",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 992,
+    "action": "acquire",
+    "zone": "sw",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 1026,
+    "action": "release",
+    "zone": "center",
+    "arm": "ur_e"
+   },
+   {
+    "tick": 1027,
+    "action": "acquire",
+    "zone": "ne",
+    "arm": "ur_e"
+   },
+   {
+    "tick": 1090,
+    "action": "release",
+    "zone": "sw",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 1090,
+    "action": "release",
+    "zone": "se",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 1091,
+    "action": "acquire",
+    "zone": "nw",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 1091,
+    "action": "acquire",
+    "zone": "sw",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 1128,
+    "action": "reserve",
+    "zone": "center",
+    "arm": "franka_n"
+   },
+   {
+    "tick": 1128,
+    "action": "reserve",
+    "zone": "nw",
+    "arm": "franka_n"
+   },
+   {
+    "tick": 1193,
+    "action": "release",
+    "zone": "ne",
+    "arm": "ur_e"
+   },
+   {
+    "tick": 1284,
+    "action": "release",
+    "zone": "nw",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 1284,
+    "action": "acquire",
+    "zone": "nw",
+    "arm": "franka_n"
+   },
+   {
+    "tick": 1428,
+    "action": "release",
+    "zone": "nw",
+    "arm": "franka_n"
+   },
+   {
+    "tick": 1429,
+    "action": "acquire",
+    "zone": "center",
+    "arm": "franka_n"
+   },
+   {
+    "tick": 1442,
+    "action": "release",
+    "zone": "sw",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 1696,
+    "action": "release",
+    "zone": "center",
+    "arm": "franka_n"
+   },
+   {
+    "tick": 1697,
+    "action": "reserve",
+    "zone": "center",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 1697,
+    "action": "reserve",
+    "zone": "sw",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 1697,
+    "action": "acquire",
+    "zone": "center",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 1940,
+    "action": "release",
+    "zone": "center",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 1941,
+    "action": "acquire",
+    "zone": "sw",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 2276,
+    "action": "release",
+    "zone": "sw",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 2434,
+    "action": "reserve",
+    "zone": "center",
+    "arm": "ur_e"
+   },
+   {
+    "tick": 2434,
+    "action": "reserve",
+    "zone": "ne",
+    "arm": "ur_e"
+   },
+   {
+    "tick": 2434,
+    "action": "acquire",
+    "zone": "ne",
+    "arm": "ur_e"
+   },
+   {
+    "tick": 2531,
+    "action": "release",
+    "zone": "ne",
+    "arm": "ur_e"
+   },
+   {
+    "tick": 2532,
+    "action": "acquire",
+    "zone": "center",
+    "arm": "ur_e"
+   },
+   {
+    "tick": 2726,
+    "action": "release",
+    "zone": "center",
+    "arm": "ur_e"
+   },
+   {
+    "tick": 2727,
+    "action": "reserve",
+    "zone": "center",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 2727,
+    "action": "reserve",
+    "zone": "nw",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 2727,
+    "action": "acquire",
+    "zone": "center",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 2834,
+    "action": "release",
+    "zone": "center",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 2835,
+    "action": "acquire",
+    "zone": "nw",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 3000,
+    "action": "release",
+    "zone": "nw",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 3079,
+    "action": "reserve",
+    "zone": "center",
+    "arm": "ur_e"
+   },
+   {
+    "tick": 3079,
+    "action": "reserve",
+    "zone": "se",
+    "arm": "ur_e"
+   },
+   {
+    "tick": 3079,
+    "action": "acquire",
+    "zone": "se",
+    "arm": "ur_e"
+   },
+   {
+    "tick": 3183,
+    "action": "release",
+    "zone": "se",
+    "arm": "ur_e"
+   },
+   {
+    "tick": 3184,
+    "action": "acquire",
+    "zone": "center",
+    "arm": "ur_e"
+   },
+   {
+    "tick": 3387,
+    "action": "release",
+    "zone": "center",
+    "arm": "ur_e"
+   },
+   {
+    "tick": 3388,
+    "action": "reserve",
+    "zone": "center",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 3388,
+    "action": "reserve",
+    "zone": "sw",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 3388,
+    "action": "acquire",
+    "zone": "center",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 3566,
+    "action": "release",
+    "zone": "center",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 3567,
+    "action": "acquire",
+    "zone": "sw",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 3846,
+    "action": "release",
+    "zone": "sw",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 3976,
+    "action": "reserve",
+    "zone": "center",
+    "arm": "franka_n"
+   },
+   {
+    "tick": 3976,
+    "action": "reserve",
+    "zone": "ne",
+    "arm": "franka_n"
+   },
+   {
+    "tick": 3976,
+    "action": "acquire",
+    "zone": "ne",
+    "arm": "franka_n"
+   },
+   {
+    "tick": 4140,
+    "action": "release",
+    "zone": "ne",
+    "arm": "franka_n"
+   },
+   {
+    "tick": 4141,
+    "action": "acquire",
+    "zone": "center",
+    "arm": "franka_n"
+   },
+   {
+    "tick": 4405,
+    "action": "release",
+    "zone": "center",
+    "arm": "franka_n"
+   },
+   {
+    "tick": 4406,
+    "action": "reserve",
+    "zone": "center",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 4406,
+    "action": "reserve",
+    "zone": "sw",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 4406,
+    "action": "acquire",
+    "zone": "center",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 4582,
+    "action": "release",
+    "zone": "center",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 4583,
+    "action": "acquire",
+    "zone": "sw",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 4862,
+    "action": "release",
+    "zone": "sw",
+    "arm": "franka_s"
+   }
+  ]
+ },
+ "metrics": {
+  "wait_ticks_mean": 1004.75,
+  "wait_ticks_max": 4406,
+  "sorted_correct": 9,
+  "sorted_total": 10,
+  "model_latency_ms_mean": 0.0,
+  "min_arm_distance_m": {
+   "ur_w|ur_e": 0.57,
+   "ur_w|franka_s": 0.339,
+   "ur_w|franka_n": 0.219,
+   "ur_e|franka_s": 0.221,
+   "ur_e|franka_n": 0.327,
+   "franka_s|franka_n": 0.357
+  },
+  "travel_m_total": 56.7215,
+  "pad_wait_by_pad": {
+   "center": 22
+  },
+  "pad_wait_ticks_total": 22,
+  "phase_dwell": [
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "TO_PICK",
+    "ticks_to_idle": 368
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "DESCEND",
+    "ticks_to_idle": 319
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "ATTACH",
+    "ticks_to_idle": 308
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "LIFT",
+    "ticks_to_idle": 307
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "TO_PLACE",
+    "ticks_to_idle": 259
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "LOWER",
+    "ticks_to_idle": 190
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "RELEASE",
+    "ticks_to_idle": 170
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "RETREAT",
+    "ticks_to_idle": 140
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "GO_HOME",
+    "ticks_to_idle": 118
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "PRE_TUCK",
+    "ticks_to_idle": 78
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "SETTLING",
+    "ticks_to_idle": 55
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "TO_PICK",
+    "ticks_to_idle": 554
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "DESCEND",
+    "ticks_to_idle": 524
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "ATTACH",
+    "ticks_to_idle": 505
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "LIFT",
+    "ticks_to_idle": 504
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "TO_PLACE",
+    "ticks_to_idle": 465
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "LOWER",
+    "ticks_to_idle": 211
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "RELEASE",
+    "ticks_to_idle": 200
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "RETREAT",
+    "ticks_to_idle": 170
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "GO_HOME",
+    "ticks_to_idle": 151
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "PRE_TUCK",
+    "ticks_to_idle": 80
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "SETTLING",
+    "ticks_to_idle": 57
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "TO_PICK",
+    "ticks_to_idle": 916
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "DESCEND",
+    "ticks_to_idle": 813
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "ATTACH",
+    "ticks_to_idle": 692
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "LIFT",
+    "ticks_to_idle": 691
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "TO_PLACE",
+    "ticks_to_idle": 570
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "LOWER",
+    "ticks_to_idle": 392
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "RELEASE",
+    "ticks_to_idle": 347
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "RETREAT",
+    "ticks_to_idle": 317
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "GO_HOME",
+    "ticks_to_idle": 294
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "PRE_TUCK",
+    "ticks_to_idle": 223
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "SETTLING",
+    "ticks_to_idle": 173
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "TO_PICK",
+    "ticks_to_idle": 436
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "DESCEND",
+    "ticks_to_idle": 319
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "ATTACH",
+    "ticks_to_idle": 307
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "LIFT",
+    "ticks_to_idle": 306
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "TO_PLACE",
+    "ticks_to_idle": 257
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "LOWER",
+    "ticks_to_idle": 200
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "RELEASE",
+    "ticks_to_idle": 184
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "RETREAT",
+    "ticks_to_idle": 154
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "GO_HOME",
+    "ticks_to_idle": 133
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "PRE_TUCK",
+    "ticks_to_idle": 85
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "SETTLING",
+    "ticks_to_idle": 60
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "TO_PICK",
+    "ticks_to_idle": 652
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "DESCEND",
+    "ticks_to_idle": 587
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "ATTACH",
+    "ticks_to_idle": 541
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "LIFT",
+    "ticks_to_idle": 540
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "TO_PLACE",
+    "ticks_to_idle": 499
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "LOWER",
+    "ticks_to_idle": 416
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "RELEASE",
+    "ticks_to_idle": 295
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "RETREAT",
+    "ticks_to_idle": 265
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "GO_HOME",
+    "ticks_to_idle": 237
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "PRE_TUCK",
+    "ticks_to_idle": 166
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "SETTLING",
+    "ticks_to_idle": 112
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "TO_PICK",
+    "ticks_to_idle": 353
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "DESCEND",
+    "ticks_to_idle": 300
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "ATTACH",
+    "ticks_to_idle": 290
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "LIFT",
+    "ticks_to_idle": 289
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "TO_PLACE",
+    "ticks_to_idle": 245
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "LOWER",
+    "ticks_to_idle": 187
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "RELEASE",
+    "ticks_to_idle": 172
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "RETREAT",
+    "ticks_to_idle": 142
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "GO_HOME",
+    "ticks_to_idle": 123
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "PRE_TUCK",
+    "ticks_to_idle": 78
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "SETTLING",
+    "ticks_to_idle": 55
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "TO_PICK",
+    "ticks_to_idle": 375
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "DESCEND",
+    "ticks_to_idle": 336
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "ATTACH",
+    "ticks_to_idle": 322
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "LIFT",
+    "ticks_to_idle": 321
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "TO_PLACE",
+    "ticks_to_idle": 277
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "LOWER",
+    "ticks_to_idle": 213
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "RELEASE",
+    "ticks_to_idle": 196
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "RETREAT",
+    "ticks_to_idle": 166
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "GO_HOME",
+    "ticks_to_idle": 147
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "PRE_TUCK",
+    "ticks_to_idle": 83
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "SETTLING",
+    "ticks_to_idle": 57
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "TO_PICK",
+    "ticks_to_idle": 655
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "DESCEND",
+    "ticks_to_idle": 580
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "ATTACH",
+    "ticks_to_idle": 529
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "LIFT",
+    "ticks_to_idle": 528
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "TO_PLACE",
+    "ticks_to_idle": 482
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "LOWER",
+    "ticks_to_idle": 361
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "RELEASE",
+    "ticks_to_idle": 305
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "RETREAT",
+    "ticks_to_idle": 275
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "GO_HOME",
+    "ticks_to_idle": 241
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "PRE_TUCK",
+    "ticks_to_idle": 130
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "SETTLING",
+    "ticks_to_idle": 76
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "TO_PICK",
+    "ticks_to_idle": 702
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "DESCEND",
+    "ticks_to_idle": 500
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "ATTACH",
+    "ticks_to_idle": 445
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "LIFT",
+    "ticks_to_idle": 444
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "TO_PLACE",
+    "ticks_to_idle": 402
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "LOWER",
+    "ticks_to_idle": 317
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "RELEASE",
+    "ticks_to_idle": 285
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "RETREAT",
+    "ticks_to_idle": 255
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "GO_HOME",
+    "ticks_to_idle": 225
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "PRE_TUCK",
+    "ticks_to_idle": 134
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "SETTLING",
+    "ticks_to_idle": 84
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "TO_PICK",
+    "ticks_to_idle": 736
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "DESCEND",
+    "ticks_to_idle": 648
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "ATTACH",
+    "ticks_to_idle": 527
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "LIFT",
+    "ticks_to_idle": 526
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "TO_PLACE",
+    "ticks_to_idle": 493
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "LOWER",
+    "ticks_to_idle": 395
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "RELEASE",
+    "ticks_to_idle": 337
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "RETREAT",
+    "ticks_to_idle": 307
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "GO_HOME",
+    "ticks_to_idle": 276
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "PRE_TUCK",
+    "ticks_to_idle": 157
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "SETTLING",
+    "ticks_to_idle": 99
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "TO_PICK",
+    "ticks_to_idle": 373
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "DESCEND",
+    "ticks_to_idle": 339
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "ATTACH",
+    "ticks_to_idle": 317
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "LIFT",
+    "ticks_to_idle": 316
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "TO_PLACE",
+    "ticks_to_idle": 276
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "LOWER",
+    "ticks_to_idle": 209
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "RELEASE",
+    "ticks_to_idle": 202
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "RETREAT",
+    "ticks_to_idle": 172
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "GO_HOME",
+    "ticks_to_idle": 151
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "PRE_TUCK",
+    "ticks_to_idle": 81
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "SETTLING",
+    "ticks_to_idle": 58
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "TO_PICK",
+    "ticks_to_idle": 351
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "DESCEND",
+    "ticks_to_idle": 299
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "ATTACH",
+    "ticks_to_idle": 288
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "LIFT",
+    "ticks_to_idle": 287
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "TO_PLACE",
+    "ticks_to_idle": 244
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "LOWER",
+    "ticks_to_idle": 196
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "RELEASE",
+    "ticks_to_idle": 177
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "RETREAT",
+    "ticks_to_idle": 147
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "GO_HOME",
+    "ticks_to_idle": 127
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "PRE_TUCK",
+    "ticks_to_idle": 78
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "SETTLING",
+    "ticks_to_idle": 54
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "TO_PICK",
+    "ticks_to_idle": 391
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "DESCEND",
+    "ticks_to_idle": 358
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "ATTACH",
+    "ticks_to_idle": 330
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "LIFT",
+    "ticks_to_idle": 329
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "TO_PLACE",
+    "ticks_to_idle": 287
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "LOWER",
+    "ticks_to_idle": 214
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "RELEASE",
+    "ticks_to_idle": 206
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "RETREAT",
+    "ticks_to_idle": 176
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "GO_HOME",
+    "ticks_to_idle": 152
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "PRE_TUCK",
+    "ticks_to_idle": 83
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "SETTLING",
+    "ticks_to_idle": 60
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "TO_PICK",
+    "ticks_to_idle": 587
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "DESCEND",
+    "ticks_to_idle": 499
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "ATTACH",
+    "ticks_to_idle": 453
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "LIFT",
+    "ticks_to_idle": 452
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "TO_PLACE",
+    "ticks_to_idle": 409
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "LOWER",
+    "ticks_to_idle": 312
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "RELEASE",
+    "ticks_to_idle": 262
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "RETREAT",
+    "ticks_to_idle": 232
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "GO_HOME",
+    "ticks_to_idle": 199
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "PRE_TUCK",
+    "ticks_to_idle": 129
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "SETTLING",
+    "ticks_to_idle": 75
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "TO_PICK",
+    "ticks_to_idle": 555
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "DESCEND",
+    "ticks_to_idle": 483
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "ATTACH",
+    "ticks_to_idle": 435
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "LIFT",
+    "ticks_to_idle": 434
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "TO_PLACE",
+    "ticks_to_idle": 391
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "LOWER",
+    "ticks_to_idle": 312
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "RELEASE",
+    "ticks_to_idle": 279
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "RETREAT",
+    "ticks_to_idle": 249
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "GO_HOME",
+    "ticks_to_idle": 218
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "PRE_TUCK",
+    "ticks_to_idle": 126
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "SETTLING",
+    "ticks_to_idle": 75
+   }
+  ]
+ },
+ "allocator": {
+  "stats": {
+   "calls": 11981,
+   "replans": 32,
+   "assignments": 47,
+   "relays": 35,
+   "no_legal_option": 28,
+   "invalidated": 0
+  },
+  "log": [
+   {
+    "order": [
+     0,
+     1,
+     6,
+     2,
+     3,
+     7,
+     5,
+     4,
+     9,
+     8
+    ],
+    "matching": {
+     "0": "franka_s",
+     "1": "ur_e",
+     "2": "ur_w",
+     "3": "franka_n"
+    },
+    "n_legal": {
+     "0": 2,
+     "1": 1,
+     "2": 1,
+     "3": 1,
+     "6": 0
+    },
+    "relays": [
+     0,
+     1
+    ]
+   },
+   {
+    "order": [
+     7,
+     5,
+     6,
+     4,
+     8,
+     1,
+     2,
+     3,
+     9
+    ],
+    "matching": {
+     "5": "ur_w",
+     "7": "ur_e",
+     "8": "franka_n"
+    },
+    "n_legal": {
+     "4": 0,
+     "5": 1,
+     "6": 0,
+     "7": 1,
+     "8": 1
+    },
+    "relays": [
+     7,
+     5,
+     8
+    ]
+   },
+   {
+    "order": [
+     9,
+     2,
+     4,
+     1,
+     8,
+     6,
+     7,
+     3
+    ],
+    "matching": {
+     "4": "ur_e",
+     "9": "franka_n"
+    },
+    "n_legal": {
+     "2": 0,
+     "4": 1,
+     "9": 1
+    },
+    "relays": [
+     9
+    ]
+   },
+   {
+    "order": [
+     2,
+     8,
+     7,
+     9,
+     6,
+     1,
+     3
+    ],
+    "matching": {
+     "8": "franka_n"
+    },
+    "n_legal": {
+     "2": 0,
+     "8": 1
+    },
+    "relays": [
+     8
+    ]
+   },
+   {
+    "order": [
+     6,
+     1,
+     8,
+     3,
+     9,
+     7,
+     2
+    ],
+    "matching": {
+     "6": "ur_e",
+     "8": "franka_n"
+    },
+    "n_legal": {
+     "1": 0,
+     "6": 1,
+     "8": 1
+    },
+    "relays": [
+     6,
+     8
+    ]
+   },
+   {
+    "order": [
+     7,
+     3,
+     5,
+     9,
+     1,
+     6,
+     2,
+     8
+    ],
+    "matching": {
+     "3": "franka_n",
+     "7": "ur_e"
+    },
+    "n_legal": {
+     "3": 1,
+     "7": 1
+    },
+    "relays": [
+     7
+    ]
+   },
+   {
+    "order": [
+     7,
+     2,
+     1,
+     9,
+     8,
+     5,
+     6
+    ],
+    "matching": {
+     "7": "ur_e"
+    },
+    "n_legal": {
+     "7": 1
+    },
+    "relays": [
+     7
+    ]
+   },
+   {
+    "order": [
+     6,
+     5,
+     2,
+     8,
+     9,
+     7,
+     1
+    ],
+    "matching": {
+     "2": "ur_w",
+     "6": "ur_e"
+    },
+    "n_legal": {
+     "2": 1,
+     "5": 0,
+     "6": 1
+    },
+    "relays": [
+     6
+    ]
+   },
+   {
+    "order": [
+     7,
+     8,
+     1,
+     9,
+     5,
+     6
+    ],
+    "matching": {
+     "7": "ur_e"
+    },
+    "n_legal": {
+     "7": 1
+    },
+    "relays": [
+     7
+    ]
+   },
+   {
+    "order": [
+     8,
+     7,
+     1,
+     6,
+     5,
+     0,
+     9
+    ],
+    "matching": {
+     "7": "ur_e"
+    },
+    "n_legal": {
+     "7": 1,
+     "8": 0
+    },
+    "relays": [
+     7
+    ]
+   },
+   {
+    "order": [
+     8,
+     1,
+     6,
+     5,
+     9,
+     0,
+     7
+    ],
+    "matching": {
+     "1": "ur_e",
+     "7": "franka_s"
+    },
+    "n_legal": {
+     "0": 0,
+     "1": 1,
+     "5": 0,
+     "6": 0,
+     "7": 1,
+     "8": 0,
+     "9": 0
+    },
+    "relays": [
+     1
+    ]
+   },
+   {
+    "order": [
+     5,
+     9,
+     0,
+     1,
+     6,
+     8
+    ],
+    "matching": {
+     "5": "ur_e"
+    },
+    "n_legal": {
+     "5": 1
+    },
+    "relays": []
+   },
+   {
+    "order": [
+     6,
+     0,
+     1,
+     8,
+     9
+    ],
+    "matching": {
+     "0": "ur_w"
+    },
+    "n_legal": {
+     "0": 1,
+     "6": 0
+    },
+    "relays": []
+   },
+   {
+    "order": [
+     9,
+     1,
+     6,
+     8
+    ],
+    "matching": {
+     "9": "franka_n"
+    },
+    "n_legal": {
+     "9": 1
+    },
+    "relays": [
+     9
+    ]
+   },
+   {
+    "order": [
+     8,
+     1,
+     6
+    ],
+    "matching": {
+     "1": "ur_e"
+    },
+    "n_legal": {
+     "1": 1,
+     "8": 0
+    },
+    "relays": [
+     1
+    ]
+   },
+   {
+    "order": [
+     6,
+     1,
+     8
+    ],
+    "matching": {
+     "6": "ur_e"
+    },
+    "n_legal": {
+     "1": 0,
+     "6": 1,
+     "8": 0
+    },
+    "relays": [
+     6
+    ]
+   },
+   {
+    "order": [
+     1,
+     6,
+     8
+    ],
+    "matching": {
+     "1": "ur_e"
+    },
+    "n_legal": {
+     "1": 1,
+     "6": 0,
+     "8": 0
+    },
+    "relays": [
+     1
+    ]
+   },
+   {
+    "order": [
+     1,
+     8,
+     9,
+     6
+    ],
+    "matching": {
+     "1": "ur_e",
+     "9": "franka_s"
+    },
+    "n_legal": {
+     "1": 1,
+     "6": 0,
+     "8": 0,
+     "9": 1
+    },
+    "relays": [
+     1
+    ]
+   },
+   {
+    "order": [
+     6,
+     1,
+     8
+    ],
+    "matching": {
+     "6": "ur_e"
+    },
+    "n_legal": {
+     "1": 0,
+     "6": 1,
+     "8": 0
+    },
+    "relays": [
+     6
+    ]
+   },
+   {
+    "order": [
+     1,
+     8,
+     6
+    ],
+    "matching": {
+     "1": "ur_e",
+     "8": "franka_n"
+    },
+    "n_legal": {
+     "1": 1,
+     "6": 0,
+     "8": 1
+    },
+    "relays": [
+     1,
+     8
+    ]
+   },
+   {
+    "order": [
+     8,
+     1,
+     6
+    ],
+    "matching": {
+     "1": "ur_e",
+     "8": "franka_n"
+    },
+    "n_legal": {
+     "1": 1,
+     "6": 0,
+     "8": 1
+    },
+    "relays": [
+     8,
+     1
+    ]
+   },
+   {
+    "order": [
+     6,
+     8
+    ],
+    "matching": {
+     "8": "franka_n"
+    },
+    "n_legal": {
+     "6": 0,
+     "8": 1
+    },
+    "relays": [
+     8
+    ]
+   },
+   {
+    "order": [
+     8,
+     1,
+     6
+    ],
+    "matching": {
+     "1": "ur_w",
+     "8": "franka_n"
+    },
+    "n_legal": {
+     "1": 1,
+     "6": 0,
+     "8": 1
+    },
+    "relays": [
+     8
+    ]
+   },
+   {
+    "order": [
+     6,
+     8
+    ],
+    "matching": {
+     "8": "franka_n"
+    },
+    "n_legal": {
+     "6": 0,
+     "8": 1
+    },
+    "relays": [
+     8
+    ]
+   },
+   {
+    "order": [
+     6,
+     8
+    ],
+    "matching": {
+     "6": "ur_e",
+     "8": "franka_n"
+    },
+    "n_legal": {
+     "6": 1,
+     "8": 1
+    },
+    "relays": [
+     6,
+     8
+    ]
+   },
+   {
+    "order": [
+     8,
+     6
+    ],
+    "matching": {
+     "6": "ur_e",
+     "8": "franka_n"
+    },
+    "n_legal": {
+     "6": 1,
+     "8": 1
+    },
+    "relays": [
+     8,
+     6
+    ]
+   },
+   {
+    "order": [
+     8
+    ],
+    "matching": {
+     "8": "franka_n"
+    },
+    "n_legal": {
+     "8": 1
+    },
+    "relays": [
+     8
+    ]
+   },
+   {
+    "order": [
+     6,
+     8
+    ],
+    "matching": {
+     "6": "franka_s",
+     "8": "franka_n"
+    },
+    "n_legal": {
+     "6": 2,
+     "8": 1
+    },
+    "relays": [
+     8
+    ]
+   },
+   {
+    "order": [
+     8
+    ],
+    "matching": {
+     "8": "franka_n"
+    },
+    "n_legal": {
+     "8": 1
+    },
+    "relays": [
+     8
+    ],
+    "repeats": 3
+   },
+   {
+    "order": [
+     8
+    ],
+    "matching": {
+     "8": "franka_s"
+    },
+    "n_legal": {
+     "8": 1
+    },
+    "relays": []
+   }
+  ]
+ }
+}

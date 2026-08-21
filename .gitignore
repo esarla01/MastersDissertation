@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# macOS
+.DS_Store
+
+# Isaac / profiling
+*.etli
+
+# Generated artefacts. The frozen probe sets and run files are the
+# experimental record and are tracked deliberately; everything below is
+# regenerable output that is not.
+fourarm/out/*_frames/
+fourarm/out/ex2_capture/
+fourarm/out/*.log
+fourarm/out/*.txt
+
+# LaTeX build products
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.toc
+*.synctex.gz

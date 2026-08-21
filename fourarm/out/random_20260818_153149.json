@@ -1,0 +1,2618 @@
+{
+ "meta": {
+  "seed": 101,
+  "layout": "set_b",
+  "allocator": "random",
+  "condition": null,
+  "disruptions": "none",
+  "prompt_version": "2026-08-01a",
+  "eligible_arms": false,
+  "timing": "distance",
+  "b2_objective": null,
+  "b2_contention": null,
+  "scene": "ycb",
+  "objects": 10,
+  "started_utc": "2026-08-18T15:34:38Z",
+  "schema_version": 4,
+  "settle_wait": 0,
+  "settle_phases": "tight",
+  "finished_utc": "2026-08-18T15:34:38Z",
+  "verdict": "CHECK"
+ },
+ "summary": {
+  "verdict": "CHECK",
+  "sorted": "9/10",
+  "makespan_ticks": 7604,
+  "tasks_done": 14,
+  "tasks_failed": 0,
+  "requeued": 1,
+  "contended_claims": 6,
+  "blocked_ticks_total": 829,
+  "events_summary": {
+   "handover_wait": 3,
+   "arm_idle": 14,
+   "abort": 4,
+   "near_miss": 1,
+   "recover_tuck": 1
+  }
+ },
+ "objects": [
+  {
+   "name": "ycb_tuna_can",
+   "category": "food",
+   "dist_cm": 14.4,
+   "sorted": true,
+   "spawn_xy": [
+    0.15,
+    -0.35
+   ]
+  },
+  {
+   "name": "ycb_sugar_box",
+   "category": "food",
+   "dist_cm": 15.0,
+   "sorted": true,
+   "spawn_xy": [
+    -0.06,
+    0.19
+   ]
+  },
+  {
+   "name": "ycb_mac_n_cheese",
+   "category": "food",
+   "dist_cm": 15.0,
+   "sorted": true,
+   "spawn_xy": [
+    -0.25,
+    -0.03
+   ]
+  },
+  {
+   "name": "ycb_foam_brick",
+   "category": "kitchenware",
+   "dist_cm": 15.0,
+   "sorted": true,
+   "spawn_xy": [
+    -0.18,
+    -0.34
+   ]
+  },
+  {
+   "name": "ycb_scissors",
+   "category": "kitchenware",
+   "dist_cm": 15.0,
+   "sorted": true,
+   "spawn_xy": [
+    0.7,
+    -0.12
+   ]
+  },
+  {
+   "name": "ycb_bleach",
+   "category": "kitchenware",
+   "dist_cm": 11.6,
+   "sorted": true,
+   "spawn_xy": [
+    0.28,
+    -0.03
+   ]
+  },
+  {
+   "name": "ycb_bracket_small",
+   "category": "tools",
+   "dist_cm": 15.6,
+   "sorted": true,
+   "spawn_xy": [
+    0.62,
+    -0.44
+   ]
+  },
+  {
+   "name": "ycb_screw_99",
+   "category": "tools",
+   "dist_cm": 15.6,
+   "sorted": true,
+   "spawn_xy": [
+    -0.74,
+    0.18
+   ]
+  },
+  {
+   "name": "ycb_t_connector",
+   "category": "tools",
+   "dist_cm": 15.0,
+   "sorted": true,
+   "spawn_xy": [
+    0.24,
+    0.41
+   ]
+  },
+  {
+   "name": "ycb_caster",
+   "category": "tools",
+   "dist_cm": 18.7,
+   "sorted": false,
+   "spawn_xy": [
+    -0.3,
+    0.51
+   ]
+  }
+ ],
+ "per_arm": {
+  "ur_w": {
+   "completed_legs": 4,
+   "blocked_ticks": 321,
+   "travel_m": 14.5202
+  },
+  "franka_n": {
+   "completed_legs": 3,
+   "blocked_ticks": 259,
+   "travel_m": 8.8385
+  },
+  "ur_e": {
+   "completed_legs": 3,
+   "blocked_ticks": 150,
+   "travel_m": 10.6509
+  },
+  "franka_s": {
+   "completed_legs": 4,
+   "blocked_ticks": 99,
+   "travel_m": 23.0419
+  }
+ },
+ "tasks": [
+  {
+   "id": 0,
+   "object": "ycb_tuna_can",
+   "dest": [
+    -0.7,
+    0.5
+   ],
+   "dest_by": "given",
+   "arm": "ur_w",
+   "done": true,
+   "failed": false,
+   "attempts": 0,
+   "submit_tick": 0,
+   "claim_tick": 1607,
+   "done_tick": 2027,
+   "wait_ticks": 1607,
+   "exec_start_tick": 1607,
+   "travel_leg_m": 2.9648,
+   "blocked_ticks": 152,
+   "kind": "primary",
+   "waiting_on": null,
+   "required_zones": [
+    "center",
+    "nw"
+   ]
+  },
+  {
+   "id": 1,
+   "object": "ycb_sugar_box",
+   "dest": [
+    -0.7,
+    0.5
+   ],
+   "dest_by": "given",
+   "arm": "ur_w",
+   "done": true,
+   "failed": false,
+   "attempts": 0,
+   "submit_tick": 0,
+   "claim_tick": 730,
+   "done_tick": 1171,
+   "wait_ticks": 730,
+   "exec_start_tick": 730,
+   "travel_leg_m": 2.9529,
+   "blocked_ticks": 169,
+   "kind": "primary",
+   "waiting_on": null,
+   "required_zones": [
+    "center",
+    "nw"
+   ]
+  },
+  {
+   "id": 2,
+   "object": "ycb_mac_n_cheese",
+   "dest": [
+    -0.7,
+    0.5
+   ],
+   "dest_by": "given",
+   "arm": "ur_w",
+   "done": true,
+   "failed": false,
+   "attempts": 0,
+   "submit_tick": 0,
+   "claim_tick": 1,
+   "done_tick": 264,
+   "wait_ticks": 1,
+   "exec_start_tick": 1,
+   "travel_leg_m": 2.4899,
+   "blocked_ticks": 0,
+   "kind": "primary",
+   "waiting_on": null,
+   "required_zones": [
+    "center",
+    "nw"
+   ]
+  },
+  {
+   "id": 3,
+   "object": "ycb_foam_brick",
+   "dest": [
+    0.7,
+    0.5
+   ],
+   "dest_by": "given",
+   "arm": "franka_n",
+   "done": true,
+   "failed": false,
+   "attempts": 0,
+   "submit_tick": 0,
+   "claim_tick": 501,
+   "done_tick": 1244,
+   "wait_ticks": 501,
+   "exec_start_tick": 501,
+   "travel_leg_m": 1.858,
+   "blocked_ticks": 259,
+   "kind": "primary",
+   "waiting_on": null,
+   "required_zones": [
+    "center",
+    "ne"
+   ]
+  },
+  {
+   "id": 4,
+   "object": "ycb_scissors",
+   "dest": [
+    0.7,
+    0.5
+   ],
+   "dest_by": "given",
+   "arm": "ur_e",
+   "done": true,
+   "failed": false,
+   "attempts": 0,
+   "submit_tick": 0,
+   "claim_tick": 1700,
+   "done_tick": 1976,
+   "wait_ticks": 1700,
+   "exec_start_tick": 1700,
+   "travel_leg_m": 2.6585,
+   "blocked_ticks": 0,
+   "kind": "primary",
+   "waiting_on": null,
+   "required_zones": [
+    "ne",
+    "se"
+   ]
+  },
+  {
+   "id": 5,
+   "object": "ycb_bleach",
+   "dest": [
+    0.7,
+    0.5
+   ],
+   "dest_by": "given",
+   "arm": "ur_e",
+   "done": true,
+   "failed": false,
+   "attempts": 0,
+   "submit_tick": 0,
+   "claim_tick": 351,
+   "done_tick": 760,
+   "wait_ticks": 351,
+   "exec_start_tick": 351,
+   "travel_leg_m": 2.5699,
+   "blocked_ticks": 150,
+   "kind": "primary",
+   "waiting_on": null,
+   "required_zones": [
+    "center",
+    "ne"
+   ]
+  },
+  {
+   "id": 6,
+   "object": "ycb_bracket_small",
+   "dest": [
+    -0.7,
+    -0.5
+   ],
+   "dest_by": "given",
+   "arm": "franka_s",
+   "done": true,
+   "failed": false,
+   "attempts": 0,
+   "submit_tick": 0,
+   "claim_tick": 646,
+   "done_tick": 1215,
+   "wait_ticks": 646,
+   "exec_start_tick": 646,
+   "travel_leg_m": 3.4546,
+   "blocked_ticks": 0,
+   "kind": "primary",
+   "waiting_on": null,
+   "required_zones": [
+    "se",
+    "sw"
+   ]
+  },
+  {
+   "id": 7,
+   "object": "ycb_screw_99",
+   "dest": [
+    -0.7,
+    -0.5
+   ],
+   "dest_by": "given",
+   "arm": "ur_w",
+   "done": true,
+   "failed": false,
+   "attempts": 0,
+   "submit_tick": 0,
+   "claim_tick": 351,
+   "done_tick": 648,
+   "wait_ticks": 351,
+   "exec_start_tick": 351,
+   "travel_leg_m": 2.8878,
+   "blocked_ticks": 0,
+   "kind": "primary",
+   "waiting_on": null,
+   "required_zones": [
+    "nw",
+    "sw"
+   ]
+  },
+  {
+   "id": 8,
+   "object": "ycb_t_connector",
+   "dest": [
+    -0.7,
+    -0.5
+   ],
+   "dest_by": "given",
+   "arm": "franka_s",
+   "done": true,
+   "failed": false,
+   "attempts": 0,
+   "submit_tick": 0,
+   "claim_tick": 6493,
+   "done_tick": 6950,
+   "wait_ticks": 6493,
+   "exec_start_tick": 6493,
+   "travel_leg_m": 2.0303,
+   "blocked_ticks": 0,
+   "kind": "primary",
+   "waiting_on": null,
+   "required_zones": [
+    "center",
+    "sw"
+   ]
+  },
+  {
+   "id": 9,
+   "object": "ycb_caster",
+   "dest": [
+    -0.7,
+    -0.5
+   ],
+   "dest_by": "given",
+   "arm": "franka_s",
+   "done": true,
+   "failed": false,
+   "attempts": 1,
+   "submit_tick": 0,
+   "claim_tick": 2141,
+   "done_tick": 7603,
+   "wait_ticks": 2141,
+   "exec_start_tick": 7080,
+   "travel_leg_m": 1.8273,
+   "blocked_ticks": 0,
+   "kind": "primary",
+   "waiting_on": null,
+   "required_zones": [
+    "sw"
+   ]
+  },
+  {
+   "id": 10,
+   "object": "ycb_foam_brick",
+   "dest": [
+    0.0,
+    0.0
+   ],
+   "dest_by": "rule",
+   "arm": "franka_s",
+   "done": true,
+   "failed": false,
+   "attempts": 0,
+   "submit_tick": 0,
+   "claim_tick": 0,
+   "done_tick": 500,
+   "wait_ticks": 0,
+   "exec_start_tick": 0,
+   "travel_leg_m": 1.8246,
+   "blocked_ticks": 99,
+   "kind": "handover_leg",
+   "waiting_on": null,
+   "required_zones": [
+    "center",
+    "sw"
+   ]
+  },
+  {
+   "id": 20,
+   "object": "ycb_tuna_can",
+   "dest": [
+    0.0,
+    0.0
+   ],
+   "dest_by": "rule",
+   "arm": "ur_e",
+   "done": true,
+   "failed": false,
+   "attempts": 0,
+   "submit_tick": 1252,
+   "claim_tick": 1252,
+   "done_tick": 1606,
+   "wait_ticks": 0,
+   "exec_start_tick": 1252,
+   "travel_leg_m": 3.0228,
+   "blocked_ticks": 0,
+   "kind": "handover_leg",
+   "waiting_on": null,
+   "required_zones": [
+    "center",
+    "se"
+   ]
+  },
+  {
+   "id": 25,
+   "object": "ycb_caster",
+   "dest": [
+    0.0,
+    0.0
+   ],
+   "dest_by": "rule",
+   "arm": "franka_n",
+   "done": true,
+   "failed": false,
+   "attempts": 0,
+   "submit_tick": 1700,
+   "claim_tick": 1700,
+   "done_tick": 2140,
+   "wait_ticks": 0,
+   "exec_start_tick": 1700,
+   "travel_leg_m": 2.1008,
+   "blocked_ticks": 0,
+   "kind": "handover_leg",
+   "waiting_on": null,
+   "required_zones": [
+    "center",
+    "nw"
+   ]
+  },
+  {
+   "id": 27,
+   "object": "ycb_t_connector",
+   "dest": [
+    0.0,
+    0.0
+   ],
+   "dest_by": "rule",
+   "arm": "franka_n",
+   "done": true,
+   "failed": false,
+   "attempts": 0,
+   "submit_tick": 3698,
+   "claim_tick": 3698,
+   "done_tick": 4130,
+   "wait_ticks": 0,
+   "exec_start_tick": 3698,
+   "travel_leg_m": 2.0116,
+   "blocked_ticks": 0,
+   "kind": "handover_leg",
+   "waiting_on": null,
+   "required_zones": [
+    "center",
+    "ne"
+   ]
+  }
+ ],
+ "events": [
+  {
+   "tick": 0,
+   "type": "handover_wait",
+   "task": 9,
+   "pad": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "tick": 1,
+   "type": "handover_wait",
+   "task": 0,
+   "pad": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "tick": 350,
+   "type": "arm_idle",
+   "arm": "ur_w"
+  },
+  {
+   "tick": 645,
+   "type": "arm_idle",
+   "arm": "franka_s"
+  },
+  {
+   "tick": 729,
+   "type": "arm_idle",
+   "arm": "ur_w"
+  },
+  {
+   "tick": 842,
+   "type": "arm_idle",
+   "arm": "ur_e"
+  },
+  {
+   "tick": 1251,
+   "type": "arm_idle",
+   "arm": "ur_w"
+  },
+  {
+   "tick": 1340,
+   "type": "arm_idle",
+   "arm": "franka_s"
+  },
+  {
+   "tick": 1401,
+   "type": "arm_idle",
+   "arm": "franka_n"
+  },
+  {
+   "tick": 1699,
+   "type": "arm_idle",
+   "arm": "ur_e"
+  },
+  {
+   "tick": 2054,
+   "type": "arm_idle",
+   "arm": "ur_e"
+  },
+  {
+   "tick": 2105,
+   "type": "arm_idle",
+   "arm": "ur_w"
+  },
+  {
+   "tick": 2280,
+   "type": "arm_idle",
+   "arm": "franka_n"
+  },
+  {
+   "tick": 2281,
+   "type": "handover_wait",
+   "task": 8,
+   "pad": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "tick": 3697,
+   "type": "abort",
+   "arm": "franka_s",
+   "task": 9,
+   "object": "ycb_caster",
+   "state": "TO_PLACE",
+   "timer": 1203,
+   "err": 0.101
+  },
+  {
+   "tick": 3880,
+   "type": "near_miss",
+   "arms": [
+    "franka_s",
+    "franka_n"
+   ],
+   "ee_dist_m": 0.246,
+   "ee_pos": {
+    "franka_s": [
+     -0.01,
+     0.12,
+     0.86
+    ],
+    "franka_n": [
+     0.15,
+     0.25,
+     0.99
+    ]
+   },
+   "states": {
+    "franka_s": "GO_HOME",
+    "franka_n": "TO_PLACE"
+   },
+   "locks": {
+    "franka_s": [
+     "sw"
+    ],
+    "franka_n": [
+     "center"
+    ]
+   }
+  },
+  {
+   "tick": 4256,
+   "type": "arm_idle",
+   "arm": "franka_n"
+  },
+  {
+   "tick": 4298,
+   "type": "abort",
+   "arm": "franka_s",
+   "task": null,
+   "object": null,
+   "state": "GO_HOME",
+   "timer": 601,
+   "err": 0.579
+  },
+  {
+   "tick": 5500,
+   "type": "abort",
+   "arm": "franka_s",
+   "task": null,
+   "object": null,
+   "state": "GO_HOME",
+   "timer": 1202,
+   "err": 0.51
+  },
+  {
+   "tick": 6101,
+   "type": "abort",
+   "arm": "franka_s",
+   "task": null,
+   "object": null,
+   "state": "GO_HOME",
+   "timer": 601,
+   "err": 0.51
+  },
+  {
+   "tick": 6101,
+   "type": "recover_tuck",
+   "arm": "franka_s",
+   "home_fails": 3
+  },
+  {
+   "tick": 6492,
+   "type": "arm_idle",
+   "arm": "franka_s"
+  },
+  {
+   "tick": 7079,
+   "type": "arm_idle",
+   "arm": "franka_s"
+  }
+ ],
+ "locks": {
+  "by_zone": {
+   "center": {
+    "acquires": 11,
+    "reserves": 11
+   },
+   "sw": {
+    "acquires": 6,
+    "reserves": 6
+   },
+   "nw": {
+    "acquires": 5,
+    "reserves": 5
+   },
+   "ne": {
+    "acquires": 4,
+    "reserves": 4
+   },
+   "se": {
+    "acquires": 3,
+    "reserves": 3
+   }
+  },
+  "ledger": [
+   {
+    "tick": 0,
+    "action": "reserve",
+    "zone": "center",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 0,
+    "action": "reserve",
+    "zone": "sw",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 0,
+    "action": "acquire",
+    "zone": "sw",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 1,
+    "action": "reserve",
+    "zone": "center",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 1,
+    "action": "reserve",
+    "zone": "nw",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 1,
+    "action": "acquire",
+    "zone": "center",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 103,
+    "action": "acquire",
+    "zone": "nw",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 164,
+    "action": "release",
+    "zone": "sw",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 264,
+    "action": "release",
+    "zone": "center",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 264,
+    "action": "release",
+    "zone": "nw",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 264,
+    "action": "acquire",
+    "zone": "center",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 351,
+    "action": "reserve",
+    "zone": "center",
+    "arm": "ur_e"
+   },
+   {
+    "tick": 351,
+    "action": "reserve",
+    "zone": "ne",
+    "arm": "ur_e"
+   },
+   {
+    "tick": 351,
+    "action": "reserve",
+    "zone": "nw",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 351,
+    "action": "reserve",
+    "zone": "sw",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 351,
+    "action": "acquire",
+    "zone": "nw",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 452,
+    "action": "release",
+    "zone": "nw",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 453,
+    "action": "acquire",
+    "zone": "sw",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 500,
+    "action": "release",
+    "zone": "center",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 501,
+    "action": "reserve",
+    "zone": "center",
+    "arm": "franka_n"
+   },
+   {
+    "tick": 501,
+    "action": "reserve",
+    "zone": "ne",
+    "arm": "franka_n"
+   },
+   {
+    "tick": 501,
+    "action": "acquire",
+    "zone": "center",
+    "arm": "ur_e"
+   },
+   {
+    "tick": 599,
+    "action": "acquire",
+    "zone": "ne",
+    "arm": "ur_e"
+   },
+   {
+    "tick": 646,
+    "action": "reserve",
+    "zone": "se",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 646,
+    "action": "reserve",
+    "zone": "sw",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 646,
+    "action": "acquire",
+    "zone": "se",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 648,
+    "action": "release",
+    "zone": "sw",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 730,
+    "action": "reserve",
+    "zone": "center",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 730,
+    "action": "reserve",
+    "zone": "nw",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 760,
+    "action": "release",
+    "zone": "center",
+    "arm": "ur_e"
+   },
+   {
+    "tick": 760,
+    "action": "release",
+    "zone": "ne",
+    "arm": "ur_e"
+   },
+   {
+    "tick": 760,
+    "action": "acquire",
+    "zone": "center",
+    "arm": "franka_n"
+   },
+   {
+    "tick": 841,
+    "action": "release",
+    "zone": "se",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 842,
+    "action": "acquire",
+    "zone": "sw",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 898,
+    "action": "release",
+    "zone": "center",
+    "arm": "franka_n"
+   },
+   {
+    "tick": 899,
+    "action": "acquire",
+    "zone": "center",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 899,
+    "action": "acquire",
+    "zone": "ne",
+    "arm": "franka_n"
+   },
+   {
+    "tick": 998,
+    "action": "release",
+    "zone": "center",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 999,
+    "action": "acquire",
+    "zone": "nw",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 1171,
+    "action": "release",
+    "zone": "nw",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 1215,
+    "action": "release",
+    "zone": "sw",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 1244,
+    "action": "release",
+    "zone": "ne",
+    "arm": "franka_n"
+   },
+   {
+    "tick": 1252,
+    "action": "reserve",
+    "zone": "center",
+    "arm": "ur_e"
+   },
+   {
+    "tick": 1252,
+    "action": "reserve",
+    "zone": "se",
+    "arm": "ur_e"
+   },
+   {
+    "tick": 1252,
+    "action": "acquire",
+    "zone": "se",
+    "arm": "ur_e"
+   },
+   {
+    "tick": 1356,
+    "action": "release",
+    "zone": "se",
+    "arm": "ur_e"
+   },
+   {
+    "tick": 1357,
+    "action": "acquire",
+    "zone": "center",
+    "arm": "ur_e"
+   },
+   {
+    "tick": 1606,
+    "action": "release",
+    "zone": "center",
+    "arm": "ur_e"
+   },
+   {
+    "tick": 1607,
+    "action": "reserve",
+    "zone": "center",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 1607,
+    "action": "reserve",
+    "zone": "nw",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 1607,
+    "action": "acquire",
+    "zone": "center",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 1700,
+    "action": "reserve",
+    "zone": "ne",
+    "arm": "ur_e"
+   },
+   {
+    "tick": 1700,
+    "action": "reserve",
+    "zone": "se",
+    "arm": "ur_e"
+   },
+   {
+    "tick": 1700,
+    "action": "reserve",
+    "zone": "center",
+    "arm": "franka_n"
+   },
+   {
+    "tick": 1700,
+    "action": "reserve",
+    "zone": "nw",
+    "arm": "franka_n"
+   },
+   {
+    "tick": 1700,
+    "action": "acquire",
+    "zone": "se",
+    "arm": "ur_e"
+   },
+   {
+    "tick": 1700,
+    "action": "acquire",
+    "zone": "nw",
+    "arm": "franka_n"
+   },
+   {
+    "tick": 1716,
+    "action": "release",
+    "zone": "center",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 1800,
+    "action": "release",
+    "zone": "se",
+    "arm": "ur_e"
+   },
+   {
+    "tick": 1801,
+    "action": "acquire",
+    "zone": "ne",
+    "arm": "ur_e"
+   },
+   {
+    "tick": 1868,
+    "action": "release",
+    "zone": "nw",
+    "arm": "franka_n"
+   },
+   {
+    "tick": 1869,
+    "action": "acquire",
+    "zone": "nw",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 1869,
+    "action": "acquire",
+    "zone": "center",
+    "arm": "franka_n"
+   },
+   {
+    "tick": 1976,
+    "action": "release",
+    "zone": "ne",
+    "arm": "ur_e"
+   },
+   {
+    "tick": 2027,
+    "action": "release",
+    "zone": "nw",
+    "arm": "ur_w"
+   },
+   {
+    "tick": 2140,
+    "action": "release",
+    "zone": "center",
+    "arm": "franka_n"
+   },
+   {
+    "tick": 2141,
+    "action": "reserve",
+    "zone": "center",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 2141,
+    "action": "reserve",
+    "zone": "sw",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 2141,
+    "action": "acquire",
+    "zone": "center",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 2494,
+    "action": "release",
+    "zone": "center",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 2495,
+    "action": "acquire",
+    "zone": "sw",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 3698,
+    "action": "reserve",
+    "zone": "center",
+    "arm": "franka_n"
+   },
+   {
+    "tick": 3698,
+    "action": "reserve",
+    "zone": "ne",
+    "arm": "franka_n"
+   },
+   {
+    "tick": 3698,
+    "action": "acquire",
+    "zone": "ne",
+    "arm": "franka_n"
+   },
+   {
+    "tick": 3863,
+    "action": "release",
+    "zone": "ne",
+    "arm": "franka_n"
+   },
+   {
+    "tick": 3864,
+    "action": "acquire",
+    "zone": "center",
+    "arm": "franka_n"
+   },
+   {
+    "tick": 4130,
+    "action": "release",
+    "zone": "center",
+    "arm": "franka_n"
+   },
+   {
+    "tick": 6372,
+    "action": "release",
+    "zone": "sw",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 6493,
+    "action": "reserve",
+    "zone": "center",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 6493,
+    "action": "reserve",
+    "zone": "sw",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 6493,
+    "action": "acquire",
+    "zone": "center",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 6669,
+    "action": "release",
+    "zone": "center",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 6670,
+    "action": "acquire",
+    "zone": "sw",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 6950,
+    "action": "release",
+    "zone": "sw",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 7080,
+    "action": "reserve",
+    "zone": "sw",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 7080,
+    "action": "acquire",
+    "zone": "sw",
+    "arm": "franka_s"
+   },
+   {
+    "tick": 7603,
+    "action": "release",
+    "zone": "sw",
+    "arm": "franka_s"
+   }
+  ]
+ },
+ "metrics": {
+  "wait_ticks_mean": 1037.2142857142858,
+  "wait_ticks_max": 6493,
+  "sorted_correct": 9,
+  "sorted_total": 10,
+  "model_latency_ms_mean": 0.0,
+  "min_arm_distance_m": {
+   "ur_w|ur_e": 0.607,
+   "ur_w|franka_s": 0.304,
+   "ur_w|franka_n": 0.264,
+   "ur_e|franka_s": 0.269,
+   "ur_e|franka_n": 0.409,
+   "franka_s|franka_n": 0.163
+  },
+  "travel_m_total": 57.0515,
+  "pad_wait_by_pad": {
+   "center": 9
+  },
+  "pad_wait_ticks_total": 9,
+  "phase_dwell": [
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "TO_PICK",
+    "ticks_to_idle": 349
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "DESCEND",
+    "ticks_to_idle": 313
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "ATTACH",
+    "ticks_to_idle": 300
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "LIFT",
+    "ticks_to_idle": 299
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "TO_PLACE",
+    "ticks_to_idle": 248
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "LOWER",
+    "ticks_to_idle": 201
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "RELEASE",
+    "ticks_to_idle": 185
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "RETREAT",
+    "ticks_to_idle": 155
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "GO_HOME",
+    "ticks_to_idle": 134
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "PRE_TUCK",
+    "ticks_to_idle": 86
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "SETTLING",
+    "ticks_to_idle": 61
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "TO_PICK",
+    "ticks_to_idle": 645
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "DESCEND",
+    "ticks_to_idle": 572
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "ATTACH",
+    "ticks_to_idle": 524
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "LIFT",
+    "ticks_to_idle": 523
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "TO_PLACE",
+    "ticks_to_idle": 481
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "LOWER",
+    "ticks_to_idle": 339
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "RELEASE",
+    "ticks_to_idle": 300
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "RETREAT",
+    "ticks_to_idle": 270
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "GO_HOME",
+    "ticks_to_idle": 242
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "PRE_TUCK",
+    "ticks_to_idle": 145
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "SETTLING",
+    "ticks_to_idle": 91
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "TO_PICK",
+    "ticks_to_idle": 378
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "DESCEND",
+    "ticks_to_idle": 345
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "ATTACH",
+    "ticks_to_idle": 319
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "LIFT",
+    "ticks_to_idle": 318
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "TO_PLACE",
+    "ticks_to_idle": 277
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "LOWER",
+    "ticks_to_idle": 198
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "RELEASE",
+    "ticks_to_idle": 181
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "RETREAT",
+    "ticks_to_idle": 151
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "GO_HOME",
+    "ticks_to_idle": 129
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "PRE_TUCK",
+    "ticks_to_idle": 81
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "SETTLING",
+    "ticks_to_idle": 56
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "TO_PICK",
+    "ticks_to_idle": 491
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "DESCEND",
+    "ticks_to_idle": 313
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "ATTACH",
+    "ticks_to_idle": 297
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "LIFT",
+    "ticks_to_idle": 296
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "TO_PLACE",
+    "ticks_to_idle": 244
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "LOWER",
+    "ticks_to_idle": 190
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "RELEASE",
+    "ticks_to_idle": 173
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "RETREAT",
+    "ticks_to_idle": 143
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "GO_HOME",
+    "ticks_to_idle": 123
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "PRE_TUCK",
+    "ticks_to_idle": 82
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "SETTLING",
+    "ticks_to_idle": 59
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "TO_PICK",
+    "ticks_to_idle": 521
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "DESCEND",
+    "ticks_to_idle": 309
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "ATTACH",
+    "ticks_to_idle": 296
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "LIFT",
+    "ticks_to_idle": 295
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "TO_PLACE",
+    "ticks_to_idle": 253
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "LOWER",
+    "ticks_to_idle": 212
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "RELEASE",
+    "ticks_to_idle": 193
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "RETREAT",
+    "ticks_to_idle": 163
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "GO_HOME",
+    "ticks_to_idle": 143
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "PRE_TUCK",
+    "ticks_to_idle": 80
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "SETTLING",
+    "ticks_to_idle": 55
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "TO_PICK",
+    "ticks_to_idle": 694
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "DESCEND",
+    "ticks_to_idle": 589
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "ATTACH",
+    "ticks_to_idle": 543
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "LIFT",
+    "ticks_to_idle": 542
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "TO_PLACE",
+    "ticks_to_idle": 499
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "LOWER",
+    "ticks_to_idle": 378
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "RELEASE",
+    "ticks_to_idle": 311
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "RETREAT",
+    "ticks_to_idle": 281
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "GO_HOME",
+    "ticks_to_idle": 246
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "PRE_TUCK",
+    "ticks_to_idle": 125
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "SETTLING",
+    "ticks_to_idle": 74
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "TO_PICK",
+    "ticks_to_idle": 900
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "DESCEND",
+    "ticks_to_idle": 595
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "ATTACH",
+    "ticks_to_idle": 545
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "LIFT",
+    "ticks_to_idle": 544
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "TO_PLACE",
+    "ticks_to_idle": 503
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "LOWER",
+    "ticks_to_idle": 405
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "RELEASE",
+    "ticks_to_idle": 284
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "RETREAT",
+    "ticks_to_idle": 254
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "GO_HOME",
+    "ticks_to_idle": 227
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "PRE_TUCK",
+    "ticks_to_idle": 157
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "SETTLING",
+    "ticks_to_idle": 94
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "TO_PICK",
+    "ticks_to_idle": 447
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "DESCEND",
+    "ticks_to_idle": 401
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "ATTACH",
+    "ticks_to_idle": 391
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "LIFT",
+    "ticks_to_idle": 390
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "TO_PLACE",
+    "ticks_to_idle": 343
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "LOWER",
+    "ticks_to_idle": 222
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "RELEASE",
+    "ticks_to_idle": 211
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "RETREAT",
+    "ticks_to_idle": 181
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "GO_HOME",
+    "ticks_to_idle": 158
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "PRE_TUCK",
+    "ticks_to_idle": 93
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "SETTLING",
+    "ticks_to_idle": 69
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "TO_PICK",
+    "ticks_to_idle": 354
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "DESCEND",
+    "ticks_to_idle": 322
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "ATTACH",
+    "ticks_to_idle": 297
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "LIFT",
+    "ticks_to_idle": 296
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "TO_PLACE",
+    "ticks_to_idle": 254
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "LOWER",
+    "ticks_to_idle": 195
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "RELEASE",
+    "ticks_to_idle": 178
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "RETREAT",
+    "ticks_to_idle": 148
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "GO_HOME",
+    "ticks_to_idle": 126
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "PRE_TUCK",
+    "ticks_to_idle": 78
+   },
+   {
+    "arm": "ur_e",
+    "type": "ur10",
+    "phase": "SETTLING",
+    "ticks_to_idle": 54
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "TO_PICK",
+    "ticks_to_idle": 498
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "DESCEND",
+    "ticks_to_idle": 446
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "ATTACH",
+    "ticks_to_idle": 436
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "LIFT",
+    "ticks_to_idle": 435
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "TO_PLACE",
+    "ticks_to_idle": 389
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "LOWER",
+    "ticks_to_idle": 196
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "RELEASE",
+    "ticks_to_idle": 176
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "RETREAT",
+    "ticks_to_idle": 146
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "GO_HOME",
+    "ticks_to_idle": 127
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "PRE_TUCK",
+    "ticks_to_idle": 78
+   },
+   {
+    "arm": "ur_w",
+    "type": "ur10",
+    "phase": "SETTLING",
+    "ticks_to_idle": 54
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "TO_PICK",
+    "ticks_to_idle": 580
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "DESCEND",
+    "ticks_to_idle": 503
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "ATTACH",
+    "ticks_to_idle": 455
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "LIFT",
+    "ticks_to_idle": 454
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "TO_PLACE",
+    "ticks_to_idle": 412
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "LOWER",
+    "ticks_to_idle": 323
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "RELEASE",
+    "ticks_to_idle": 291
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "RETREAT",
+    "ticks_to_idle": 261
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "GO_HOME",
+    "ticks_to_idle": 232
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "PRE_TUCK",
+    "ticks_to_idle": 140
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "SETTLING",
+    "ticks_to_idle": 89
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "TO_PICK",
+    "ticks_to_idle": 558
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "DESCEND",
+    "ticks_to_idle": 486
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "ATTACH",
+    "ticks_to_idle": 437
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "LIFT",
+    "ticks_to_idle": 436
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "TO_PLACE",
+    "ticks_to_idle": 393
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "LOWER",
+    "ticks_to_idle": 313
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "RELEASE",
+    "ticks_to_idle": 279
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "RETREAT",
+    "ticks_to_idle": 249
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "GO_HOME",
+    "ticks_to_idle": 218
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "PRE_TUCK",
+    "ticks_to_idle": 126
+   },
+   {
+    "arm": "franka_n",
+    "type": "franka",
+    "phase": "SETTLING",
+    "ticks_to_idle": 75
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "TO_PICK",
+    "ticks_to_idle": 4351
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "DESCEND",
+    "ticks_to_idle": 4262
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "ATTACH",
+    "ticks_to_idle": 4141
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "LIFT",
+    "ticks_to_idle": 4140
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "TO_PLACE",
+    "ticks_to_idle": 3998
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "GO_HOME",
+    "ticks_to_idle": 2795
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "RECOVER",
+    "ticks_to_idle": 391
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "PRE_TUCK",
+    "ticks_to_idle": 120
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "SETTLING",
+    "ticks_to_idle": 71
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "TO_PICK",
+    "ticks_to_idle": 586
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "DESCEND",
+    "ticks_to_idle": 498
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "ATTACH",
+    "ticks_to_idle": 453
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "LIFT",
+    "ticks_to_idle": 452
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "TO_PLACE",
+    "ticks_to_idle": 410
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "LOWER",
+    "ticks_to_idle": 312
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "RELEASE",
+    "ticks_to_idle": 260
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "RETREAT",
+    "ticks_to_idle": 230
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "GO_HOME",
+    "ticks_to_idle": 199
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "PRE_TUCK",
+    "ticks_to_idle": 129
+   },
+   {
+    "arm": "franka_s",
+    "type": "franka",
+    "phase": "SETTLING",
+    "ticks_to_idle": 75
+   }
+  ]
+ },
+ "allocator": {
+  "stats": {
+   "calls": 14452,
+   "replans": 31,
+   "assignments": 32,
+   "relays": 18,
+   "no_legal_option": 51,
+   "invalidated": 0
+  },
+  "log": [
+   {
+    "order": [
+     5,
+     7,
+     3,
+     6,
+     9,
+     0,
+     1,
+     2,
+     8,
+     4
+    ],
+    "matching": {
+     "3": "franka_s",
+     "5": "ur_e",
+     "7": "ur_w",
+     "9": "franka_n"
+    },
+    "n_legal": {
+     "3": 1,
+     "5": 1,
+     "6": 0,
+     "7": 1,
+     "9": 1
+    },
+    "relays": [
+     3,
+     9
+    ]
+   },
+   {
+    "order": [
+     0,
+     2,
+     5,
+     7,
+     9,
+     4,
+     6,
+     1,
+     8
+    ],
+    "matching": {
+     "0": "ur_e",
+     "2": "ur_w",
+     "9": "franka_n"
+    },
+    "n_legal": {
+     "0": 1,
+     "2": 1,
+     "5": 0,
+     "7": 0,
+     "9": 1
+    },
+    "relays": [
+     0,
+     9
+    ]
+   },
+   {
+    "order": [
+     0,
+     6,
+     9,
+     8,
+     4,
+     5,
+     7,
+     1
+    ],
+    "matching": {
+     "0": "ur_e",
+     "9": "franka_n"
+    },
+    "n_legal": {
+     "0": 1,
+     "6": 0,
+     "9": 1
+    },
+    "relays": [
+     0,
+     9
+    ]
+   },
+   {
+    "order": [
+     5,
+     7,
+     8,
+     0,
+     6,
+     4,
+     9,
+     1
+    ],
+    "matching": {
+     "5": "ur_e",
+     "7": "ur_w",
+     "8": "franka_n"
+    },
+    "n_legal": {
+     "5": 1,
+     "7": 1,
+     "8": 1
+    },
+    "relays": [
+     8
+    ]
+   },
+   {
+    "order": [
+     9,
+     8,
+     4,
+     6,
+     0,
+     7,
+     1
+    ],
+    "matching": {
+     "7": "ur_w",
+     "9": "franka_n"
+    },
+    "n_legal": {
+     "0": 0,
+     "4": 0,
+     "6": 0,
+     "7": 1,
+     "8": 0,
+     "9": 1
+    },
+    "relays": [
+     9
+    ]
+   },
+   {
+    "order": [
+     0,
+     6,
+     9,
+     1,
+     4,
+     8
+    ],
+    "matching": {
+     "9": "franka_n"
+    },
+    "n_legal": {
+     "0": 0,
+     "6": 0,
+     "9": 1
+    },
+    "relays": [
+     9
+    ]
+   },
+   {
+    "order": [
+     4,
+     6,
+     3,
+     0,
+     1,
+     9,
+     8
+    ],
+    "matching": {
+     "3": "franka_n"
+    },
+    "n_legal": {
+     "3": 1,
+     "4": 0,
+     "6": 0
+    },
+    "relays": []
+   },
+   {
+    "order": [
+     1,
+     8,
+     4,
+     9,
+     6,
+     0
+    ],
+    "matching": {
+     "6": "franka_s"
+    },
+    "n_legal": {
+     "1": 0,
+     "4": 0,
+     "6": 1,
+     "8": 0,
+     "9": 0
+    },
+    "relays": []
+   },
+   {
+    "order": [
+     9,
+     8,
+     4,
+     0,
+     1
+    ],
+    "matching": {
+     "1": "ur_w"
+    },
+    "n_legal": {
+     "0": 0,
+     "1": 1,
+     "4": 0,
+     "8": 0,
+     "9": 0
+    },
+    "relays": []
+   },
+   {
+    "order": [
+     8,
+     0,
+     9,
+     4
+    ],
+    "matching": {
+     "0": "ur_e"
+    },
+    "n_legal": {
+     "0": 1,
+     "8": 0
+    },
+    "relays": [
+     0
+    ]
+   },
+   {
+    "order": [
+     8,
+     9,
+     0,
+     4
+    ],
+    "matching": {
+     "0": "ur_e"
+    },
+    "n_legal": {
+     "0": 1,
+     "4": 0,
+     "8": 0,
+     "9": 0
+    },
+    "relays": [
+     0
+    ]
+   },
+   {
+    "order": [
+     9,
+     8,
+     4
+    ],
+    "matching": {
+     "9": "franka_n"
+    },
+    "n_legal": {
+     "4": 0,
+     "8": 0,
+     "9": 1
+    },
+    "relays": [
+     9
+    ]
+   },
+   {
+    "order": [
+     9,
+     0,
+     8,
+     4
+    ],
+    "matching": {
+     "0": "ur_w",
+     "9": "franka_n"
+    },
+    "n_legal": {
+     "0": 1,
+     "4": 0,
+     "8": 0,
+     "9": 1
+    },
+    "relays": [
+     9
+    ]
+   },
+   {
+    "order": [
+     9,
+     4,
+     8
+    ],
+    "matching": {
+     "9": "franka_n"
+    },
+    "n_legal": {
+     "4": 0,
+     "8": 0,
+     "9": 1
+    },
+    "relays": [
+     9
+    ]
+   },
+   {
+    "order": [
+     9,
+     4,
+     8
+    ],
+    "matching": {
+     "4": "ur_e",
+     "9": "franka_n"
+    },
+    "n_legal": {
+     "4": 1,
+     "8": 0,
+     "9": 1
+    },
+    "relays": [
+     9
+    ]
+   },
+   {
+    "order": [
+     9,
+     8
+    ],
+    "matching": {
+     "9": "franka_n"
+    },
+    "n_legal": {
+     "8": 0,
+     "9": 1
+    },
+    "relays": [
+     9
+    ]
+   },
+   {
+    "order": [
+     9,
+     8
+    ],
+    "matching": {
+     "9": "franka_s"
+    },
+    "n_legal": {
+     "8": 0,
+     "9": 1
+    },
+    "relays": []
+   },
+   {
+    "order": [
+     8
+    ],
+    "matching": {
+     "8": "franka_n"
+    },
+    "n_legal": {
+     "8": 1
+    },
+    "relays": [
+     8
+    ]
+   },
+   {
+    "order": [
+     8,
+     9
+    ],
+    "matching": {
+     "8": "franka_n"
+    },
+    "n_legal": {
+     "8": 1,
+     "9": 0
+    },
+    "relays": [
+     8
+    ]
+   },
+   {
+    "order": [
+     8,
+     9
+    ],
+    "matching": {
+     "8": "franka_s"
+    },
+    "n_legal": {
+     "8": 1,
+     "9": 0
+    },
+    "relays": []
+   },
+   {
+    "order": [
+     9
+    ],
+    "matching": {
+     "9": "franka_s"
+    },
+    "n_legal": {
+     "9": 1
+    },
+    "relays": []
+   }
+  ]
+ }
+}
