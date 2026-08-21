@@ -15,13 +15,13 @@ should be read as describing the current design.
 
 ## Not moved, and why
 
-`fourarm/analysis/retired_trap_check.py` belongs here on merit. It is the trap
+`fourarm/analysis/ ex1/retired_trap_check.py` belongs here on merit. It is the trap
 detector for the original Experiment 3 design, "judgement under scarcity",
 which was retired on 18 August: the harvested states held too few genuine
 traps to carry the claim, and an artificial trap setup was not endorsed.
 Experiment 3 is now capability variation against task difficulty.
 
-It stays in `analysis/` because `analysis/episode_buffer_density.py` imports
+It stays in `analysis/` because `analysis/episode/episode_buffer_density.py` imports
 `classify_decision` from it. `episode_buffer_density.py` is itself pre-reframe
 episode analysis and is probably also dead, but that has not been confirmed,
 so nothing has been moved. Resolving the pair is a small job and worth doing

@@ -11,7 +11,7 @@ See `docs/EX2_GUIDE.md` for the pipeline that produces them.
 on** (`_V_` means the overhead frame was supplied). It is the image ablation,
 and it belongs to Experiment 1 rather than Experiment 2. It sits here for
 historical reasons and is not moved, because `docs/TABLE_PROVENANCE.md` and
-`analysis/ex1_verify_tables.py` both reference this path.
+`analysis/ex1/ex1_verify_tables.py` both reference this path.
 
 The result is a clean null: 75.4% against 76.7% text-only, a difference of
 -1.3 points [-8.3, 5.7].

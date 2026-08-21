@@ -274,7 +274,7 @@ BASKET_WALL_HALF = 0.22     # basket wall half-extent. Sized so the three
 
 # --- timing model ------------------------------------------------------------
 # Refitted 2026-07-29 from 145 PER-TASK execution windows across 10 episodes
-# and 3 layouts (analysis/episode_calibrate_timing.py):
+# and 3 layouts (analysis/episode/episode_calibrate_timing.py):
 #
 #     moving_ticks = ticks_per_m * travel_leg_m + fixed_ticks
 #     moving_ticks = (done_tick - exec_start_tick) - blocked_ticks

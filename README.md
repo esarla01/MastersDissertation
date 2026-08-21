@@ -21,12 +21,12 @@ the analysis, only to harvest new states.
 
 ```bash
 cd fourarm
-python3 analysis/ex1_verify_tables.py
+python3 analysis/ex1/ex1_verify_tables.py
 ```
 
 That regenerates every table in the Experiment 1 chapter from the raw data
 and diffs it against the published values. It uses only the standard library,
-so it is an independent check on `analysis/ex1_report.py` rather than a re-run
+so it is an independent check on `analysis/ex1/ex1_report.py` rather than a re-run
 of it. Exit status is 0 when everything passes.
 
 Expected output ends with `264/264 checks passed`.
@@ -51,7 +51,10 @@ wrong.
     ├── core/                 cell, control and decision layers
     ├── experiments/          ex1/ and ex2/ prompt and runner modules
     ├── analysis/             harvest, replay, scoring, reporting
-    │                         (prefixed: ex1_, ex2_, episode_, shared)
+    │   ├── ex1/ ex2/         one directory per experiment
+    │   ├── episode/ cell/    pre-reframe episode tools, cell geometry
+    │   ├── retired/          dead, kept for one import
+    │   └── *.py              shared infrastructure, imported by the rest
     ├── ycb/                  scene assembly and the episode runner
     ├── instrumentation/      episode logging and recording
     ├── probes/               frozen, content-hashed decision states
@@ -77,9 +80,11 @@ Four README files carry the map. Each sits next to what it describes.
 | `fourarm/runs/README.md` | The same for Experiment 2 |
 | `docs/EX2_GUIDE.md` | How do I run the Experiment 2 pipeline end to end |
 
-Scripts in `analysis/` are prefixed by scope: `ex1_`, `ex2_`, `episode_` for
-pre-reframe episode tools used by no reported result, `cell_` for geometry,
-and no prefix for shared infrastructure that other modules import.
+Scripts in `analysis/` are grouped by scope into `ex1/`, `ex2/`, `episode/`
+for pre-reframe episode tools used by no reported result, `cell/` for
+geometry, and `retired/` for dead code. Shared infrastructure that other
+modules import stays at the top of `analysis/`. Run every script from
+`fourarm/`, as in the command above, not from its own directory.
 
 **Data files are never renamed.** Their names appear in the thesis, in the
 provenance record and in the verification script, so a rename would break the

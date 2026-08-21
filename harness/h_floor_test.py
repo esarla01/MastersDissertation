@@ -1,6 +1,6 @@
 """Harness: perception floor test plumbing (imports the REAL script).
 
-Runs analysis/ex2_perception_floor.py's main() with an injected fake model
+Runs analysis/ex2/ex2_perception_floor.py's main() with an injected fake model
 (no network, no key) over a real tiny PNG and verifies: the image is
 base64-encoded into the request, both built-in probes run per frame, the
 orientation probe grades PASS/CHECK against its expectation, and the

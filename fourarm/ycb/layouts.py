@@ -118,7 +118,7 @@ L5_CONTENTION = {
 }
 
 
-# L6: DECISION-RICH (2026-07-29). Designed against analysis/episode_layout_audit.py,
+# L6: DECISION-RICH (2026-07-29). Designed against analysis/episode/episode_layout_audit.py,
 # and hits the cell's structural ceiling: all four objects that CAN have two
 # feasible arms do, median cost spread 213 ticks (above the ~160-tick
 # makespan noise), 12 static traps.

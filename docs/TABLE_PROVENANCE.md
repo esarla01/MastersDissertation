@@ -6,19 +6,19 @@ regenerate it. Verified 20 August 2026: **303 of 303 checks pass**.
 Run the whole check from the `fourarm/` directory:
 
 ```bash
-python3 analysis/ex1_verify_tables.py
+python3 analysis/ex1/ex1_verify_tables.py
 ```
 
 One table at a time:
 
 ```bash
-python3 analysis/ex1_verify_tables.py --table spine --table gaps
-python3 analysis/ex1_verify_tables.py --quiet          # failures only
+python3 analysis/ex1/ex1_verify_tables.py --table spine --table gaps
+python3 analysis/ex1/ex1_verify_tables.py --quiet          # failures only
 ```
 
 Exit status is 0 when everything passes and 1 otherwise, so it works as a
 pre-submission gate. The script uses only the standard library and reads the
-frozen data directly, so it is an independent check on `analysis/ex1_report.py` rather
+frozen data directly, so it is an independent check on `analysis/ex1/ex1_report.py` rather
 than a re-run of it. If the two ever disagree, one of them has a bug and the
 disagreement is the finding.
 
@@ -104,7 +104,7 @@ hardcodes the 18 good files for this reason.
 | `route` | How much of the R5 limitation is real. Rebuilds the deployed router with each unstated rule disabled and re-runs all 52 route rejections | `--table route` |
 | `effects` | Contrasts the Results section quotes with intervals: the interaction, correct-refusal falls, Franka-share rises, the bound on reasons admitting the gap, and the width-ordering violation | `--table effects` |
 
-`analysis/ex1_effects.py` computes the same quantities for reporting, and
+`analysis/ex1/ex1_effects.py` computes the same quantities for reporting, and
 writes a tidy CSV per block with `--csv figures/` for plotting. The harness
 pins the published values; the effects script is what you run when a number
 changes.
@@ -163,7 +163,7 @@ not.** Pairs sum to 1196, which is exactly the rejected pairs (1732 candidate
 minus 536 legal), because each rejected pair carries one cause. States sum to
 392 against 162 states, because a state can have several binding constraints.
 
-**`analysis/ex1_report.py` hardcodes the cast A reference lines.** Its cast B output
+**`analysis/ex1/ex1_report.py` hardcodes the cast A reference lines.** Its cast B output
 prints "grasp 30.5, width-blind 74.9" in the header when the correct cast B
 lines are 34.6 and 69.2. Use `out/ex1_setb_floors.json` for cast B, not the
 report header.

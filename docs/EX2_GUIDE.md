@@ -88,7 +88,7 @@ python3 experiments/ex2/analyse_conflict.py runs/All_conflict.jsonl
 python3 experiments/ex2/verify_legality.py runs/All_conflict.jsonl
 
 # the dimension-only condition
-python3 analysis/ex2_analyse_dims.py runs/piece_dims_P2.jsonl
+python3 analysis/ex2/ex2_analyse_dims.py runs/piece_dims_P2.jsonl
 ```
 
 **Run `--view extract` before quoting any width-derived number.** Three

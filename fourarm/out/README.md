@@ -1,7 +1,7 @@
 # out/ — Experiment 1 run files
 
 **Nothing in this directory is renamed, ever.** These filenames appear in
-`docs/TABLE_PROVENANCE.md`, in `analysis/ex1_verify_tables.py`, and in the
+`docs/TABLE_PROVENANCE.md`, in `analysis/ex1/ex1_verify_tables.py`, and in the
 thesis itself. They are the audit trail from a published number back to the
 data that produced it. Renaming them would break exactly the traceability the
 provenance record exists to give.

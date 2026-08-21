@@ -745,7 +745,7 @@ class Metrics:
 #
 # Holding the round for a bounded number of ticks when an arm is finishing
 # raises the share of decisions taken with a real choice. Measured
-# counterfactually (analysis/episode_buffer_density.py): tasks with a choice roughly
+# counterfactually (analysis/episode/episode_buffer_density.py): tasks with a choice roughly
 # double at a 200-tick window on both episodes.
 #
 # What this deliberately does NOT do: it gives the allocator no information.
