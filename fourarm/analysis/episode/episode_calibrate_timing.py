@@ -39,7 +39,7 @@ If the cost model is ever extended to "when is the arm free" rather than
 "when is the task done", that constant belongs there and must be fitted
 separately from arm_idle events.
 
-  python3 analysis/episode_calibrate_timing.py out/*.json
+  python3 analysis/episode/episode_calibrate_timing.py out/*.json
 
 READ THE DIAGNOSTICS. The tool refuses to print a paste-ready block when a
 coefficient is non-positive, when a fit rests on too few tasks, or when the
@@ -53,7 +53,7 @@ import os
 import statistics
 import sys
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from core.cell import cell_config as C                        # noqa: E402
 

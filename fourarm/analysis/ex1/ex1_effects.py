@@ -15,9 +15,9 @@ contrast with an interval. Six blocks:
 Standard library only, so it is independent of ex1_report.py. Run from
 fourarm/:
 
-    python3 analysis/ex1_effects.py
-    python3 analysis/ex1_effects.py --block interaction --block refusal
-    python3 analysis/ex1_effects.py --csv figures/    # tidy CSV per block
+    python3 analysis/ex1/ex1_effects.py
+    python3 analysis/ex1/ex1_effects.py --block interaction --block refusal
+    python3 analysis/ex1/ex1_effects.py --csv figures/    # tidy CSV per block
 """
 
 import argparse

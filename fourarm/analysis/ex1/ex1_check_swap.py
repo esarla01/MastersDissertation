@@ -24,7 +24,7 @@ and a valid result, and each has a check here.
 
 Usage, comparing the swap against its unmanipulated parent:
 
-    python3 analysis/ex1_check_swap.py \\
+    python3 analysis/ex1/ex1_check_swap.py \\
         --swap out/ex1_gpt_L1swap.jsonl \\
         --base out/ex1_gpt_L1nw_r3b.jsonl \\
         --rung L1-swap

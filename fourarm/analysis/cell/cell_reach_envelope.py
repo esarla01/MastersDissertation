@@ -20,8 +20,8 @@ would give false confidence.
 Reports the inner dead-zone edge and the radial distribution of holes too,
 so the shape of the envelope can be described rather than assumed.
 
-Run: python3 analysis/cell_reach_envelope.py
-     python3 analysis/cell_reach_envelope.py --inner 0.15
+Run: python3 analysis/cell/cell_reach_envelope.py
+     python3 analysis/cell/cell_reach_envelope.py --inner 0.15
 """
 import argparse
 import ast
@@ -31,7 +31,7 @@ import sys
 
 import numpy as np
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from core.cell import cell_config as C          # noqa: E402  REAL config
 from core.cell.zones import ZoneMap             # noqa: E402  REAL loader
@@ -84,7 +84,7 @@ def layout_check(zm, points=None):
     """
     if points is None:
         points = {}
-        root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         # Read the REAL literals out of the REAL source files. Importing
         # them would drag in isaaclab, so this script would only run under
         # the Isaac interpreter. The values are the ones the sim uses.
@@ -138,7 +138,7 @@ def main():
     ap.add_argument("--rasters", default=None)
     a = ap.parse_args()
 
-    rdir = a.rasters or os.path.join(os.path.dirname(__file__), "..",
+    rdir = a.rasters or os.path.join(os.path.dirname(__file__), "..", "..",
                                      "core", "cell", "reachability",
                                      "rasters")
     zm = ZoneMap(rdir)

@@ -32,10 +32,10 @@ than argued about.
 
 Usage:
 
-    python3 analysis/ex1_explain_route.py --probes probes/ex1_v2.json \\
+    python3 analysis/ex1/ex1_explain_route.py --probes probes/ex1_v2.json \\
         --seq 7 --task 2 --arm franka_s
 
-    python3 analysis/ex1_explain_route.py --probes probes/ex1_v2.json \\
+    python3 analysis/ex1/ex1_explain_route.py --probes probes/ex1_v2.json \\
         --from-run out/ex1_gpt_L3nw_r3.jsonl        # every NO_ROUTE in it
 """
 
@@ -46,7 +46,7 @@ import os
 import sys
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
-_ROOT = os.path.dirname(_HERE)
+_ROOT = os.path.dirname(os.path.dirname(_HERE))
 for _p in (_ROOT, os.path.join(_ROOT, "ycb")):
     if _p not in sys.path:
         sys.path.insert(0, _p)

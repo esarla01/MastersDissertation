@@ -5,7 +5,7 @@ consult audit trail and, for each rejected proposal, replays the EXACT
 state the model received and decides whether that state contained what
 the model needed to avoid the rejection.
 
-  python3 analysis/episode_input_audit.py out/vlm1_<stamp>.json [more.json ...]
+  python3 analysis/episode/episode_input_audit.py out/vlm1_<stamp>.json [more.json ...]
 
 Every rejection is labelled:
 
@@ -36,7 +36,7 @@ import math
 import os
 import sys
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 try:
     from core.cell.zones import ZoneMap

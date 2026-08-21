@@ -24,9 +24,9 @@ validity is demonstrated, not assumed". Chance legality per tier is
 A1-derived: feasible pairs / (arms x objects).
 
 Usage:
-  python3 analysis/episode_layout_audit.py                  # all frozen layouts
-  python3 analysis/episode_layout_audit.py --layout L2_BALANCED
-  python3 analysis/episode_layout_audit.py --episode out/step3_b2_default.json
+  python3 analysis/episode/episode_layout_audit.py                  # all frozen layouts
+  python3 analysis/episode/episode_layout_audit.py --layout L2_BALANCED
+  python3 analysis/episode/episode_layout_audit.py --episode out/step3_b2_default.json
 
 The episode mode audits the layout an episode ACTUALLY ran (spawn_xy),
 so drifted spawns and frozen tables can be compared.
@@ -43,9 +43,9 @@ import os
 import statistics
 import sys
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 sys.path.insert(0, os.path.join(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "ycb"))
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "ycb"))
 
 from core.cell import cell_config as C                        # noqa: E402
 from core.cell.zones import ZoneMap                           # noqa: E402

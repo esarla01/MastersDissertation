@@ -35,7 +35,7 @@ takes the state at face value, so an arm that is about to free up counts as
 busy, which is what the model was shown.
 
 Usage:
-    python3 analysis/retired_trap_check.py out/probe_seed_v3_frames/consults.jsonl \\
+    python3 analysis/ ex1/retired_trap_check.py out/probe_seed_v3_frames/consults.jsonl \\
         out/probe_seed_v3.json
 """
 
@@ -44,7 +44,7 @@ import os
 import sys
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
-_ROOT = os.path.dirname(_HERE)
+_ROOT = os.path.dirname(os.path.dirname(_HERE))
 for _p in (_ROOT, os.path.join(_ROOT, "ycb")):
     if _p not in sys.path:
         sys.path.insert(0, _p)
@@ -171,7 +171,7 @@ def check_episode(trail, episode, baskets=None):
 def main(argv=None):
     argv = argv or sys.argv[1:]
     if len(argv) != 2:
-        raise SystemExit("usage: python3 analysis/retired_trap_check.py "
+        raise SystemExit("usage: python3 analysis/ ex1/retired_trap_check.py "
                          "<consults.jsonl> <episode.json>")
     rep = check_episode(argv[0], argv[1])
     for n in rep["notes"]:

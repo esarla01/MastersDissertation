@@ -1,7 +1,7 @@
 """Mustard pose probe: can the VLM tell a LYING mustard bottle from an UPRIGHT one?
 
 This is a cheap, PNG-only perception test in the spirit of
-`analysis/ex2_perception_floor.py`. It shows the model each captured EX2 frame,
+`analysis/ex2/ex2_perception_floor.py`. It shows the model each captured EX2 frame,
 asks the single question "is the mustard bottle lying down or standing
 upright?", and scores the answer against ground truth. No simulation, no
 allocation, no rules block -- it isolates ONE thing: does the model actually
@@ -30,19 +30,19 @@ DASHSCOPE_API_KEY for the default qwen alias, or the key for --model gpt).
 
 Usage:
   # default: every ex2_cam frame in out/ex2_capture, scored against consults
-  python3 analysis/ex2_pose_probe.py
+  python3 analysis/ex2/ex2_pose_probe.py
 
   # a different capture dir, the GPT alias, only the true A/B pairs
-  python3 analysis/ex2_pose_probe.py out/ex2_capture --model gpt --only-pairs
+  python3 analysis/ex2/ex2_pose_probe.py out/ex2_capture --model gpt --only-pairs
 
   # the overhead table camera instead of the ex2 camera, write a JSONL log
-  python3 analysis/ex2_pose_probe.py --view table_cam --out runs/pose.jsonl
+  python3 analysis/ex2/ex2_pose_probe.py --view table_cam --out runs/pose.jsonl
 
   # see the prompt and the ground-truth labels without spending a token
-  python3 analysis/ex2_pose_probe.py --dry-run
+  python3 analysis/ex2/ex2_pose_probe.py --dry-run
 
   # score specific frames
-  python3 analysis/ex2_pose_probe.py --images out/ex2_capture/e01_A.png ...
+  python3 analysis/ex2/ex2_pose_probe.py --images out/ex2_capture/e01_A.png ...
 """
 
 import argparse
@@ -51,12 +51,12 @@ import json
 import os
 import sys
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from core.decision.vlm_allocator import openai_chat   # REAL call path
 
 # Repo-relative default: fourarm/analysis/ -> fourarm/out/ex2_capture
-_REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DEFAULT_CAPTURE = os.path.join(_REPO, "out", "ex2_capture")
 
 POSES = ("lying", "upright")

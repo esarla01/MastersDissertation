@@ -1,22 +1,39 @@
 # analysis/
 
-Flat by design. The path bootstrap in each script computes the package root
-as one directory up, so nesting these into subfolders would break every one
-of them. The prefix does the grouping instead.
+Grouped by scope. Shared infrastructure sits at the top level, and everything
+that belongs to exactly one experiment sits in that experiment's directory.
 
-| Prefix | Meaning |
-|---|---|
-| *(none)* | Shared infrastructure, imported by the rest |
-| `ex1_` | Experiment 1 only, run directly, imported by nothing |
-| `ex2_` | Experiment 2 only, run directly, imported by nothing |
-| `episode_` | Pre-reframe episode-level analysis, not used by any reported result |
-| `cell_` | Cell geometry, independent of any experiment |
-| `retired_` | Dead, kept only because something still imports it |
+```
+analysis/
+├── probe_store.py          shared infrastructure, imported by the rest
+├── frozen_coord.py
+├── probe_replay.py
+├── build_master_set.py
+├── refreeze_probe_set.py
+├── ex1/                    Experiment 1 only, run directly, imported by nothing
+├── ex2/                    Experiment 2 only, run directly, imported by nothing
+├── episode/                pre-reframe episode analysis, no reported result
+├── cell/                   cell geometry, independent of any experiment
+└── retired/                dead, kept only because something still imports it
+```
+
+Every script is run from `fourarm/`, not from its own directory:
+
+```bash
+cd fourarm
+python3 analysis/ex1/ex1_verify_tables.py
+```
+
+Each script adds the package root to `sys.path` by walking three directories
+up from its own file. A script moved between these directories needs that
+depth adjusted to match, and the shared modules at the top level use a
+different depth again.
 
 ## Shared infrastructure
 
-These are the only modules in this directory that anything imports. Change
-them with care.
+These are the only modules in this directory that anything imports, and they
+stay at the top level because `harness/` and `experiments/ex2/run.py` import
+them as `analysis.<name>`. Change them with care.
 
 | Module | Does | Imported by |
 |---|---|---|
@@ -27,9 +44,12 @@ them with care.
 | `refreeze_probe_set.py` | Refreeze a set with sources excluded. Produced `ex1_v2` from `ex1_v1` | run directly |
 
 `probe_store` and `frozen_coord` are shared between Experiment 1 and
-Experiment 2, which is why neither carries an experiment prefix.
+Experiment 2, which is why neither sits in an experiment directory.
 
-## Experiment 1
+`probe_store.py` and `frozen_coord.py` are import-only modules. Running either
+directly fails on `No module named 'core'`, which is expected.
+
+## ex1/
 
 Run in roughly this order. All read from `out/` and `probes/`.
 
@@ -38,27 +58,35 @@ Run in roughly this order. All read from `out/` and `probes/`.
 | `ex1_chance_floor.py` | Computes the chance floor and width-blind reference lines. Writes `out/ex1_chance_floor.json` |
 | `ex1_report.py` | The main tables, one pass over every run file |
 | `ex1_verify_tables.py` | Regenerates every published table from raw data and diffs it against the thesis. **Start here.** See `docs/TABLE_PROVENANCE.md` |
+| `ex1_effects.py` | Effect sizes and intervals for the results section. Standard library only |
 | `ex1_audit_states.py` | Checks the probe set and pipeline before spending on a run |
 | `ex1_audit_rows.py` | Independently re-scores a finished run |
 | `ex1_explain_route.py` | Why a handover was or was not available, pad by pad. The R5 sensitivity check |
+| `ex1_check_swap.py` | Whether the swap happened, and was scored against the true state |
 | `ex1_repair_failures.py` | Feedback on rejections in a finished run |
 | `ex1_find_missing_rows.py` | Finds states a run did not cover |
+| `ex1_rename_runs.py` | Puts the run files under decodable names. See `out/README.md` |
+| `mislabel.py` | Swaps object names across the Franka aperture. The text-channel version of the Experiment 2 image/field conflict |
+
+`mislabel.py` carries no `ex1_` prefix for historical reasons but belongs to
+Experiment 1 and is imported by nothing.
 
 `ex1_report.py` hardcodes the cast A reference lines, so its cast B output
 prints the wrong header. Use `out/ex1_setb_floors.json` for cast B.
 
-## Experiment 2
+## ex2/
 
 | Module | Does |
 |---|---|
 | `ex2_analyse_dims.py` | The dimension-only condition, from `runs/piece_dims_P2.jsonl` |
 | `ex2_pose_probe.py` | Can the model tell a lying bottle from an upright one |
 | `ex2_perception_floor.py` | Can the model read the frame at all |
+| `dims_analysis.txt` | Saved output of `ex2_analyse_dims.py` |
 
 The rest of the Experiment 2 pipeline lives in `experiments/ex2/`. See
 `docs/EX2_GUIDE.md`.
 
-## Episode-level, pre-reframe
+## episode/
 
 These compute episode metrics from the era when the thesis benchmarked the
 *system*. Since the reframe of 2 August the thesis evaluates a *model* at the
@@ -70,9 +98,14 @@ because the engineering-contribution appendix may still want them.
 `episode_verify_disruptions.py`, `episode_buffer_density.py`,
 `episode_buffer_value.py`, `episode_calibrate_timing.py`.
 
-## Retired
+## cell/
+
+`cell_reach_envelope.py` computes the reach envelope from the real cell
+config. It depends on no experiment.
+
+## retired/
 
 `retired_trap_check.py` is the trap detector for the abandoned Experiment 3
-design. It stays here only because `episode_buffer_density.py` imports
+design. It stays here only because `episode/episode_buffer_density.py` imports
 `classify_decision` from it. Resolving that pair would let both move to
 `attic/`.

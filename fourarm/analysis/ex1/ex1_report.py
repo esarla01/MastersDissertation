@@ -25,7 +25,7 @@ than showing zero.
 
 Usage:
 
-    python3 analysis/ex1_report.py --probes probes/ex1_v2.json out/ex1_*.jsonl
+    python3 analysis/ex1/ex1_report.py --probes probes/ex1_v2.json out/ex1_*.jsonl
 """
 
 import argparse
@@ -37,7 +37,7 @@ import re
 import sys
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
-_ROOT = os.path.dirname(_HERE)
+_ROOT = os.path.dirname(os.path.dirname(_HERE))
 for _p in (_ROOT, os.path.join(_ROOT, "ycb")):
     if _p not in sys.path:
         sys.path.insert(0, _p)

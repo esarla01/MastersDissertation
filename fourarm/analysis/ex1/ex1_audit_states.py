@@ -65,9 +65,9 @@ replaces looking at the thing you are about to send a model 810 times.
 
 Usage:
 
-    python3 analysis/ex1_audit_states.py --probes probes/ex1_v2.json
-    python3 analysis/ex1_audit_states.py --probes probes/ex1_v2.json --limit 20
-    python3 analysis/ex1_audit_states.py --probes probes/ex1_v2.json \\
+    python3 analysis/ex1/ex1_audit_states.py --probes probes/ex1_v2.json
+    python3 analysis/ex1/ex1_audit_states.py --probes probes/ex1_v2.json --limit 20
+    python3 analysis/ex1/ex1_audit_states.py --probes probes/ex1_v2.json \\
         --dump 1 --dump-dir out/ex1_prompts
 """
 
@@ -78,7 +78,7 @@ import os
 import sys
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
-_ROOT = os.path.dirname(_HERE)
+_ROOT = os.path.dirname(os.path.dirname(_HERE))
 for _p in (_ROOT, os.path.join(_ROOT, "ycb")):
     if _p not in sys.path:
         sys.path.insert(0, _p)

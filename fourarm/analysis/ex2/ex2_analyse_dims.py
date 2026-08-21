@@ -6,7 +6,7 @@ repeats, the failure taxonomy, qwen's legality, and the stated-width
 distributions behind the fallback claim.
 
 Usage:
-    python3 analysis/ex2_analyse_dims.py runs/piece_dims_P2.jsonl
+    python3 analysis/ex2/ex2_analyse_dims.py runs/piece_dims_P2.jsonl
 """
 
 import collections

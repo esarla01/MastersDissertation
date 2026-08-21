@@ -3,16 +3,16 @@
 
 Every expected value below is transcribed from the thesis source. The script
 recomputes each one from probes/*.json and out/*.jsonl using only the standard
-library, so it is an independent check on analysis/ex1_report.py rather than a
+library, so it is an independent check on analysis/ex1/ex1_report.py rather than a
 re-run of it. A green line means the number in the thesis is reproducible from
 the frozen data.
 
 Usage
 -----
-    python3 analysis/ex1_verify_tables.py                 # from fourarm/
-    python3 analysis/ex1_verify_tables.py --root /path/to/fourarm
-    python3 analysis/ex1_verify_tables.py --table spine   # one table only
-    python3 analysis/ex1_verify_tables.py --quiet         # failures only
+    python3 analysis/ex1/ex1_verify_tables.py                 # from fourarm/
+    python3 analysis/ex1/ex1_verify_tables.py --root /path/to/fourarm
+    python3 analysis/ex1/ex1_verify_tables.py --table spine   # one table only
+    python3 analysis/ex1/ex1_verify_tables.py --quiet         # failures only
 
 Exit status is 0 when every check passes and 1 otherwise, so it can be used as
 a pre-submission gate.
@@ -584,7 +584,7 @@ def t_route(root):
 
 # ---------------------------------------------------------------------------
 # Effect sizes the Results section quotes as contrasts rather than as bare
-# percentages. Mirrors analysis/ex1_effects.py, which computes them for
+# percentages. Mirrors analysis/ex1/ex1_effects.py, which computes them for
 # reporting; this block pins the published values.
 # ---------------------------------------------------------------------------
 

@@ -2,7 +2,7 @@
 
 Isaac-free, stdlib only. Accepts one or more episode files:
 
-  python3 analysis/episode_trace.py out/vlm1_*.json --rounds-only
+  python3 analysis/episode/episode_trace.py out/vlm1_*.json --rounds-only
 
 Each allocation round is printed as a block:
 
@@ -38,9 +38,9 @@ import sys
 # Optional: the capability breakdown needs the object registry and the arm
 # table. If they are unavailable (rasters or Isaac paths missing) the trace
 # still prints, just without the extra clause.
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 try:
-    from analysis.episode_metrics import capability_detail
+    from analysis.episode.episode_metrics import capability_detail
 except Exception:                              # pragma: no cover
     def capability_detail(arm, obj):
         return None

@@ -14,7 +14,7 @@ This script replays the lock ledger to the instant of each task's first
 claim, lists every blocker with its AGE in ticks, recomputes the total,
 and checks it against the stored stat. Isaac-free: runs anywhere.
 
-Usage:  python3 analysis/episode_verify_contention.py out/episode_*.json
+Usage:  python3 analysis/episode/episode_verify_contention.py out/episode_*.json
 """
 
 import json
@@ -114,7 +114,7 @@ def analyse(path):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        raise SystemExit("usage: python3 analysis/episode_verify_contention.py "
+        raise SystemExit("usage: python3 analysis/episode/episode_verify_contention.py "
                          "out/episode_*.json")
     for p in sys.argv[1:]:
         analyse(p)

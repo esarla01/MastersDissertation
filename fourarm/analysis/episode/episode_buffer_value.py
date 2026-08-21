@@ -25,8 +25,8 @@ So a near-zero result is CONCLUSIVE (the buffer cannot help), while a large
 result is only suggestive (the buffer might help). That asymmetry is the
 point: this tool exists to kill the idea cheaply, not to justify it.
 
-  python3 analysis/episode_buffer_value.py out/fit_b1_decision_rich.json
-  python3 analysis/episode_buffer_value.py out/*.json --window 200
+  python3 analysis/episode/episode_buffer_value.py out/fit_b1_decision_rich.json
+  python3 analysis/episode/episode_buffer_value.py out/*.json --window 200
 
 --window is how far ahead to look, in ticks. Defaults to 240, which is
 above the measured fold time for either arm type (about 75 for a UR, 180
@@ -39,9 +39,9 @@ import json
 import os
 import sys
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 sys.path.insert(0, os.path.join(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "ycb"))
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "ycb"))
 
 from core.cell import cell_config as C                        # noqa: E402
 from core.cell.zones import ZoneMap                           # noqa: E402

@@ -45,11 +45,11 @@ costs a fifth as many calls.
 
 Usage:
 
-    python3 analysis/ex1_repair_failures.py --probes probes/ex1_v2.json \\
+    python3 analysis/ex1/ex1_repair_failures.py --probes probes/ex1_v2.json \\
         --run out/ex1_gpt_L3nw_r3.jsonl --model gpt --attempts 3 \\
         --out out/ex1_gpt_L3nw_repair.jsonl
 
-    python3 analysis/ex1_repair_failures.py --probes probes/ex1_v2.json \\
+    python3 analysis/ex1/ex1_repair_failures.py --probes probes/ex1_v2.json \\
         --run out/ex1_gpt_L3nw_r3.jsonl --dry-run
 """
 
@@ -61,7 +61,7 @@ import sys
 import time
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
-_ROOT = os.path.dirname(_HERE)
+_ROOT = os.path.dirname(os.path.dirname(_HERE))
 for _p in (_ROOT, os.path.join(_ROOT, "ycb")):
     if _p not in sys.path:
         sys.path.insert(0, _p)

@@ -30,7 +30,7 @@ whether the buffer makes decisions well-posed, and the two answers can
 legitimately disagree.
 
 Usage:
-    python3 analysis/episode_buffer_density.py out/probe_seed_v3_frames/consults.jsonl \\
+    python3 analysis/episode/episode_buffer_density.py out/probe_seed_v3_frames/consults.jsonl \\
         out/probe_seed_v3.json 0 100 200 400
 """
 
@@ -40,13 +40,13 @@ import os
 import sys
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
-_ROOT = os.path.dirname(_HERE)
+_ROOT = os.path.dirname(os.path.dirname(_HERE))
 for _p in (_ROOT, os.path.join(_ROOT, "ycb")):
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
 from analysis.probe_store import legal_options                     # noqa: E402
-from analysis.retired_trap_check import classify_decision                  # noqa: E402
+from analysis.retired.retired_trap_check import classify_decision                  # noqa: E402
 from analysis.probe_replay import _consult_entries                 # noqa: E402
 
 
@@ -145,7 +145,7 @@ def measure(trail, episode, buffers=(0, 100, 200, 400), baskets=None):
 def main(argv=None):
     argv = argv or sys.argv[1:]
     if len(argv) < 2:
-        raise SystemExit("usage: python3 analysis/episode_buffer_density.py "
+        raise SystemExit("usage: python3 analysis/episode/episode_buffer_density.py "
                          "<consults.jsonl> <episode.json> [ticks ...]")
     buffers = [int(x) for x in argv[2:]] or [0, 100, 200, 400]
     rep = measure(argv[0], argv[1], buffers)

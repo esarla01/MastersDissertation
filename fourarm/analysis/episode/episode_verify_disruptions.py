@@ -4,7 +4,7 @@ Every fix made on 2026-07-28 lives in a code path that only runs under
 disruptions, so the only proof that matters is a disrupted episode. This
 reads one and checks each fix against what the JSON records.
 
-  python3 analysis/episode_verify_disruptions.py out/b1_2026....json
+  python3 analysis/episode/episode_verify_disruptions.py out/b1_2026....json
 
 Checks, and what each one proves:
 
@@ -29,9 +29,9 @@ import math
 import os
 import sys
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 sys.path.insert(0, os.path.join(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "ycb"))
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "ycb"))
 
 from core.cell import cell_config as C                        # noqa: E402
 from ycb_objects import YCB, CATEGORIES                       # noqa: E402

@@ -4,7 +4,7 @@ Isaac-free. Imports the REAL registry (ycb_objects), basket table
 (ycb_scene) and reachability rasters (zones.ZoneMap), so capability and
 relay ground truth are the project's own, not re-implementations.
 
-  python3 analysis/episode_metrics.py out/*.json [--csv out/metrics.csv]
+  python3 analysis/episode/episode_metrics.py out/*.json [--csv out/metrics.csv]
 
 Per episode it computes every metric of the scope PDF that the JSON can
 support, and prints None with a reason for the ones it cannot yet:
@@ -46,9 +46,9 @@ import math
 import os
 import sys
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 sys.path.insert(0, os.path.join(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "ycb"))
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "ycb"))
 
 from ycb_objects import YCB                                   # noqa: E402
 from ycb_scene import BASKETS, CATEGORY_BASKET                # noqa: E402

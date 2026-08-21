@@ -10,10 +10,10 @@ Needs DASHSCOPE_API_KEY (same endpoint/model as the allocator; the call
 path is IMPORTED from the real vlm_allocator, not reimplemented).
 
 Usage:
-  python3 analysis/ex2_perception_floor.py out/vlm2_*_frames/consult_001*.png
-  python3 analysis/ex2_perception_floor.py FRAMES... --question "How many \
+  python3 analysis/ex2/ex2_perception_floor.py out/vlm2_*_frames/consult_001*.png
+  python3 analysis/ex2/ex2_perception_floor.py FRAMES... --question "How many \
       white tiles are visible?" --key custom
-  python3 analysis/ex2_perception_floor.py FRAMES... --probes orientation
+  python3 analysis/ex2/ex2_perception_floor.py FRAMES... --probes orientation
 
 Built-in probes:
   orientation  "Which arm base is nearest the TOP edge?" expect franka_n
@@ -30,7 +30,7 @@ import json
 import os
 import sys
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from core.decision.vlm_allocator import openai_chat   # REAL call path
 

@@ -37,10 +37,10 @@ until that is resolved.
 
 Usage:
 
-    python3 analysis/ex1_audit_rows.py --probes probes/ex1_v2.json \\
+    python3 analysis/ex1/ex1_audit_rows.py --probes probes/ex1_v2.json \\
         out/ex1_gpt_L3_r3.jsonl out/ex1_gpt_L3nw_r3.jsonl ...
 
-    python3 analysis/ex1_audit_rows.py --probes probes/ex1_v2.json \\
+    python3 analysis/ex1/ex1_audit_rows.py --probes probes/ex1_v2.json \\
         --rejections out/ex1_gpt_L3nw_r3.jsonl      # list every rejection
 """
 
@@ -52,7 +52,7 @@ import os
 import sys
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
-_ROOT = os.path.dirname(_HERE)
+_ROOT = os.path.dirname(os.path.dirname(_HERE))
 for _p in (_ROOT, os.path.join(_ROOT, "ycb")):
     if _p not in sys.path:
         sys.path.insert(0, _p)
