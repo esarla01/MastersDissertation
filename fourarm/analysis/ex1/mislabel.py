@@ -34,11 +34,19 @@ WHAT DOES NOT CHANGE. grasp_m, mass_kg, delicate, category, zone, xy and
 reach_ok_arms all stay with the true object. Only the name field moves.
 assert_swapped checks this on every state rather than trusting it.
 
-THE CONTROLS ARE INSIDE THE PROMPT. Four objects are deliberately left
-alone: ycb_mug and ycb_mug2 above the aperture, ycb_banana and ycb_bowl
-below it. Their error rates should not move at all. If they do, the
-manipulation disturbed something other than identity, and that is
-measurable in the same condition rather than needing another one.
+THE CONTROLS ARE INSIDE THE PROMPT. On cast A four objects are
+deliberately left alone: ycb_mug and ycb_mug2 above the aperture,
+ycb_banana and ycb_bowl below it. ycb_wood_block is also never renamed,
+since no category-matched partner straddles the aperture for it, so it
+behaves as a fifth control without being listed as one. Their error rates
+should not move at all. If they do, the manipulation disturbed something
+other than identity, and that is measurable in the same condition rather
+than needing another one.
+
+CAST B. The same three constraints admit exactly one pair on the second
+object set, so cast B tests one direction rather than two. See
+SWAP_PAIRS_SETB below for the arithmetic and for why that is stated as a
+limit rather than worked around.
 
 THE PREDICTION, written down before the run so this is a test rather than
 an exploration:
@@ -65,6 +73,67 @@ SWAP_PAIRS = [
 # Left alone on purpose. Not an oversight: see the module docstring.
 CONTROLS = ("ycb_mug", "ycb_mug2", "ycb_banana", "ycb_bowl")
 
+# ---------------------------------------------------------------------------
+# CAST B. The same three constraints admit exactly one pair on the second
+# object set, and the arithmetic is worth recording because it is the
+# reason this condition is weaker there than on cast A.
+#
+#   tools        nothing sits above the 0.080 m aperture, so bracket_small
+#                and screw_99 have no partner
+#   kitchenware  the only object below the aperture is foam_brick, which is
+#                delicate, so scissors and bleach have no partner
+#   food         tuna_can (0.034) can pair with sugar_box (0.093) or with
+#                mac_n_cheese (0.093), and only one of the two
+#
+# sugar_box is chosen over mac_n_cheese because it is the more exposed of
+# the pair, appearing as a queued task 69 times against 24. The wide
+# direction is therefore measurable and the narrow one is not: tuna_can is
+# selected on only 6 of 169 Full Information trials. This condition tests
+# one direction on cast B and the chapter says so.
+SWAP_PAIRS_SETB = [
+    ("ycb_sugar_box", "ycb_tuna_can"),        # 0.093 over  <-> 0.034 under, food
+]
+
+CONTROLS_SETB = ("ycb_bracket_small", "ycb_screw_99", "ycb_caster",
+                 "ycb_t_connector", "ycb_foam_brick", "ycb_scissors",
+                 "ycb_mac_n_cheese", "ycb_bleach")
+
+# cast key -> (pairs, controls). Selected from the objects present in the
+# state, never from a layout string, because a layout string can be absent
+# or wrong on a re-harvested set while the object names cannot.
+CASTS = {
+    "a": (SWAP_PAIRS, CONTROLS),
+    "b": (SWAP_PAIRS_SETB, CONTROLS_SETB),
+}
+
+
+def _paired_names(pairs):
+    return {n for pair in pairs for n in pair}
+
+
+def cast_of(state):
+    """(cast key, pairs, controls) for this state, or raise.
+
+    Raises rather than returning an empty map when nothing matches. A
+    silent no-op here would write an unswapped run under a swap label,
+    which is the one failure this module must never produce.
+    """
+    names = {o["name"] for o in state.get("objects", [])}
+    hits = [(k, p, c) for k, (p, c) in CASTS.items()
+            if names & _paired_names(p)]
+    if len(hits) == 1:
+        return hits[0]
+    if not hits:
+        raise ValueError(
+            "no swap pair applies to this state. Objects present: %s. "
+            "Running the swap here would rename nothing and produce an "
+            "unmanipulated file under a swap label."
+            % sorted(names))
+    raise ValueError(
+        "state matches more than one cast (%s), so the swap map is "
+        "ambiguous. Objects present: %s"
+        % ([k for k, _p, _c in hits], sorted(names)))
+
 # Fields that must survive the rename untouched. If any of these moved with
 # the name, the condition would be manipulating more than identity.
 INVARIANT = ("grasp_m", "mass_kg", "delicate", "category", "zone",
@@ -73,10 +142,13 @@ INVARIANT = ("grasp_m", "mass_kg", "delicate", "category", "zone",
 APERTURE_FRANKA = 0.080
 
 
-def build_map():
-    """name -> name. Symmetric, so applying it twice is the identity."""
+def build_map(pairs=None):
+    """name -> name. Symmetric, so applying it twice is the identity.
+
+    Defaults to the cast A pairs so every existing call site is unchanged.
+    """
     table = {}
-    for a, b in SWAP_PAIRS:
+    for a, b in (SWAP_PAIRS if pairs is None else pairs):
         table[a] = b
         table[b] = a
     return table
@@ -103,7 +175,9 @@ def mislabel_state(state, table=None):
     The input is never mutated. A probe set is frozen, and a run that edited
     it would change the thing every other run is compared against.
     """
-    table = table or build_map()
+    if table is None:
+        _key, pairs, _controls = cast_of(state)
+        table = build_map(pairs)
     return _rename(copy.deepcopy(state), table), table
 
 
@@ -113,7 +187,7 @@ def mislabel_state(state, table=None):
 # ---------------------------------------------------------------------------
 
 
-def assert_swapped(before, after, table=None):
+def assert_swapped(before, after, table=None, controls=None, pairs=None):
     """Raise unless the edit renamed exactly the six paired objects.
 
     Checks four things:
@@ -122,7 +196,11 @@ def assert_swapped(before, after, table=None):
       * no object's physical fields moved with the name
       * the object multiset is unchanged, so nothing was added or dropped
     """
-    table = table or build_map()
+    if table is None or controls is None or pairs is None:
+        _key, _pairs, _controls = cast_of(before)
+        pairs = _pairs if pairs is None else pairs
+        controls = _controls if controls is None else controls
+        table = build_map(pairs) if table is None else table
     src = {o["name"]: o for o in before.get("objects", [])}
     dst = {o["name"]: o for o in after.get("objects", [])}
 
@@ -131,7 +209,7 @@ def assert_swapped(before, after, table=None):
             "mislabel changed the object count, %d before and %d after"
             % (len(src), len(dst)))
 
-    for control in CONTROLS:
+    for control in controls:
         if control in src and control not in dst:
             raise AssertionError(
                 "control object %s was renamed; controls must not move" % control)
@@ -155,7 +233,7 @@ def assert_swapped(before, after, table=None):
                     % (true_name, field, obj[field], expected,
                        moved.get(field)))
 
-    present = sum(1 for a, b in SWAP_PAIRS
+    present = sum(1 for a, b in pairs
                   for n in (a, b) if n in src)
     if renamed != present:
         raise AssertionError(
@@ -164,17 +242,20 @@ def assert_swapped(before, after, table=None):
     return renamed
 
 
-def straddles_aperture(state, table=None):
+def straddles_aperture(state, table=None, pairs=None):
     """Every swap must cross the Franka aperture, or it asks nothing.
 
     Returns the list of (true name, false name, true width, false width)
     for objects present in this state, and raises if any pair fails to
     straddle.
     """
-    table = table or build_map()
+    if table is None or pairs is None:
+        _key, _pairs, _controls = cast_of(state)
+        pairs = _pairs if pairs is None else pairs
+        table = build_map(pairs) if table is None else table
     width = {o["name"]: o.get("grasp_m") for o in state.get("objects", [])}
     out = []
-    for a, b in SWAP_PAIRS:
+    for a, b in pairs:
         if a not in width or b not in width:
             continue
         wa, wb = width[a], width[b]

@@ -32,10 +32,17 @@ for p in (ROOT, os.path.join(ROOT, "ycb")):
         sys.path.insert(0, p)
 
 from experiments.ex1.mislabel import (  # noqa: E402
-    SWAP_PAIRS, CONTROLS, APERTURE_FRANKA,
-    build_map, mislabel_state, assert_swapped, straddles_aperture)
+    SWAP_PAIRS, CONTROLS, SWAP_PAIRS_SETB, CONTROLS_SETB, APERTURE_FRANKA,
+    build_map, mislabel_state, assert_swapped, straddles_aperture, cast_of)
 
-PROBES = os.path.join(ROOT, "probes/ex1_v2.json")
+# One entry per object set. Cast B admits a single pair, so it expects two
+# renames per state where cast A expects six. The count is asserted rather
+# than inferred, because a map that quietly stopped matching would produce
+# an unswapped run under a swap label.
+CASTS = [
+    ("cast A", "probes/ex1_v2.json", SWAP_PAIRS, CONTROLS, 6),
+    ("cast B", "probes/ex1_setb_v1.json", SWAP_PAIRS_SETB, CONTROLS_SETB, 2),
+]
 
 FAILURES = []
 
@@ -47,13 +54,14 @@ def check(name, ok, detail=""):
         FAILURES.append(name)
 
 
-def main():
-    probes = json.load(open(PROBES))["probes"]
-    table = build_map()
-    print("h_ex1_mislabel  (%d states)" % len(probes))
+def run_cast(label, probes_path, pairs, controls, expect_renames):
+    probes = json.load(open(os.path.join(ROOT, probes_path)))["probes"]
+    table = build_map(pairs)
+    print("\n%s  (%d states, %d pair%s)"
+          % (label, len(probes), len(pairs), "" if len(pairs) == 1 else "s"))
 
     # 1. Symmetry.
-    check("map is symmetric",
+    check(label + ": map is symmetric",
           all(table[table[k]] == k for k in table),
           "applying the swap twice must be the identity")
 
@@ -62,20 +70,21 @@ def main():
     objects = {o["name"]: o for o in state["objects"]}
 
     try:
-        straddles_aperture(state, table)
-        check("every pair straddles %.3f m" % APERTURE_FRANKA, True)
+        straddles_aperture(state, table, pairs)
+        check(label + ": every pair straddles %.3f m" % APERTURE_FRANKA, True)
     except AssertionError as exc:
-        check("every pair straddles %.3f m" % APERTURE_FRANKA, False, str(exc))
+        check(label + ": every pair straddles %.3f m" % APERTURE_FRANKA,
+              False, str(exc))
 
-    delicate = [n for a, b in SWAP_PAIRS for n in (a, b)
+    delicate = [n for a, b in pairs for n in (a, b)
                 if objects.get(n, {}).get("delicate")]
-    check("no delicate object is swapped", not delicate,
+    check(label + ": no delicate object is swapped", not delicate,
           "delicate objects in pairs: %s" % delicate)
 
-    mismatched = [(a, b) for a, b in SWAP_PAIRS
+    mismatched = [(a, b) for a, b in pairs
                   if a in objects and b in objects
                   and objects[a].get("category") != objects[b].get("category")]
-    check("every pair is category-matched", not mismatched,
+    check(label + ": every pair is category-matched", not mismatched,
           "cross-category pairs: %s" % mismatched)
 
     # 5 to 7. The edit itself, on every state.
@@ -85,16 +94,18 @@ def main():
         before = p["state"]
         after, _ = mislabel_state(before, table)
         try:
-            renamed_counts.add(assert_swapped(before, after, table))
+            renamed_counts.add(
+                assert_swapped(before, after, table, controls, pairs))
         except AssertionError as exc:
             errors.append(str(exc))
             if len(errors) > 3:
                 break
-    check("edit is clean on all %d states" % len(probes), not errors,
+    check(label + ": edit is clean on all %d states" % len(probes), not errors,
           errors[0] if errors else "")
-    check("renames per state is constant", len(renamed_counts) == 1,
+    check(label + ": renames per state is constant", len(renamed_counts) == 1,
           "saw %s" % sorted(renamed_counts))
-    check("expected 6 renames per state", renamed_counts == {6},
+    check(label + ": expected %d renames per state" % expect_renames,
+          renamed_counts == {expect_renames},
           "saw %s" % sorted(renamed_counts))
 
     # 8. The rendered prompt differs only in name strings.
@@ -111,13 +122,36 @@ def main():
         for name in table:
             a_txt = a_txt.replace(name, "<OBJ>")
             b_txt = b_txt.replace(name, "<OBJ>")
-        check("prompt differs only in object names", a_txt == b_txt,
+        check(label + ": prompt differs only in object names", a_txt == b_txt,
               "the two renderings differ outside the name strings")
     except ImportError as exc:
-        check("prompt differs only in object names", False,
+        check(label + ": prompt differs only in object names", False,
               "could not import build_prompt: %s" % exc)
 
-    print("\n%d checks, %d failed" % (8, len(FAILURES)))
+
+def main():
+    print("h_ex1_mislabel")
+    total = 0
+    for label, path, pairs, controls, expect in CASTS:
+        run_cast(label, path, pairs, controls, expect)
+        total += 8
+
+    # Cross-cast: the selector must resolve each set to its own map, and
+    # never to the other one. Without this, a cast B run could silently
+    # render with the cast A pairs and rename nothing.
+    print("\nselector")
+    ok = True
+    for label, path, pairs, _controls, _expect in CASTS:
+        probes = json.load(open(os.path.join(ROOT, path)))["probes"]
+        keys = {cast_of(p["state"])[0] for p in probes}
+        expect_key = "a" if pairs is SWAP_PAIRS else "b"
+        good = keys == {expect_key}
+        ok = ok and good
+        check("selector resolves %s to map %r" % (label, expect_key), good,
+              "resolved to %s" % sorted(keys))
+    total += len(CASTS)
+
+    print("\n%d checks, %d failed" % (total, len(FAILURES)))
     if FAILURES:
         print("failed: %s" % ", ".join(FAILURES))
     return 1 if FAILURES else 0
