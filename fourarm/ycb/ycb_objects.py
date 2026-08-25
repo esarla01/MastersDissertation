@@ -20,6 +20,9 @@ YCB_PHYS = "Props/YCB/Axis_Aligned_Physics"
 YCB_VIS = "Props/YCB/Axis_Aligned"
 _UP_X = (0.7071, 0.7071, 0.0, 0.0)      # 90 deg about X: stands the
                                         # sideways-authored assets upright
+_UP_Y = (0.7071, 0.0, 0.7071, 0.0)      # 90 deg about Y: stands a box on its
+                                        # END (long x-axis -> vertical), where
+                                        # _UP_X would only tip it onto its edge
 
 YCB = {
     # ---- food -------------------------------------------------------------
@@ -175,6 +178,79 @@ YCB = {
         "mass_kg": 0.407, "rest_z": 0.041, "height": 0.084, "footprint_m": 0.102,
         "rot": _UP_X, "delicate": False,
         "tint": (0.85, 0.30, 0.15),
+    },
+    # sugar_box EX2 pair, added 2026-08-25 as a taller, more legible second
+    # object than the meat can (0.058-0.084 m tall reads poorly in the oblique
+    # ex2_cam). Base 004_sugar_box measures 0.176 x 0.093 x 0.045 (grasp 0.093,
+    # rest_z 0.021 as authored). Lying flat = 0.093 across -> URs only; stood on
+    # its END it is 0.176 m tall and 0.045 across -> all four arms. Same
+    # straddle logic as the mustard bottle; numbers derived from the measured
+    # base box, NOT copied from mustard.
+    # Rotation MEASURED, not assumed: _UP_Y settled the box at z 0.046 (on its
+    # long SIDE, 0.093 tall) because the asset's long 0.176 axis runs along Y,
+    # so the standing rotation is _UP_X (90 deg about X), which lifts the 0.176
+    # axis vertical. rest_z of the upright pose is the geometric estimate (half
+    # of 0.176); confirm/correct from the settled z the capture records.
+    # Crimson tint so the box is not confused with the yellow mustard bottle.
+    "sugar_box_lying": {
+        "usd": "004_sugar_box.usd", "variant": "physics",
+        "category": "food", "grasp_m": 0.093, "grasp_authored": False,
+        "mass_kg": 0.514, "rest_z": 0.021, "height": 0.045, "footprint_m": 0.176,
+        "rot": None, "delicate": False,
+        "tint": (0.80, 0.15, 0.15),
+    },
+    "sugar_box_upright": {
+        "usd": "004_sugar_box.usd", "variant": "physics",
+        "category": "food", "grasp_m": 0.045, "grasp_authored": False,
+        "mass_kg": 0.514, "rest_z": 0.088, "height": 0.176, "footprint_m": 0.093,
+        "rot": _UP_X, "delicate": False,
+        "tint": (0.80, 0.15, 0.15),
+    },
+    # mac_n_cheese EX2 pair, added 2026-08-25: a colourful branded carton in
+    # its OWN packaging colour (no tint), chosen over the Cheez-It/cracker box
+    # (0.16 m wide -> graspable by nobody, no UR-only pose) and over the yellow
+    # sugar box. Base mac_n_cheese measures 0.185 x 0.093 x 0.042 (grasp 0.093,
+    # rest_z 0.016 as authored, folder Props/Food, visual variant). Lying flat =
+    # 0.093 across -> URs only; stood on its END it is 0.185 m tall and ~0.042
+    # across -> all four arms. rot follows the sugar-box precedent (_UP_X stood
+    # that box on end); rest_z upright is the geometric estimate (half of
+    # 0.185) -- confirm/correct from the settled z the capture records, and if
+    # it settles ~0.046 it landed on its SIDE and the rotation is _UP_Y instead.
+    "mac_n_cheese_lying": {
+        "usd": "mac_n_cheese_centered.usd", "variant": "visual",
+        "folder": "Props/Food",
+        "category": "food", "grasp_m": 0.093, "grasp_authored": False,
+        "mass_kg": 0.586, "rest_z": 0.016, "height": 0.042, "footprint_m": 0.185,
+        "rot": None, "delicate": False,
+    },
+    "mac_n_cheese_upright": {
+        "usd": "mac_n_cheese_centered.usd", "variant": "visual",
+        "folder": "Props/Food",
+        "category": "food", "grasp_m": 0.042, "grasp_authored": False,
+        "mass_kg": 0.586, "rest_z": 0.093, "height": 0.185, "footprint_m": 0.093,
+        "rot": _UP_X, "delicate": False,
+    },
+    # bleach EX2 pair, added 2026-08-25: the MOST LEGIBLE object in the set,
+    # chosen after the meat can and mac_n_cheese both read too small/thin in
+    # the oblique ex2_cam. Base 021_bleach_cleanser measures 0.251 x 0.102 x
+    # 0.068 (grasp 0.102, rest_z 0.028 as authored, visual variant,
+    # kitchenware). A tall cleanser bottle in its OWN colour (no tint). Lying =
+    # 0.102 across -> URs only; stood on its END it is 0.251 m tall and 0.068
+    # across -> all four arms. rot follows the bottle precedent (_UP_X stands
+    # the mustard bottle, authored lying the same way); rest_z upright is the
+    # geometric estimate (half of 0.251) -- confirm/correct from the settled z
+    # the capture records, and if it settles low it landed on its SIDE (_UP_Y).
+    "bleach_lying": {
+        "usd": "021_bleach_cleanser.usd", "variant": "visual",
+        "category": "kitchenware", "grasp_m": 0.102, "grasp_authored": False,
+        "mass_kg": 0.964, "rest_z": 0.028, "height": 0.068, "footprint_m": 0.251,
+        "rot": None, "delicate": False,
+    },
+    "bleach_upright": {
+        "usd": "021_bleach_cleanser.usd", "variant": "visual",
+        "category": "kitchenware", "grasp_m": 0.068, "grasp_authored": False,
+        "mass_kg": 0.964, "rest_z": 0.125, "height": 0.251, "footprint_m": 0.102,
+        "rot": _UP_X, "delicate": False,
     },
 
     # ---- SET B, 2026-08-18 -----------------------------------------------
