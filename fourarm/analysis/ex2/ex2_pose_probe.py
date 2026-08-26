@@ -57,19 +57,19 @@ from core.decision.vlm_allocator import openai_chat   # REAL call path
 
 # Repo-relative default: fourarm/analysis/ -> fourarm/out/ex2_capture
 _REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-DEFAULT_CAPTURE = os.path.join(_REPO, "out", "ex2_capture")
+DEFAULT_CAPTURE = os.path.join(_REPO, "out", "ex2_capture_block")
 
 POSES = ("lying", "upright")
 
 QUESTION = (
     "This is a photo of a robot workcell table with one or more objects on "
-    "it. Find the YELLOW MUSTARD BOTTLE (a tall French's-style squeeze "
-    "bottle). Ignore every other object. Decide its pose:\n"
-    "  - \"upright\": standing on its base, long axis vertical, cap up.\n"
+    "it. Find the plain GREY BLOCK (a rectangular box). Ignore every other "
+    "object. Decide its pose:\n"
+    "  - \"upright\": standing on its base, long axis vertical.\n"
     "  - \"lying\": tipped over on its side, long axis roughly horizontal "
     "along the table.\n"
-    "Judge only from what you see, not from what mustard bottles usually do. "
-    "If the mustard bottle is not visible at all, use \"unknown\".\n"
+    "Judge only from what you see, not from what such objects usually do. "
+    "If the block is not visible at all, use \"unknown\".\n"
     "Answer with ONLY this JSON and nothing else: "
     '{"pose": "upright|lying|unknown"}'
 )
@@ -80,13 +80,19 @@ QUESTION = (
 # ---------------------------------------------------------------------------
 
 def _pose_from_flip(flip_object):
-    """'mustard_upright' -> 'upright', 'mustard_lying' -> 'lying'."""
+    """'mustard_upright'/'block_upright' -> 'upright';
+    'mustard_lying'/'block_large'/'block_small' -> 'lying'.
+
+    This probe only asks the coarse standing-vs-on-its-side question, so the
+    block's two lying faces (large/small) both map to 'lying'. The finer
+    resting_face lives in the capture metadata for anything that needs it.
+    """
     if not flip_object:
         return None
     f = flip_object.lower()
     if "upright" in f:
         return "upright"
-    if "lying" in f:
+    if "lying" in f or "large" in f or "small" in f:
         return "lying"
     return None
 

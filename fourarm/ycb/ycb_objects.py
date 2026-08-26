@@ -253,6 +253,59 @@ YCB = {
         "rot": _UP_X, "delicate": False,
     },
 
+    # ---- EX2 synthetic block (2026-08-26) ----------------------------------
+    # Replaces the mustard bottle as the EX2 flip object. NOT a YCB asset: a
+    # plain procedural cuboid ("shape": "cuboid"), so it carries no branding
+    # and no recognisable identity a model could lean on instead of looking.
+    # add_ycb_pool spawns it with a CuboidCfg (see ycb_scene.py); it needs no
+    # apply_physics_schemas because the CuboidCfg ships its own rigid body and
+    # collision. Base dimensions UPRIGHT are 0.130 (H) x 0.100 (W) x 0.050 (D).
+    #
+    # THREE poses, ONE object, so THREE registry rows (as mustard_lying /
+    # mustard_upright are two rows of one bottle). Each row is the block
+    # already resting on the named face: size is PRE-ORIENTED to that pose and
+    # rot is identity (None), so the box spawns flat on a face and is stable by
+    # construction -- it cannot settle into a fourth orientation the way a
+    # rounded YCB asset can. grasp_m is the SMALLER horizontal extent in the
+    # pose (the bounding-box rule); footprint_m the LARGER; rest_z is half the
+    # vertical size (a cuboid's centre sits at height/2 on the table).
+    #
+    #   pose               size (x,y,z)        vertical  grasp   Franka  UR
+    #   upright            0.100 0.050 0.130    0.130    0.050   yes     yes
+    #   lying large face   0.130 0.100 0.050    0.050    0.100   NO      yes
+    #   lying small face   0.130 0.050 0.100    0.100    0.050   yes     yes
+    #
+    # Verified against the apertures (Franka 0.080, UR 0.140): feasible upright,
+    # infeasible on the large face, feasible on the small face for the Franka;
+    # feasible in all three for the UR. category "food" so it routes into the
+    # same basket the mustard did (food, reachable by exactly the idle ur_w and
+    # franka_n). mass 0.5 kg is far under the 3 kg Franka payload, so payload
+    # never binds. Plain dark-walnut wood colour (0.40,0.26,0.14): a bare
+    # block with no branding, kept notably DARKER than the medium-brown wood
+    # table (0.62,0.46,0.30) so it is clearly discernible from it and the
+    # visibility diff segments it cleanly. delicate False.
+    "block_upright": {
+        "shape": "cuboid", "size": (0.100, 0.050, 0.130),
+        "color": (0.40, 0.26, 0.14),
+        "category": "food", "grasp_m": 0.050, "grasp_authored": False,
+        "mass_kg": 0.500, "rest_z": 0.065, "height": 0.130, "footprint_m": 0.100,
+        "rot": None, "delicate": False,
+    },
+    "block_large": {                         # lying, LARGE face (0.130x0.100) down
+        "shape": "cuboid", "size": (0.130, 0.100, 0.050),
+        "color": (0.40, 0.26, 0.14),
+        "category": "food", "grasp_m": 0.100, "grasp_authored": False,
+        "mass_kg": 0.500, "rest_z": 0.025, "height": 0.050, "footprint_m": 0.130,
+        "rot": None, "delicate": False,
+    },
+    "block_small": {                         # lying, SMALL face (0.130x0.050) down
+        "shape": "cuboid", "size": (0.130, 0.050, 0.100),
+        "color": (0.40, 0.26, 0.14),
+        "category": "food", "grasp_m": 0.050, "grasp_authored": False,
+        "mass_kg": 0.500, "rest_z": 0.050, "height": 0.100, "footprint_m": 0.130,
+        "rot": None, "delicate": False,
+    },
+
     # ---- SET B, 2026-08-18 -----------------------------------------------
     # Second cast for the generalisation check, disjoint from cast A. All
     # values measured by run_ycb_probe; grasp_m is its min_grasp.
@@ -341,6 +394,11 @@ def usd_path(name, nucleus_dir):
     """Resolved USD. An optional "folder" key overrides the YCB variant
     folders, so set_b can reach props outside Props/YCB."""
     spec = YCB[name]
+    if spec.get("shape"):
+        raise KeyError(
+            f"{name!r} is a synthetic {spec['shape']}, not a USD asset; "
+            f"add_ycb_pool spawns it from a primitive CfgSpec and must not "
+            f"call usd_path on it")
     folder = spec.get("folder") or (
         YCB_PHYS if spec["variant"] == "physics" else YCB_VIS)
     return f"{nucleus_dir}/{folder}/{spec['usd']}"

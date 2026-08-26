@@ -122,7 +122,18 @@ class FourArmSceneCfg(InteractiveSceneCfg):
         data_types=["rgb"],
         spawn=sim_utils.PinholeCameraCfg(
             focal_length=24.0, focus_distance=400.0,
-            horizontal_aperture=20.955, clipping_range=(0.1, 20.0),
+            horizontal_aperture=20.955,
+            # Vertical-only zoom. The camera POSE (pos + rot above) is
+            # unchanged; only the lens is. vertical_aperture defaults to
+            # horizontal_aperture * height/width = 20.955 (square pixels).
+            # SHRINKING it narrows the vertical field of view and magnifies
+            # the vertical axis alone, so the oblique view's foreshortened
+            # table depth fills more of the frame. 20.955 / 1.5 = 13.97 is a
+            # 1.5x vertical zoom; raise the divisor to zoom in more, set to
+            # None to restore the square (un-zoomed) frame. Anamorphic, so
+            # pixels are no longer square (expected in a vertical zoom).
+            vertical_aperture=13.97,
+            clipping_range=(0.1, 20.0),
         ),
         width=1024, height=1024,
     )

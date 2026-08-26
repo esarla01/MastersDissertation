@@ -82,9 +82,9 @@ CHANCE = 50.0
 DEFAULT_REPEATS = 1
 DEFAULT_REPEATS = 1
 
-PROMPT = ("Look at the mustard bottle on the table. Reply with exactly "
+PROMPT = ("Look at the block on the table. Reply with exactly "
           "two lines and nothing else:\n"
-          "SEES: <one sentence describing the bottle and how you can tell "
+          "SEES: <one sentence describing the block and how you can tell "
           "which way it is resting>\n"
           "POSE: <upright or lying>")
 

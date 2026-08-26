@@ -171,6 +171,34 @@ def add_ycb_pool(scene_cfg, cast=None):
         spec = YCB[ycb_name]
         scene_name = f"ycb_{ycb_name}"
         park = (C.PARK_POS[0] + 0.35 * i, C.PARK_POS[1], C.PARK_POS[2])
+
+        # Synthetic primitives (the EX2 block) carry "shape" instead of a USD
+        # path: spawn a CuboidCfg with its own rigid body, collision and
+        # friction (mirroring scene_cfg._pool_object_cfg), so it needs no
+        # apply_physics_schemas. Nothing else in the pool has "shape", so the
+        # YCB assets and EX1/sort are untouched.
+        if spec.get("shape") == "cuboid":
+            setattr(scene_cfg, scene_name, RigidObjectCfg(
+                prim_path="{ENV_REGEX_NS}/" + scene_name,
+                spawn=sim_utils.CuboidCfg(
+                    size=spec["size"],
+                    rigid_props=sim_utils.RigidBodyPropertiesCfg(),
+                    mass_props=sim_utils.MassPropertiesCfg(
+                        mass=spec["mass_kg"]),
+                    collision_props=sim_utils.CollisionPropertiesCfg(),
+                    physics_material=sim_utils.RigidBodyMaterialCfg(
+                        static_friction=1.0, dynamic_friction=0.9),
+                    visual_material=sim_utils.PreviewSurfaceCfg(
+                        diffuse_color=spec.get("color", (0.55, 0.55, 0.58))),
+                ),
+                init_state=RigidObjectCfg.InitialStateCfg(
+                    pos=park,
+                    rot=spec["rot"] or (1.0, 0.0, 0.0, 0.0)),
+            ))
+            register_specs(C.OBJECT_SPECS, scene_name, ycb_name)
+            names.append(scene_name)
+            continue
+
         setattr(scene_cfg, scene_name, RigidObjectCfg(
             prim_path="{ENV_REGEX_NS}/" + scene_name,
             spawn=sim_utils.UsdFileCfg(

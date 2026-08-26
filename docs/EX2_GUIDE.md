@@ -16,10 +16,23 @@ rows across three models, seven rungs, 22 scenes and three repeats. Chats cite
 Requires Isaac Lab. Skip this unless you are building a new scene set.
 
 ```bash
-python3 ycb/capture_ex2_scene.py          # writes into out/ex2_capture/
+# current: the synthetic block, 30 positions -> 90 captures
+python3 ycb/capture_ex2_scene.py --spec ycb/ex2_block.txt   # -> out/ex2_capture_block/
 ```
 
-Scene lists: `ycb/ex2_scenes.txt`, `ycb/ex2_east.txt`, `ycb/ex2_west.txt`.
+Scene lists: `ycb/ex2_block.txt` (the block; requires `--spec`). The older
+`ycb/ex2_scenes.txt`, `ycb/ex2_east.txt`, `ycb/ex2_west.txt` drove the
+mustard/sugar-box pilots and are kept for provenance.
+
+The flip object is the synthetic **block** (2026-08-26), which replaced the
+mustard bottle. It is a plain procedural cuboid (0.130 x 0.100 x 0.050 m)
+with three authored resting poses — `block_upright` (0.050 across, all
+arms), `block_large` (0.100, URs only) and `block_small` (0.050, all arms).
+Each position is captured in all three poses, so the categories get equal
+counts: 30 positions -> 90 captures, 30 upright + 30 large face + 30 small
+face. The resting face is recorded per capture in `ex2.resting_face`, since
+the two lying faces give different graspable widths. The mustard captures
+stay on disk as the pilot record.
 
 ---
 

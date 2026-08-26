@@ -54,24 +54,64 @@ Usage:
 
 import copy
 
+from core.cell import cell_config as C
 from experiments.ex2.labels import neutralise, describe
 
 CONDITIONS = ("congruent", "conflict", "dims")
 
-# The object's own dimensions, as if upright. Identical for both poses
-# because they describe the OBJECT. Taken from the probe measurements.
+# The object's own dimensions, as if upright. Identical for every pose
+# because they describe the OBJECT. Taken from the probe measurements
+# (mustard) or the authored cuboid dimensions (block).
 DIMS_M = {
     "ycb_mustard": {"height": 0.191, "width": 0.096, "depth": 0.058},
+    "ycb_block": {"height": 0.130, "width": 0.100, "depth": 0.050},
 }
 
 # The pose-dependent facts, one row per pose. A conflict swaps the WHOLE
-# row, never part of it.
+# row, never part of it. POSE_FACTS keeps the mustard's flat two-pose form
+# (upright/lying) unchanged; the block, which has three poses across two
+# capability classes, lives in POSE_FACTS_BY_LABEL alongside it.
 POSE_FACTS = {
     "upright": {"grasp_m": 0.058, "mass_kg": 0.603, "delicate": False},
     "lying": {"grasp_m": 0.096, "mass_kg": 0.603, "delicate": False},
 }
 
 OTHER_POSE = {"upright": "lying", "lying": "upright"}
+
+# Per-label facts, so two objects can share a pose name yet differ. The
+# block's "upright" (0.050) is not the mustard's (0.058); a flat pose->facts
+# map could not hold both.
+POSE_FACTS_BY_LABEL = {
+    "ycb_mustard": POSE_FACTS,
+    "ycb_block": {
+        "upright":          {"grasp_m": 0.050, "mass_kg": 0.500,
+                             "delicate": False},
+        "lying_large_face": {"grasp_m": 0.100, "mass_kg": 0.500,
+                             "delicate": False},
+        "lying_small_face": {"grasp_m": 0.050, "mass_kg": 0.500,
+                             "delicate": False},
+    },
+}
+
+# The pose a conflict cell DECLARES, given the true one. The block's flip is
+# a capability flip, so a conflict always crosses the 0.080 Franka aperture:
+# an all-arms pose (upright or small face, 0.050) is declared as the UR-only
+# large face (0.100), and the large face is declared upright. Declaring an
+# upright block "small face down" would change nothing a model must ground
+# (both are all-arms), so that pairing is never used.
+OTHER_POSE_BY_LABEL = {
+    "ycb_mustard": OTHER_POSE,
+    "ycb_block": {
+        "upright": "lying_large_face",
+        "lying_large_face": "upright",
+        "lying_small_face": "lying_large_face",
+    },
+}
+
+# All-arms below the Franka aperture, UR-only above it. Used to label a
+# conflict's direction from geometry rather than from a pose name, so it is
+# correct for any object. The aperture itself is fixed in cell_config.
+_FRANKA_APERTURE = C.ARM_TYPES["franka"]["max_grasp_m"]
 
 
 def _flip_entry(state, label):
@@ -102,26 +142,35 @@ def transform(probe, condition):
     if label not in DIMS_M:
         raise ValueError(
             f"no intrinsic dimensions recorded for {label!r}. They come "
-            f"from run_ycb_probe and must be measured, not assumed.")
+            f"from run_ycb_probe (or the authored cuboid) and must be "
+            f"measured, not assumed.")
     obj["dims_m"] = dict(DIMS_M[label])
+
+    facts = POSE_FACTS_BY_LABEL[label]
 
     if condition == "congruent":
         declared = true_pose
         obj["pose"] = declared
-        obj.update(POSE_FACTS[declared])
+        obj.update(facts[declared])
 
     elif condition == "conflict":
-        declared = OTHER_POSE[true_pose]
+        declared = OTHER_POSE_BY_LABEL[label][true_pose]
         obj["pose"] = declared
         # The WHOLE row, so the text is self-consistent. A partial swap
         # would leave a contradiction the model could catch without ever
         # looking at the picture.
-        obj.update(POSE_FACTS[declared])
+        obj.update(facts[declared])
 
     else:                                   # dims
         declared = None
         obj.pop("pose", None)
         obj.pop("grasp_m", None)
+
+    # Direction from geometry, not from a pose name: permissive when the
+    # true pose is all-arms (the text under-states the arms) and restrictive
+    # when it is UR-only (the text over-states them). For the mustard this
+    # is exactly the old upright/lying split.
+    permissive = facts[true_pose]["grasp_m"] <= _FRANKA_APERTURE
 
     meta = {
         "condition": condition,
@@ -133,11 +182,10 @@ def transform(probe, condition):
         # different questions and only one of them separates grounding
         # from blanket caution.
         "direction": (None if condition != "conflict"
-                      else ("permissive" if true_pose == "upright"
-                            else "restrictive")),
-        "true_grasp_m": POSE_FACTS[true_pose]["grasp_m"],
+                      else ("permissive" if permissive else "restrictive")),
+        "true_grasp_m": facts[true_pose]["grasp_m"],
         "declared_grasp_m": (None if declared is None
-                             else POSE_FACTS[declared]["grasp_m"]),
+                             else facts[declared]["grasp_m"]),
         "prim_of": prim_of,
     }
     return state, meta

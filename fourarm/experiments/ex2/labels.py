@@ -40,13 +40,23 @@ import copy
 POSE_ENTRIES = {
     "ycb_mustard_lying": "ycb_mustard",
     "ycb_mustard_upright": "ycb_mustard",
+    # The synthetic block (2026-08-26), which replaced the mustard bottle.
+    # ONE object, THREE poses, so three rows collapse to one neutral label.
+    "ycb_block_upright": "ycb_block",
+    "ycb_block_large": "ycb_block",
+    "ycb_block_small": "ycb_block",
 }
 
 # Which pose each entry actually is. The grader needs this; the prompt must
-# never see it.
+# never see it. The block is three-valued because its two lying faces are
+# NOT interchangeable: the large face presents 0.100 m (URs only) and the
+# small face 0.050 m (all arms), so "lying" alone would lose the capability.
 TRUE_POSE = {
     "ycb_mustard_lying": "lying",
     "ycb_mustard_upright": "upright",
+    "ycb_block_upright": "upright",
+    "ycb_block_large": "lying_large_face",
+    "ycb_block_small": "lying_small_face",
 }
 
 
@@ -107,7 +117,8 @@ def neutralise(state):
 
 
 def true_pose(prim):
-    """'upright' or 'lying' for a pose entry, else None.
+    """The pose of a pose entry, else None. 'upright'/'lying' for the
+    mustard; 'upright'/'lying_large_face'/'lying_small_face' for the block.
 
     Ground truth for grading. Derived from the registry entry rather than
     from anything in the state, because in a conflict cell the state is

@@ -119,7 +119,12 @@ def legal_arms(scene, pose_prim, task_id):
         old_name = obj["name"]
         if old_name in POSE_ENTRIES and old_name != pose_prim:
             obj["name"] = pose_prim
-            obj.update(T.POSE_FACTS[TRUE_POSE[pose_prim]])
+            # Per-label facts: the block's pose names (lying_large_face, ...)
+            # do not exist in the mustard's flat POSE_FACTS. POSE_ENTRIES maps
+            # a prim to its neutral label, which keys POSE_FACTS_BY_LABEL.
+            obj.update(
+                T.POSE_FACTS_BY_LABEL[POSE_ENTRIES[pose_prim]][
+                    TRUE_POSE[pose_prim]])
             for t in probe["state"]["tasks"]:
                 if t["object"] == old_name:
                     t["object"] = pose_prim

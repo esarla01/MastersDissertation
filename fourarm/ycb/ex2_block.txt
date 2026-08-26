@@ -1,0 +1,47 @@
+# EX2 BLOCK scene list. One line per POSITION; each is captured in ALL THREE
+# block poses (upright, large face, small face): 30 positions -> 90 captures
+# = 30 upright + 30 large + 30 small. Format: pair <id> <obj_x,y> <clamp_x,y>.
+#
+# Pre-screened offline against core/cell/reachability/rasters (the masks the
+# validator uses): every object cell is reachable by franka_n AND by the nearer
+# UR (ur_w west / ur_e east), clear of every arm base (>=0.25 m) and basket wall.
+# Clamp cells are ur_w-reachable and clamp-footprint-clear. w00=(-0.35,0.00) is
+# the pilot-carryover position.
+#
+# Revised 2026-08-26 after image review: 7 positions (w03,w04,w07,w09,e03,e04,
+# e05) that the oblique ex2_cam could not see or that franka_s occluded were
+# moved OUT of the central-x band (west x<=-0.25, east x>=0.15). franka_s parks
+# at the south-centre, directly between the camera and any centre-table object.
+#
+# ---- 15 west positions (ur_w nearer) ----
+pair w00  -0.350,-0.010   -0.250,+0.540
+pair w01  -0.250,+0.540   +0.125,-0.210
+pair w02  -0.700,+0.190   +0.125,-0.210
+pair w03  -0.250,+0.040   -0.375,+0.540
+pair w04  -0.650,+0.090   -0.250,+0.540
+pair w05  -0.250,+0.315   +0.125,-0.210
+pair w06  -0.550,+0.040   +0.125,-0.210
+pair w07  -0.275,+0.415   -0.250,-0.160
+pair w08  -0.250,-0.160   -0.375,+0.540
+pair w09  -0.450,-0.010   -0.250,+0.540
+pair w10  -0.375,+0.465   +0.125,-0.210
+pair w11  -0.300,+0.140   +0.125,-0.210
+pair w12  -0.450,-0.110   +0.075,+0.340
+pair w13  -0.575,+0.165   +0.125,-0.210
+pair w14  -0.425,+0.090   +0.125,-0.210
+# ---- 15 east positions (ur_e nearer) ----
+pair e00  +0.350,-0.010   -0.700,+0.165
+pair e01  +0.250,+0.540   -0.700,+0.140
+pair e02  +0.725,+0.190   -0.700,+0.140
+pair e03  +0.625,+0.040   -0.700,+0.165
+pair e04  +0.150,+0.215   -0.700,+0.140
+pair e05  +0.200,+0.440   -0.700,+0.140
+pair e06  +0.250,+0.315   -0.700,+0.140
+pair e07  +0.175,+0.065   -0.700,+0.165
+pair e08  +0.225,-0.160   -0.700,+0.165
+pair e09  +0.475,-0.110   -0.700,+0.165
+pair e10  +0.100,+0.365   -0.700,+0.140
+pair e11  +0.550,+0.165   -0.700,+0.140
+pair e12  +0.300,+0.140   -0.700,+0.165
+pair e13  +0.375,+0.465   -0.700,+0.140
+pair e14  +0.450,+0.065   -0.700,+0.165

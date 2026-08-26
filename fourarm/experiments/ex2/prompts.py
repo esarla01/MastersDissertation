@@ -711,9 +711,8 @@ def manipulation_check(image_b64):
          "content": "Answer with one word and nothing else."},
         {"role": "user", "content": [
             {"type": "text",
-             "text": "Look at the mustard bottle on the table. Is it "
-                     "standing upright or lying down? Answer 'upright' or "
-                     "'lying'."},
+             "text": "Look at the block on the table. Is it standing "
+                     "upright or lying down? Answer 'upright' or 'lying'."},
             {"type": "image_url",
              "image_url": {"url": f"data:image/png;base64,{image_b64}"}},
         ]},

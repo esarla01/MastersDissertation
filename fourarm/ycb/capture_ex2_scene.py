@@ -13,28 +13,35 @@ the arm occupancy are chosen rather than emergent. Everything downstream
 (prompt, validator, router) is the same code an episode uses, and every
 captured state is validated exactly as a harvested one is.
 
-THE PAIR DESIGN, and why the partner is fixed.
+THE PAIR DESIGN, and why the partner is fixed. The flip object is the
+synthetic block (ycb_objects.py), which replaced the mustard bottle on
+2026-08-26. One object, three authored resting poses:
 
-  member A   mustard_lying     0.096 m across  ->  URs only
-  member B   mustard_upright   0.058 m across  ->  all four arms
-  partner    large_clamp       0.122 m, tools  ->  URs only, both members
+  member U   block_upright   0.050 m across  ->  all four arms
+  member L   block_large     0.100 m across  ->  URs only   (large face down)
+  member S   block_small     0.050 m across  ->  all four arms (small face down)
+  partner    large_clamp     0.122 m, tools  ->  URs only, every member
 
-Idle arms are ur_w and franka_n. The mustard is food and the food basket is
+Each position is captured in ALL THREE poses (members U, L, S), so the three
+categories get EQUAL counts: 30 positions -> 90 captures, 30 upright, 30
+large face, 30 small face. The large face is a real capability flip against
+upright (0.100, UR-only); the small face is a lying pose that does NOT flip
+capability (0.050, all-arms). The two lying poses give different graspable
+widths, so the resting face is recorded per capture, not just "lying".
+
+Idle arms are ur_w and franka_n. The block is food and the food basket is
 reachable by exactly ur_w and franka_n; the clamp is tools and, with
 franka_s busy, only ur_w can deliver it.
 
-The DEFAULT POSITIONS are not guesses. They were selected by searching the
-legal spawn grid for a point where the real validator gives the mustard
-[ur_w] when lying and [ur_w, franka_n] when upright, and the clamp [ur_w]
-in both, then taking the closest such pair separated by at least 0.45 m.
-The first positions tried, inherited from the designed layout, put the
-mustard where NEITHER presented arm could reach it, so the flip did not
-exist at all. Verify any new position the same way before capturing.
+POSITIONS are not guesses. ycb/ex2_block.txt holds 30, pre-screened against
+the SAME reachability rasters the validator uses so both the idle ur_w (or
+ur_e) and franka_n reach the object, clear of every arm base and basket.
+Verify any new position the same way before capturing.
 
-  In A the mustard is legal for ur_w only, and so is the clamp: they
-  compete.
-  In B the mustard is also legal for franka_n, so the scarce arm can be
-  spared.
+  On the large face the block is legal for ur_w only, and so is the clamp:
+  they compete.
+  Upright (and on the small face) the block is also legal for franka_n, so
+  the scarce arm can be spared.
 
 A model that reads pose assigns differently in the two members. A model
 that ignores pose and always answers franka_n proposes something ILLEGAL in
@@ -52,14 +59,12 @@ rendered sim step; stepping with render=False leaves the frame frozen while
 physics advances, which once produced an entire episode of identical
 frames. cell.hold() renders, and the frame is grabbed after it.
 
-Usage (one member per invocation, appending to one capture file):
+Usage (the whole scene list runs in ONE Isaac session; each line produces
+BOTH members):
 
-    python3 ycb/capture_ex2_scene.py --headless \\
-        --pair p01 --member A --flip-object mustard_lying
-    python3 ycb/capture_ex2_scene.py --headless \\
-        --pair p01 --member B --flip-object mustard_upright
+    python3 ycb/capture_ex2_scene.py --headless --spec ycb/ex2_block.txt
 
-Writes out/ex2_capture/consults.jsonl plus one PNG per capture, which
+Writes out/ex2_capture_block/consults.jsonl plus one PNG per capture, which
 analysis/probe_store.py harvests with no changes.
 """
 
@@ -81,10 +86,20 @@ parser.add_argument("--spec", required=True,
                          "The whole file runs in ONE Isaac session: "
                          "launching per scene cost 20 seconds of startup "
                          "each and needed a manual exit each time.")
-parser.add_argument("--lying", default="mustard_lying",
-                    help="member A pose, and both members of a null")
-parser.add_argument("--upright", default="mustard_upright",
-                    help="member B pose")
+parser.add_argument("--upright", default="block_upright",
+                    help="member U pose (all-arms). The EX2 flip object is "
+                         "the synthetic block; its upright pose presents "
+                         "0.050 m, graspable by every arm.")
+parser.add_argument("--lying-large", dest="lying_large", default="block_large",
+                    help="member L pose: the block on its 0.130x0.100 (LARGE) "
+                         "face, presenting 0.100 m across -> URs only (over "
+                         "the 0.080 Franka limit).")
+parser.add_argument("--lying-small", dest="lying_small", default="block_small",
+                    help="member S pose: the block on its 0.130x0.050 (SMALL) "
+                         "face, presenting 0.050 m across -> all four arms. A "
+                         "lying pose that does NOT flip capability, which is "
+                         "why the resting face must be recorded, not just "
+                         "'lying'.")
 parser.add_argument("--partner", default="large_clamp",
                     help="the fixed competing task. Held constant across "
                          "every pair on purpose: the two members must "
@@ -128,7 +143,7 @@ parser.add_argument("--settle-ticks", type=int, default=30,
                          "to rest. The previous 240 was two seconds, ample "
                          "time for an upright mustard bottle to fall over, "
                          "which is what the registry comment warned about.")
-parser.add_argument("--out-dir", default="out/ex2_capture")
+parser.add_argument("--out-dir", default="out/ex2_capture_block")
 parser.add_argument("--note", default="", help="free text into provenance")
 
 from isaaclab.app import AppLauncher                              # noqa: E402
@@ -212,14 +227,20 @@ def visible_fraction(before, after, expected_px):
 def read_spec(path):
     """Scene list -> [(kind, id, flip_xy, partner_xy)]. Refuses a malformed
     line by number rather than skipping it: a silently dropped scene is a
-    missing pair nobody notices until the analysis."""
+    missing position nobody notices until the analysis.
+
+    Each position is captured in ALL THREE block poses (upright, large face,
+    small face), so there is no per-line face token: the poses are enumerated
+    in main() and the resting face is recorded per capture. A tolerated fifth
+    token (a leftover 'large'/'small' from the earlier alternating design) is
+    accepted and ignored, so an old scene list still runs."""
     out = []
     for n, raw in enumerate(open(path), 1):
         line = raw.split("#", 1)[0].strip()
         if not line:
             continue
         parts = line.split()
-        if len(parts) != 4 or parts[0] not in ("pair", "null"):
+        if len(parts) not in (4, 5) or parts[0] not in ("pair", "null"):
             raise SystemExit(f"{path} line {n}: expected "
                              f"'<pair|null> <id> <x,y> <x,y>', got {line!r}")
         out.append((parts[0], parts[1], xy(parts[2]), xy(parts[3])))
@@ -231,8 +252,8 @@ def read_spec(path):
 def activate_named(engine, name, x, y):
     """Place a SPECIFIC object. engine.activate_object takes whatever is at
     the head of the parked list, which is fine for an episode and useless
-    here: member A needs mustard_lying and member B mustard_upright, and
-    both are in the pool at once."""
+    here: the three block poses are all in the pool at once and each member
+    needs its own (block_upright / block_large / block_small)."""
     prim = "ycb_" + name
     if prim not in engine.parked:
         raise SystemExit(f"{prim} is not parked; active={engine.active}")
@@ -303,11 +324,17 @@ def park_everything(scene, engine, pool, cell=None):
 
 
 def capture_one(cell, scene, coord, engine, zonemap, kind, pid, member,
-                fxy, pxy, cameras, trail, out_dir, pool):
-    """One scene, start to finish, inside the shared Isaac session."""
+                pose_obj, resting_face, fxy, pxy, cameras, trail, out_dir,
+                pool):
+    """One scene, start to finish, inside the shared Isaac session.
+
+    Each position is captured once per pose: `pose_obj` is the block registry
+    entry for this member (block_upright / block_large / block_small) and
+    `resting_face` its recorded face ('upright' / 'large_face' /
+    'small_face'), so a lying scene is never ambiguous about its graspable
+    width."""
     import base64
-    flip = args_cli.lying if (member == "A" or kind == "null") \
-        else args_cli.upright
+    flip = pose_obj
     stem = f"{pid}_{member}"
 
     if kind == "null":
@@ -408,7 +435,8 @@ def capture_one(cell, scene, coord, engine, zonemap, kind, pid, member,
            "state": state, "positions_exact": positions_exact,
            "image_file": images[cameras[0]], "messages": [],
            "ex2": {"pair": pid, "member": member, "kind": kind,
-                   "flip_object": flip, "partner": args_cli.partner,
+                   "flip_object": flip, "resting_face": resting_face,
+                   "partner": args_cli.partner,
                    "flip_xy": list(fxy), "partner_xy": list(pxy),
                    "idle": idle, "jitter": (args_cli.jitter
                                             if kind == "null" else 0.0),
@@ -433,7 +461,8 @@ def main():
     cameras = (["ex2_cam", "table_cam"] if args_cli.camera == "both"
                else [args_cli.camera])
 
-    cast = sorted({args_cli.lying, args_cli.upright, args_cli.partner})
+    cast = sorted({args_cli.upright, args_cli.lying_large,
+                   args_cli.lying_small, args_cli.partner})
     for n in cast:
         if n not in YCB:
             raise SystemExit(f"{n!r} is not in the YCB registry")
@@ -461,15 +490,21 @@ def main():
 
     os.makedirs(args_cli.out_dir, exist_ok=True)
     trail = os.path.join(args_cli.out_dir, "consults.jsonl")
-    print(f"[ex2] {len(scenes)} scenes x 2 members, camera(s) {cameras}, "
+    print(f"[ex2] {len(scenes)} positions x 3 poses, camera(s) {cameras}, "
           f"one Isaac session")
 
+    # Every position is captured in all three poses, so the three categories
+    # (upright / large face / small face) get equal counts: 30 positions ->
+    # 90 captures, 30 each. Member codes U/L/S name the pose in the seq stem.
+    poses = (("U", args_cli.upright, "upright"),
+             ("L", args_cli.lying_large, "large_face"),
+             ("S", args_cli.lying_small, "small_face"))
     done = skipped = 0
     for kind, pid, fxy, pxy in scenes:
-        for member in ("A", "B"):
+        for member, pose_obj, resting_face in poses:
             rec = capture_one(cell, scene, coord, engine, zonemap,
-                              kind, pid, member, fxy, pxy, cameras,
-                              trail, args_cli.out_dir, pool)
+                              kind, pid, member, pose_obj, resting_face,
+                              fxy, pxy, cameras, trail, args_cli.out_dir, pool)
             done += rec is not None
             skipped += rec is None
 
