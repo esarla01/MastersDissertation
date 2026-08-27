@@ -27,11 +27,23 @@ appear in free text, so it is scored by a keyword list DECLARED HERE, IN
 ADVANCE, and reported as a LOWER BOUND. Keywords were fixed before any
 reply was seen and must not be tuned afterwards.
 
-THE why BLOCK is read but never scored. It records the width the model
-believed, which in a conflict cell is either the true value, meaning it
-read the image, or the declared one, meaning it read the text. That is a
-second, nearly independent reading of the headline, and it is also where
-reasoning and action can be seen coming apart.
+THE REPORTED FIELDS are read but never scored. "opening_needed_m" is
+required at every rung and records the opening the model believed, which
+in a conflict cell is either the true value, meaning it read the image, or
+the declared one, meaning it read the text. That is a second, nearly
+independent reading of the headline, and it is also where reasoning and
+action can be seen coming apart. "resting_face" is present only under
+factor D and records which face the model read off the picture.
+
+Both are TYPED. The prose "why" block they replaced had to be mined by a
+regular expression, and three successive extractor rules each produced a
+false finding before being caught. Nothing now stands between the reply
+and the measurement.
+
+THE LEGACY why BLOCK is still read, as a fallback, for one reason: every
+results file collected before 2026-08-26 carries prose and no typed field,
+and rescore.py and analyse.py are run over those files. A row that has the
+typed field never consults the prose.
 
 Usage:
     from experiments.ex2.grade import grade
@@ -144,13 +156,62 @@ _GAP_CONNECTIVE = re.compile(
     re.IGNORECASE)
 
 
-def believed_width(decision):
-    """The graspable width the model states in why.grasp, or None.
+def reported_opening(decision):
+    """The typed "opening_needed_m" from a reply, or None.
 
-    Anchored on the phrase rather than on position, because the models
-    write the number on either side of it and every position-based rule
-    tried here has picked up an arm limit or a rejected extent instead.
+    A number, not prose. A wait may legitimately carry null: in dims a
+    model may wait BECAUSE it cannot determine the opening, and a null
+    there reads as "I cannot tell" rather than as a missing answer.
+
+    A value that is not a number is treated as absent rather than coerced.
+    A model that writes "0.05 m" into a field typed as a number has not
+    answered in the schema, and silently parsing it would hide that.
     """
+    if not isinstance(decision, dict):
+        return None
+    val = decision.get("opening_needed_m")
+    if isinstance(val, bool) or val is None:
+        return None
+    if isinstance(val, (int, float)):
+        return float(val)
+    return None
+
+
+def reported_face(decision):
+    """The typed "resting_face" from a reply, or None.
+
+    Present only under factor D, which is the only rung that asks for it.
+    Absent everywhere else by design: naming the face as something to
+    report would tell the model that the face matters.
+
+    A word outside the schema's enum is returned as-is rather than dropped,
+    so a model answering "flat" is visible as a compliance failure instead
+    of vanishing into the same None as a rung that never asked.
+    """
+    if not isinstance(decision, dict):
+        return None
+    val = decision.get("resting_face")
+    return val if isinstance(val, str) and val.strip() else None
+
+
+def believed_width(decision):
+    """The opening the model believed, in metres, or None.
+
+    Reads the TYPED "opening_needed_m" first. Falls back to mining the
+    legacy prose "why.grasp" only when there is no typed field, so that
+    rescore.py and analyse.py still work on the pre-2026-08-26 results
+    files. The fallback never runs on a reply from the current schema.
+
+    The prose rule below is anchored on the phrase rather than on position,
+    because the models wrote the number on either side of it and every
+    position-based rule tried here picked up an arm limit or a rejected
+    extent instead. It is kept exactly as it was: changing it now would
+    silently re-score results already reported.
+    """
+    typed = reported_opening(decision)
+    if typed is not None:
+        return typed
+
     why = (decision or {}).get("why")
     if not isinstance(why, dict):
         return None
@@ -226,10 +287,12 @@ def self_contradicted(believed, arm, limits, tol=0.006):
     the model believed the text. A reply at war with itself is evidence of
     neither source winning.
 
-    The likely mechanism is generation order. "arm" precedes "why" in the
-    schema at P0 to P2, so the arm is committed before the justification
-    is written and the reasoning arrives too late to change it. P3 orders
-    them the other way, which makes this measurable rather than assumed.
+    The likely mechanism is generation order. "arm" precedes
+    "opening_needed_m" in the base schema, at N0, N-A and N-C, so the arm
+    is committed before the opening is written and the reasoning arrives
+    too late to change it. N-order reorders the schema and adds no wording,
+    and N-D and N-CD put the resting face and the opening ahead of the arm,
+    which is what makes this measurable rather than assumed.
 
     Returns None when there is nothing to compare: no width stated, no arm
     named, or an arm whose limit is not in the state.
@@ -267,7 +330,17 @@ _CONFLICT_WORDS = ("disagree", "contradic", "inconsistent", "mismatch",
 
 
 def classify_reasoning(why):
-    """What the stated justification appeals to.
+    """What the stated justification appeals to. LEGACY ONLY.
+
+    The current schema asks for typed fields and no prose, so a reply from
+    it has no "why" block and this returns "none" for every such row. It is
+    kept because rescore.py and analyse.py are run over the pre-2026-08-26
+    results files, where the prose is the only record of what was said.
+
+    Do not read a "none" column on a current run as a finding. It says the
+    schema carries no prose, which was the point of changing it: three
+    successive keyword and extractor rules each produced a false finding
+    here before being caught.
 
     'image_referenced' and 'conflict_flagged' are keyword matches over the
     model's own prose, so they are indicative rather than exact, and a
@@ -279,7 +352,9 @@ def classify_reasoning(why):
     number from the picture, which is arithmetic; a reply that happens not
     to use the word "image" is a fact about its vocabulary.
     """
-    text = " ".join(str(v) for v in (why or {}).values()).lower()
+    if not isinstance(why, dict):
+        return "none"
+    text = " ".join(str(v) for v in why.values()).lower()
     if not text.strip():
         return "none"
     if any(w in text for w in _CONFLICT_WORDS):
@@ -300,7 +375,12 @@ def grade(text, meta, legal_true, legal_declared, limits=None):
     row = {"outcome": None, "arm": None, "task_id": None,
            "flagged": flagged(text), "width_belief": None,
            "believed_width_m": None, "why": None, "raw_len": len(text or ""),
-           "self_contradicted": None, "reasoning": None}
+           "self_contradicted": None, "reasoning": None,
+           # The two typed fields, stored exactly as the model gave them.
+           # believed_width_m is the derived reading and may come from the
+           # legacy prose on an old row; opening_needed_m is only ever the
+           # schema field, so the two can be told apart afterwards.
+           "opening_needed_m": None, "resting_face": None}
 
     decision = parse_reply(text)
     if decision is None:
@@ -310,6 +390,8 @@ def grade(text, meta, legal_true, legal_declared, limits=None):
     row["task_id"] = decision.get("task_id")
     row["arm"] = decision.get("arm")
     row["why"] = decision.get("why")
+    row["opening_needed_m"] = reported_opening(decision)
+    row["resting_face"] = reported_face(decision)
     row["believed_width_m"] = believed_width(decision)
     row["width_belief"] = classify_width(row["believed_width_m"], meta)
     row["reasoning"] = classify_reasoning(row["why"])
@@ -358,8 +440,13 @@ def summarise(rows):
 
 
 # ---------------------------------------------------------------------------
-# Batch grading: one ROUND, not one assignment.
+# Batch grading: one ROUND, not one assignment. LEGACY.
 # ---------------------------------------------------------------------------
+# No driver calls this any more. The prompt module offers a single shape,
+# one task and one arm, so run.py and cue.py grade with grade() above.
+# It is kept, and kept harnessed, because it is what scored the batch
+# results files and rescoring those has to stay possible.
+#
 # With a single assignment the model named ur_w in twelve trials out of
 # twelve, and ur_w is legal whichever way the bottle lies, so the choice
 # said nothing about which source was believed. A round removes the safe
@@ -446,6 +533,7 @@ def grade_round(text, meta, flip_task, partner_task,
     row = {"outcome": None, "assignments": None, "flagged": flagged(text),
            "width_belief": None, "believed_width_m": None,
            "assignable": None, "assignable_belief": "missing",
+           "opening_needed_m": None, "resting_face": None,
            "why": None, "raw_len": len(text or "")}
 
     items = parse_round(text)
@@ -462,6 +550,8 @@ def grade_round(text, meta, flip_task, partner_task,
     flip = by_task.get(flip_task)
     if flip is not None:
         row["why"] = flip.get("why")
+        row["opening_needed_m"] = reported_opening(flip)
+        row["resting_face"] = reported_face(flip)
         row["believed_width_m"] = believed_width(flip)
         row["width_belief"] = classify_width(row["believed_width_m"], meta)
         row["reasoning"] = classify_reasoning(row["why"])

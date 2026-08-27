@@ -46,6 +46,7 @@ for p in (ROOT, os.path.join(ROOT, "ycb")):
 
 from experiments.ex2 import grade as G                           # noqa: E402
 from experiments.ex2 import prompts as P                         # noqa: E402
+from experiments.ex2 import run as R                              # noqa: E402
 from experiments.ex2 import solo as S                            # noqa: E402
 
 fails = []
@@ -82,11 +83,13 @@ except Exception as exc:                                   # noqa: BLE001
 SCENES = {s["seq"]: s for s in S.load_scenes(CAP)}
 
 
-def reply(arm, width="0.096 m", task_id=0):
-    return json.dumps({"task_id": task_id, "arm": arm, "basket": None,
-                       "regions": ["ne", "nw"],
-                       "why": {"grasp": width, "payload": "0.603 kg ok",
-                               "delicate": "not delicate"}})
+def reply(arm, opening=0.100, task_id=0, face=None):
+    """A reply in the CURRENT schema: typed fields, no prose."""
+    out = {"task_id": task_id, "arm": arm, "basket": "box_1",
+           "opening_needed_m": opening}
+    if face is not None:
+        out["resting_face"] = face
+    return json.dumps(out)
 
 
 def fixed(text):
@@ -111,33 +114,39 @@ check("the clamp is still an object in the state",
       "it is visible in the image; removing it would make the text deny "
       "something plainly there")
 try:
-    S.queue_flip_only({"tasks": []}, "ycb_mustard")
+    S.queue_flip_only({"tasks": []}, "ycb_block")
     check("a state with no flip task raises", False, "no exception")
 except ValueError as e:
     check("a state with no flip task raises rather than sending nothing",
-          "ycb_mustard" in str(e), str(e)[:60])
+          "ycb_block" in str(e), str(e)[:60])
+check("the state-prep helpers are the shared ones",
+      S.queue_flip_only is R.queue_flip_only
+      and S.neutralise_baskets is R.neutralise_baskets,
+      "a private copy would drift from the driver the other runners use")
 
 # 2, 3, 4. the prompt.
 _sys = _msg[0]["content"]
-check("G6 prefers a Franka", "\nG6  " in _sys and "Franka" in P.SOLO_PREFERENCE)
-check("G6 does not state the exception",
-      "unless" not in P.SOLO_PREFERENCE.lower()
-      and "cannot" not in P.SOLO_PREFERENCE.lower(),
+# G6 became G1 when the batch guidance was retired: the preference is now
+# the FIRST guidance line, not the sixth, because the four it followed
+# described a round that no longer exists.
+check("G1 prefers a Franka",
+      "\nG1  " in _sys and "Franka" in P.PREFERENCE_TEXT["franka"])
+check("G1 does not state the exception",
+      "unless" not in P.PREFERENCE_TEXT["franka"].lower()
+      and "cannot" not in P.PREFERENCE_TEXT["franka"].lower(),
       "naming the capability check would make a correct answer cheap")
-check("G4 is trimmed in solo", "\nG4  " not in _sys,
-      "it points at no other task and would duplicate G6's direction")
-check("G4 survives in the batch prompt",
-      "\nG4  " in P.build_ex2_prompt(_body, "P2", "congruent")[0]["content"],
-      "the round still needs it")
-check("the opening line is left alone in solo",
-      "choose ONE queued task" in _sys,
-      "the base already asks for one task; the substitution exists only "
-      "because the BATCH schema contradicted it")
+check("the round-only guidance is gone entirely",
+      not any(("\n%s  " % g) in _sys for g in ("G3", "G4", "G5", "G6")),
+      "one task and one arm is the only shape there is, so guidance about "
+      "protecting an arm for another task points at nothing")
+check("the opening line asks for one task",
+      "choose ONE queued task" in _sys)
 check("the answer schema asks for one assignment, not a round",
       '"assignments"' not in _sys and '"task_id": <int>' in _sys)
-check("the why block replaces the free-text reason",
-      '"why"' in _sys and '"reason"' not in _sys,
-      "width belief is graded the same way in both modes")
+check("the typed fields replace the prose why block",
+      '"opening_needed_m"' in _sys and '"why"' not in _sys
+      and '"reason"' not in _sys,
+      "a prose field puts an extractor back between reply and number")
 
 # 5. the correct arm differs by pose. Without this the choice says nothing.
 _legal = {}
@@ -146,14 +155,14 @@ for _seq in ("p01_A", "p01_B"):
     _m, _mt = S.render(_sc, "congruent")
     _tid = S.flip_task_id(_sc["state"], _mt["flip_prim"])
     _legal[_mt["true_pose"]] = S.legal_arms(_sc, _mt["flip_prim"], _tid)
-check("a Franka is legal for the upright bottle",
-      any(a.startswith("franka") for a in _legal["upright"]),
-      "0.058 m is under the 0.080 limit: %s" % sorted(_legal["upright"]))
-check("no Franka is legal for the lying bottle",
-      not any(a.startswith("franka") for a in _legal["lying"]),
-      "0.096 m is over it: %s" % sorted(_legal["lying"]))
-check("the two poses give different legal sets",
-      _legal["upright"] != _legal["lying"],
+check("a Franka is legal for the block on its smallest face",
+      any(a.startswith("franka") for a in _legal["small_face"]),
+      "0.050 m is under the 0.080 limit: %s" % sorted(_legal["small_face"]))
+check("no Franka is legal for the block on its large face",
+      not any(a.startswith("franka") for a in _legal["large_face"]),
+      "0.100 m is over it: %s" % sorted(_legal["large_face"]))
+check("the two resting faces give different legal sets",
+      _legal["small_face"] != _legal["large_face"],
       "if they matched, the arm named would carry no information and this "
       "is exactly how the first single-task attempt failed")
 
@@ -239,10 +248,8 @@ check("regions is dropped from the solo answer",
 check("the regions explanation goes with it",
       "copy those two values" not in _sys,
       "three lines about a field that is no longer requested")
-check("G3 is trimmed in solo", "\nG3  " not in _sys,
+check("G3 is gone", "\nG3  " not in _sys,
       "with one queued task there is no order to ignore")
-check("G3 survives in the batch prompt",
-      "\nG3  " in P.build_ex2_prompt(_body, "P2", "congruent")[0]["content"])
 
 # basket, R5, R7 and G1 all STAY, and each depends on the captures rather
 # than on the prompt. An EX2 task carries "dest_xy": null, so R7 fires on
@@ -256,12 +263,14 @@ for _tag in ("R5", "R7"):
           "dest_xy is null in every capture, so a destination is still "
           "named and R5 still governs how it is reached")
 check("waiting is still expressible",
-      "task_id -1" in _sys and "\nG5  " in _sys,
+      "task_id -1" in _sys and "\nG2  " in _sys,
       "a wait is never correct here, so choosing it is a signal rather "
       "than noise, and the grader scores it as noop")
-check("the grasp-width sentence stays in the RUNG, not in R3",
-      "presents" in P.RUNG_TEXT["P2"] and "presents" not in P.RUNG_TEXT["P0"],
-      "moving it into R3 would put the hint in P0 and destroy the ladder")
+check("the derivation sentence stays in the FACTOR, not in R3",
+      "smaller of" in P.C_DERIVE
+      and "smaller of" not in P.system_prompt("N0", "congruent"),
+      "moving it into R3 would give N0 the derivation fact and there "
+      "would be no factor left to manipulate")
 
 # 10. the baskets carry no category, and every arm has one it can reach.
 _names = list(_body["baskets"])
@@ -269,10 +278,12 @@ check("no basket is named for a category",
       not any(k in n for n in _names
               for k in ("food", "kitchen", "tool")),
       str(_names))
-check("G1 is trimmed in solo", "\nG1  " not in _sys,
-      "it points at a category the baskets no longer carry")
-check("G1 survives in the batch prompt",
-      "\nG1  " in P.build_ex2_prompt(_body, "P2", "congruent")[0]["content"])
+check("G1 is the arm preference, not a basket rule",
+      "\nG1  " in _sys and "Franka" in _sys.split("\nG1  ")[1][:60]
+      and not any(k in _sys.split("\nG1  ")[1][:120]
+                  for k in ("food", "kitchen", "tool", "category")),
+      "the old G1 sent each object to the basket named for its category, "
+      "which the neutralised baskets no longer carry")
 check("the object keeps its true category",
       any(o.get("category") for o in _body["objects"]),
       "it is true and now decides nothing")
@@ -357,18 +368,26 @@ from experiments.ex2 import rescore as RS  # noqa: E402
 
 _dup = os.path.join(TMP, "dupes.jsonl")
 with open(_dup, "w") as _fh:
+    # true_grasp_m and declared_grasp_m are REQUIRED: rescore feeds the row
+    # itself to classify_width as the meta, and that reads both by key.
+    # Without them the fixture raised KeyError and every check after this
+    # point in the file never ran.
     _base = {"seq": "p01_A", "condition": "conflict", "model": "fake",
-             "true_pose": "lying", "arm": None, "believed_width_m": None,
-             "why": None}
+             "true_pose": "large_face", "declared_pose": "small_face",
+             "true_grasp_m": 0.100, "declared_grasp_m": 0.050,
+             "arm": None, "believed_width_m": None,
+             "opening_needed_m": None, "why": None}
     _fh.write(json.dumps(dict(_base, trial_id="t1",
                               outcome="unparseable")) + "\n")
     _fh.write(json.dumps(dict(_base, trial_id="t1", arm="ur_e",
-                              believed_width_m=0.096,
-                              why={"grasp": "0.096 m"},
+                              believed_width_m=0.100,
+                              opening_needed_m=0.100,
                               outcome="uninformative")) + "\n")
+    # A row in the LEGACY prose schema, so the fallback path is exercised
+    # alongside the typed one rather than only in grade.py's own harness.
     _fh.write(json.dumps(dict(_base, trial_id="t2", arm="ur_e",
-                              believed_width_m=0.096,
-                              why={"grasp": "0.096 m"},
+                              believed_width_m=0.100,
+                              why={"grasp": "0.100 m graspable width"},
                               outcome="uninformative")) + "\n")
 _rs = RS.rescore(_dup, CAP)
 check("a retried trial is counted once, not twice", len(_rs) == 2,
@@ -376,6 +395,12 @@ check("a retried trial is counted once, not twice", len(_rs) == 2,
 check("the retry replaces the failure it superseded",
       all(r["outcome"] != "unparseable" for r in _rs),
       "last write wins, as solo.py's own table already does")
+check("rescore reads the typed field and the legacy prose alike",
+      all(r["believed_width_m"] == 0.100 for r in _rs),
+      "%s" % [r["believed_width_m"] for r in _rs])
+check("both read as the image, since 0.100 is the true opening",
+      all(r["width_belief"] == "image" for r in _rs),
+      "%s" % [r["width_belief"] for r in _rs])
 
 
 # 13. the arm preference is counterbalanced, and it actually reaches the
@@ -433,60 +458,79 @@ check("the table separates the preferences",
       "the column now reads pref/rung")
 
 
-# 14. P3 asks for justification first, and the SCHEMA must agree.
-# Saying "fill in why before deciding" while listing "arm" first does
-# nothing: generation runs left to right, so the arm is committed before a
-# word of justification exists. Same failure as the opening line that
-# asked for ONE task while the schema asked for EVERY.
+# 14. The report order is a FACTOR, and the SCHEMA must carry it.
+# Saying "give the opening before naming an arm" while listing "arm" first
+# does nothing: generation runs left to right, so the arm is committed
+# before a number exists. N-order is the control that reorders the schema
+# and adds no wording at all, which is what lets an N-D effect be
+# attributed to the elicitation rather than to the order.
 import re as _re  # noqa: E402
 
-_p2 = S.render(SCENES["p01_A"], "conflict", "franka", "P2")[0][0]["content"]
-_p3 = S.render(SCENES["p01_A"], "conflict", "franka", "P3")[0][0]["content"]
-check("P2 lists the arm before why",
-      _p2.index('"arm"') < _p2.index('"why"'))
-check("P3 lists why before the arm",
-      _p3.index('"why"') < _p3.index('"arm"'),
-      "an instruction to justify first cannot bite while the schema puts "
-      "the arm first")
-check("P3 still says to justify first",
-      "BEFORE deciding which arm" in _p3)
-check("P3 asks for the orientation, singular",
-      "the\nobject's orientation" in _p3 or "the object's orientation"
-      in _p3.replace("\n", " "),
-      "solo queues one object, so 'each object' was wrong")
+_anchor = "\nYOUR ANSWER"
+_schema = lambda r: (
+    S.render(SCENES["p01_A"], "conflict", "franka", r)[0][0]["content"]
+    .split(_anchor)[1])
 
-for _name, _sch in (("P0-P2", P.SOLO_SCHEMA),
-                    ("P3", P.SOLO_SCHEMA_WHY_FIRST)):
-    _body = _sch[_sch.index("{"):_sch.rindex("}") + 1]
-    _t = _re.sub(r"<[^>]*>", '"x"', _body).replace('""x""', '"x"')
+_n0 = _schema("N0")
+_no = _schema("N-order")
+_nd = _schema("N-D")
+check("N0 lists the arm before the opening",
+      _n0.index('"arm"') < _n0.index('"opening_needed_m"'))
+check("N-order lists the opening before the arm",
+      _no.index('"opening_needed_m"') < _no.index('"arm"'),
+      "an instruction to report first cannot bite while the schema puts "
+      "the arm first")
+check("N-order adds no wording to go with it",
+      S.render(SCENES["p01_A"], "conflict", "franka", "N-order")[0][0]
+      ["content"].split(_anchor)[0]
+      == S.render(SCENES["p01_A"], "conflict", "franka", "N0")[0][0]
+      ["content"].split(_anchor)[0],
+      "it is the control for the order; wording in it would make the "
+      "order and the elicitation inseparable again")
+check("N-D asks for the resting face as well, and both before the arm",
+      _nd.index('"resting_face"') < _nd.index('"opening_needed_m"')
+      < _nd.index('"arm"'))
+check("only the D rungs ask for the face",
+      '"resting_face"' not in _n0 and '"resting_face"' not in _no,
+      "asking for it elsewhere would tell the model the face matters")
+
+for _name in ("base", "report_first", "face_first"):
+    _sch = P.SCHEMAS[_name]
+    _body_t = _sch[_sch.index("{"):_sch.rindex("}") + 1]
+    _t = _re.sub(r"<[^>]*>", '"x"', _body_t).replace('""x""', '"x"')
     try:
         json.loads(_t)
         _ok = True
-    except Exception:
+    except Exception:                                      # noqa: BLE001
         _ok = False
     check("the %s answer template is itself valid JSON" % _name, _ok,
-          "a malformed template invites a malformed reply; the first "
-          "version omitted the comma after the why block")
+          "a malformed template invites a malformed reply; an earlier "
+          "version omitted the comma after the justification block")
 
-# The rung is part of the trial id, or a P3 run resumes onto a P2 file.
+# The rung is part of the trial id, or an N-D run resumes onto an N0 file.
 _rr = os.path.join(TMP, "rungs.jsonl")
 S.run(CAP, out_path=_rr, models=("fake",), conditions=("conflict",),
-      preferences=("franka",), rungs=("P2", "P3"), kind="pair", pair="p01",
+      preferences=("franka",), rungs=("N0", "N-D"), kind="pair", pair="p01",
       model_fn=fixed(reply("ur_e")))
 _rows_r = [json.loads(x) for x in open(_rr) if x.strip()]
 check("the two rungs do not collide on trial id",
       len({r["trial_id"] for r in _rows_r}) == len(_rows_r),
-      "without the rung in the id a P3 run would find every trial present "
-      "and report itself complete having spent nothing")
+      "without the rung in the id an N-D run would find every trial "
+      "present and report itself complete having spent nothing")
 check("every row records its rung",
-      {r["rung"] for r in _rows_r} == {"P2", "P3"})
+      {r["rung"] for r in _rows_r} == {"N0", "N-D"})
 check("the table separates the rungs",
-      "franka/P2" in S.table(_rows_r) and "franka/P3" in S.table(_rows_r))
-
+      "franka/N0" in S.table(_rows_r) and "franka/N-D" in S.table(_rows_r))
+check("the default rung is the base prompt",
+      S.RUNG == "N0",
+      "Q1 and Q2 are read at N0, so a run with no --rung must produce it")
+check("the old P-rungs are refused",
+      all(r not in S.RUNGS for r in ("P0", "P2", "P3", "P4")),
+      "a P2 result silently recorded as N-C would be invisible")
 
 # 15. text-only modality: the floor the image conditions are read against.
-_v = S.render(SCENES["p01_A"], "conflict", "franka", "P0", "V")[0]
-_a = S.render(SCENES["p01_A"], "conflict", "franka", "P0", "A")[0]
+_v = S.render(SCENES["p01_A"], "conflict", "franka", "N0", "V")[0]
+_a = S.render(SCENES["p01_A"], "conflict", "franka", "N0", "A")[0]
 check("V attaches an image block",
       any(b.get("type") == "image_url" for b in _v[1]["content"]))
 check("A attaches no image block",
@@ -494,19 +538,20 @@ check("A attaches no image block",
 _ta = _a[0]["content"]
 check("the text-only prompt never mentions an image",
       "image" not in _ta.lower(),
-      "build_prompt keeps mode A byte-identical to V on purpose, which "
-      "would describe a side view that is not attached")
+      "a model asked to check an image that is not there is being tested "
+      "on something other than modality")
 check("the text-only prompt never mentions a camera",
-      "camera" not in _ta.lower())
+      "camera" not in _ta.lower() and "north (+y) is away" not in _ta)
 check("the text-only prompt still describes the cell contents",
-      "sorting baskets" in _ta and "exchange points" in _ta,
+      "coloured boxes" in _ta and "exchange points" in _ta,
       "only the image references go, not the scene description")
 check("the state still reaches the text-only prompt",
-      "max_grasp_m" in json.dumps(_a[1]["content"]))
+      "opening_max_m" in json.dumps(_a[1]["content"]),
+      "and under the ALIAS, which is the name the prompt glosses")
 
 _mo = os.path.join(TMP, "modality.jsonl")
 S.run(CAP, out_path=_mo, models=("fake",), conditions=("conflict",),
-      preferences=("franka",), rungs=("P0",), modalities=("V", "A"),
+      preferences=("franka",), rungs=("N0",), modalities=("V", "A"),
       kind="pair", pair="p01", model_fn=fixed(reply("ur_e")))
 _rows_m = [json.loads(x) for x in open(_mo) if x.strip()]
 check("the two modalities do not collide on trial id",
@@ -526,7 +571,7 @@ def _with_usage(messages, timeout=None, alias=None, return_usage=False):
 
 _tu = os.path.join(TMP, "usage.jsonl")
 S.run(CAP, out_path=_tu, models=("fake",), conditions=("conflict",),
-      preferences=("franka",), rungs=("P0",), kind="pair", pair="p01",
+      preferences=("franka",), rungs=("N0",), kind="pair", pair="p01",
       model_fn=_with_usage)
 _rows_u = [json.loads(x) for x in open(_tu) if x.strip()]
 check("token counts are recorded per call",

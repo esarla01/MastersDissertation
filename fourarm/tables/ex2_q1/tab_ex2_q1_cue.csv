@@ -1,0 +1,5 @@
+model,resting_face,n_images,correct_n,accuracy_pct,wilson_lo,wilson_hi
+gpt,small_face,10,29,96.7,83.3,99.4
+gpt,large_face,10,27,90.0,74.4,96.5
+gemini,small_face,10,30,100.0,88.6,100.0
+gemini,large_face,10,30,100.0,88.6,100.0

@@ -1,0 +1,9 @@
+model,true_face,predicted_face,n
+gpt,small_face,small_face,29
+gpt,small_face,large_face,1
+gpt,large_face,small_face,3
+gpt,large_face,large_face,27
+gemini,small_face,small_face,30
+gemini,small_face,large_face,0
+gemini,large_face,small_face,0
+gemini,large_face,large_face,30

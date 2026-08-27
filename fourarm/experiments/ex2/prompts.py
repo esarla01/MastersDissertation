@@ -1,543 +1,629 @@
-"""EX2 step 3: the four attention rungs, and the structured justification.
+"""EX2 prompts: the base prompt, the three factors, and the six rungs.
 
-THE LADDER. Four wordings, applied within every condition, differing only
-in how hard they point at the image.
+THE OBJECT. A plain block, 0.130 x 0.100 x 0.050 m, with no recognisable
+identity. It rests on one of two faces, and the opening a gripper needs
+is the smaller of the two horizontal extents in that orientation:
 
-    P0  neutral            pose is never mentioned. The image is attached
-                           as usual and nothing draws attention to it.
+    resting face   vertical   horizontal pair   opening   Franka (0.080)
+    small_face     0.130      0.100, 0.050      0.050     feasible
+    large_face     0.050      0.130, 0.100      0.100     infeasible
 
-    P1  look at the image  told to LOOK. Not told what to look for, and
-                           not told that pose bears on capability.
+One of the two is feasible, so the contrast is the whole design: the
+opening, and with it the arm, follows from which face is down. Face names
+are GEOMETRIC and never describe the outcome. A name such as "upright" for
+a feasible orientation would let the model succeed by matching the label.
 
-    P2  pose is relevant   told the RULE: graspable width is the width of
-                           the presented face, so it changes with pose.
+TWO FACES, NOT THREE (2026-08-27). The block also rests on 0.130 x 0.050,
+which the design called "edge" and used as its sharp contrast against
+large_face: both flat, differing only in geometry. That contrast is gone
+because no model read it. Over 81 answered trials GPT scored 58 percent on
+the edge-against-large_face pair, Fisher p = 0.76, while scoring 18 of 18
+on a plain-words standing-or-flat question over the same images. The
+perception was intact; the three-way face discrimination was not. The
+evidence is runs/ex2_q1_cue_*.jsonl, kept on disk.
 
-    P3  attention directed the justification must be produced BEFORE the
-                           arm is chosen. Forced to APPLY the rule.
+What that costs is stated where the results are read: a model that
+separates standing from flat but not the two flat faces can no longer be
+distinguished from one that derives the opening from geometry. The
+capture-side settle assertion is what keeps the withdrawn orientation out
+of the pictures, so the prompt never has to mention it.
 
-Four rather than three because a single "pose is relevant" rung would give
-away the instruction and the mechanism at once: a model that succeeded only
-there could have needed the prompt to point at the image, or needed the
-rule, and one rung cannot tell those apart. Each gap now isolates one
-failure:
+THE SAME COLLAPSE ARRIVES BY A SECOND ROUTE, and it is worth naming
+separately because patching the first would not close it. "size_upright_m"
+states the frame its three numbers were taken in: measured standing on the
+smallest face. With two captured faces the object is either in that frame
+or flat, so the field name plus a two-way standing-or-flat judgement fixes
+the opening. The model never has to work out which two extents are
+horizontal.
 
-    P0 -> P1   can use the image but does not attend to it unaided
-    P1 -> P2   looking is not enough; the pose-to-width rule must be stated
-    P2 -> P3   knowing the rule is not enough; it must be applied BEFORE
-               the choice rather than justified after it
+This is NOT patched, and the reasoning is on the record so the decision
+reads as one. The extents reach the model as an unordered set whatever the
+field is called, and with two faces the answer is fixed by a binary posture
+read either way, so dropping the frame from the gloss would not restore a
+step. It would ADD an ambiguity: a model could read height, width and depth
+as the extents AS CURRENTLY PLACED and on large_face derive
+min(0.100, 0.050) = 0.050, which is the wrong opening on the correct
+condition. That is measurement error, not a harder task.
 
-THE JUSTIFICATION. The free-text "reason" is replaced by a "why" block with
-one entry per clause of R3, so the model shows its working on the rule it
-was given. Three reasons this beats prose:
+So the honest statement is that Q1 measures posture-plus-lookup and cannot
+separate it from geometric derivation. That belongs in Limitations, and
+cells 10 and 14 of the Q1 notebook print it beside every verdict.
 
-  - It LOCALISES a failure: which of the three checks went wrong, rather
-    than merely that something did.
-  - "why.grasp" states the width the model BELIEVED. In a conflict cell
-    that is either the true value, meaning it read the image, or the
-    declared one, meaning it read the text. A second, nearly independent
-    reading of the headline, free with every answer.
-  - It exposes reasoning and action coming apart. In the seed episode the
-    model wrote that ur_e would deliver to a basket ur_e cannot reach, and
-    acted legally anyway.
+Every trial queues one task and offers one idle UR arm and one idle Franka
+arm. An arm preference in the guidance block is what makes the arm choice
+informative: a UR is legal in every orientation, so without a preference
+the arm named carries no information. With a Franka preferred, the correct
+arm differs by resting face.
 
-It stays OBSERVATIONAL. A rationale can be produced after the fact for an
-answer arrived at some other way, so it is evidence about mechanism, never
-a scored endpoint.
+FIELD NAMES. The state is rendered through ALIASES, so the model sees names
+that say what each field is and which way each comparison runs. Nothing
+underneath changes. EX2 therefore prints different field names from EX1,
+and the chapter must say so.
 
-ALL FOUR RUNGS SHARE ONE SCHEMA. P3 does not add a field; it moves the
-block ahead of the arm choice. The ladder varies WHEN the justification is
-produced, not what it contains, which keeps the rungs comparable.
+THE CONDITIONS.
+
+    congruent   resting face and opening both stated, both true
+    dims        BOTH withheld. The model must read the face from the image
+                and derive the opening from size_upright_m
+    conflict    a false resting face stated, with the opening that follows
+                from it. Each face declares the other, and the pair
+                straddles the 0.080 Franka aperture, so every conflict is a
+                capability flip
+
+Dims withholds the resting face as well as the opening. Stating the face
+would let the opening be derived from text alone and the image would no
+longer be needed.
+
+THE FACTORS. Each names a different hypothesis about why a model follows a
+supplied opening instead of the scene.
+
+    A  ATTENTION    the model did not consult the image
+    C  DERIVATION   the model lacked the relation between resting face and
+                    the opening an object needs
+    D  ELICITATION  the model held the relation but did not apply it
+                    before committing to an arm
+
+THE BOUNDARY RULE, checked mechanically by assert_rungs_isolated:
+
+    A may name the image and the target object. It may NOT name a resting
+      face, an orientation or the opening.
+    C may name the relation between resting face and opening. It may NOT
+      say where to look, and may NOT require anything to be reported.
+    D may require a report and fix its position in the answer. It may NOT
+      state the relation.
+
+No rung names an arm's opening, either measured value, or which face the
+object is on.
+
+THE RUNGS.
+
+    N0        base prompt
+    N-A       base + A
+    N-C       base + C
+    N-D       base + D                 (face reported, both before arm)
+    N-order   base, no added wording   (opening moved before arm)
+    N-CD      base + C + D
+
+N-order is the control for D. D moves the report ahead of the arm choice
+AND requires the resting face, and a model generates left to right, so
+without N-order an effect of D cannot be attributed to either. N-CD is a
+sufficiency cell against N0, never a test of whether C and D interact.
 
 Usage:
-    from experiments.ex2.prompts import build_ex2_prompt
-    messages = build_ex2_prompt(state, rung="P2", condition="conflict",
-                                image_b64=frame)
+    messages = build_ex2_prompt(state, rung="N-C", condition="dims",
+                                image_b64=frame, preference="franka")
 """
 
 import json
 
-from core.decision.state_builder import build_prompt
+from core.cell import cell_config as C
 
-# EX2 rewrites two sections of the shared base prompt, so the base's
-# PROMPT_VERSION no longer identifies what the model actually read. Rows
-# carry this alongside it. Bump it whenever a substitution changes.
-#
-#   2026-08-05a  opening instruction substituted: the base asked for ONE
-#                task while the schema asked for EVERY task, and rows
-#                before this date were answered under that contradiction.
-#   2026-08-05b  removed the zone-lock clause: no EX2 scene ever takes a
-#                zone lock, and G2 which referred to it was already gone.
-#   2026-08-06a  solo mode: one queued task, G4 trimmed, G6 Franka
-#                preference added, base single-assignment answer kept with
-#                the why block in place of "reason".
-#   2026-08-06b  solo: G3 trimmed and "regions" dropped from the answer,
-#                neither of which an EX2 solo trial can use.
-#   2026-08-07e  P4 added as a ceiling rung: look at the image, decide
-#                upright or lying, take the width that follows. Bounds the
-#                ladder. Zero image belief at P0, P1 and P2a and 36 percent
-#                at P2 leaves the residual unexplained; P4 says whether
-#                that residual is a choice or a limit.
-#   2026-08-07d  text-only mode strips the sentences that describe the
-#                image, rather than keeping them and dropping the picture.
-#                The shared build_prompt keeps mode A byte-identical to V
-#                on purpose, which was right for the original fairness
-#                pair; here it would describe a side view that is not
-#                attached. The two prompts therefore differ by more than
-#                the image block and the method must say so.
-#   2026-08-07c  ladder split into single increments. P2a is arbitration
-#                without derivation; P2 bundled the two. P3a is the schema
-#                reorder without the orientation clause; P3 bundled those.
-#   2026-08-07b  P3 gets a schema with "why" before "arm". P3 tells the
-#                model to justify first, but the schema still listed the
-#                arm first, and generation runs left to right: the arm was
-#                committed before a word of justification existed. Same
-#                failure as the opening line that asked for ONE task while
-#                the schema asked for EVERY. Also "each object" to "the
-#                object", since solo queues one.
-#   2026-08-07a  the arm preference is counterbalanced. G6 preferring a
-#                Franka is a pull toward 0.058, which is the text's number
-#                on a lying scene and the image's on an upright one, so a
-#                Franka-leaning model is indistinguishable from one reading
-#                the picture. Under a UR preference the two predict
-#                opposite arms.
-#   2026-08-06f  every float in the state written to three decimals, so
-#                0.080 and 0.096 are compared at the same precision. One
-#                reply had echoed the Franka limit back as "0.080", which
-#                suggests the model was normalising formats itself.
-#   2026-08-06e  the base names the image as a side view of this cell and
-#                says both sources describe it. Nothing in the base said
-#                the image was evidence at all, so at P0 a model could
-#                read it as decoration; across 132 solo trials not one
-#                reply mentioned it. This says where the sources are, not
-#                how to weigh them, which stays in the rung.
-#                P2 and P3 gain: where the two disagree about an object,
-#                the image is what is on the table. P2 previously only
-#                repeated P1 and added the width fact, so it was barely an
-#                escalation; this makes the ladder a real gradient. P3
-#                inherits it so it stays a superset of P2.
-#                NOTE: results before this were run under the weaker P2.
-#   2026-08-06d  a line saying the written state and the image both follow.
-#                Orientation only: it says where the two sources are, not
-#                how much to weigh them. Anything about attending to the
-#                image belongs in the RUNG, which is what varies prompt
-#                strength, and putting it in the base would make P0 stop
-#                being the neutral rung.
-#   2026-08-06c  solo: baskets renamed to carry no category, G1 trimmed,
-#                and the destination made explicitly free. basket_food was
-#                reachable by ur_w but not ur_e, so the eleven east scenes
-#                needed a handover to deliver a correctly assigned lying
-#                bottle and the eleven west ones did not. That put a
-#                delivery cost on the arm choice under test, in half the
-#                cells where the conflict manipulation does its work.
-EX2_PROMPT_VERSION = "2026-08-07e"
+EX2_PROMPT_VERSION = "2026-08-27b"
 
-# Inserted verbatim. Kept as data rather than f-strings so a rung's exact
-# wording is greppable, diffable and quotable in the write-up.
-# THE ATTENTION LADDER. One increment per rung, on one dimension at a time.
-#
-#   P0   nothing. The base already states the image is a side view of this
-#        cell and that both sources describe it, so P0 is not "the image is
-#        unmentioned" but "the image is established as evidence, with no
-#        instruction to consult it".
-#   P1   ATTENTION. Consult the image. No authority, no domain fact.
-#   P2a  ARBITRATION. The image outranks the text where they disagree.
-#        Says nothing about what to extract from it.
-#   P2   DERIVATION. Graspable width depends on the face presented.
-#        P2 previously bundled arbitration and derivation into one step, so
-#        an effect could not be attributed to either. P2a splits them.
-#   P3a  ORDER. The schema puts "why" before "arm" so the justification is
-#        written before the arm is committed. Reordering ALONE.
-#   P3   ORIENTATION. P3a plus an instruction to state the pose in
-#        "why.grasp". P3 previously changed the order AND added this
-#        clause, so "reasoning first doubles image use" could not be
-#        separated from "being asked to name the pose does". P3a splits
-#        them, and the clause matters because inviting a description is
-#        where qwen's prototype substitution appears.
-#
-# P0 to P2 change what the model KNOWS. P3a and P3 change how it REPORTS.
-# The two are different dimensions and the method should say so rather than
-# presenting six rungs as increasing volume.
-RUNGS = ("P0", "P1", "P2a", "P2", "P3a", "P3", "P4")
-
-_ATTEND = ("\nThe image shows the scene as it is now. Check it against the\n"
-           "description before you choose.\n")
-_ARBITRATE = ("Where the image and the description disagree about an "
-              "object, the\nimage is what is actually on the table.\n")
-_DERIVE = ("An object's graspable width is the width of the face it "
-           "presents\nto the gripper, so it changes when the object stands "
-           "up or lies\ndown.\n")
-_ORIENT = ("Fill in \"why\" BEFORE deciding which arm to name, and state "
-           "the\nobject's orientation in \"why.grasp\" alongside the width "
-           "that\nfollows from it.\n")
-
-# THE CEILING. Not a further step on either dimension: it bundles what to
-# know with how to report, and it comes close to handing over the answer
-# procedure. Its value is as a BOUND rather than as evidence of grounding.
-# If P4 is high and P2 is not, the shortfall at P2 is a choice rather than
-# an inability, and the lower rungs can be read as unprompted behaviour.
-# If P4 also stalls, instruction is exhausted and the limit lies elsewhere,
-# which is the more interesting outcome.
-#
-# It stops at the width check rather than naming an arm: telling the model
-# which arm to pick would test compliance, not perception.
-#
-# It never says the description is wrong, so the same rung is usable in the
-# congruent condition. Saying so would give the manipulation away and make
-# the control uninterpretable.
-_LOOK = ("Before choosing, look at the image and decide whether the object "
-         "is\nstanding upright or lying down. Take the graspable width that "
-         "follows\nfrom the pose you see, not from the description, and "
-         "check it against\nthe arm's max_grasp_m.\n")
-
-RUNG_TEXT = {
-    "P0": "",
-    "P1": _ATTEND,
-    "P2a": _ATTEND + _ARBITRATE,
-    "P2": _ATTEND + _ARBITRATE + _DERIVE,
-    "P3a": _ATTEND + _ARBITRATE + _DERIVE,
-    "P3": _ATTEND + _ARBITRATE + _DERIVE + _ORIENT,
-    "P4": _ATTEND + _ARBITRATE + _DERIVE + _ORIENT + _LOOK,
-}
-
-# P3a and P3 both get the reordered schema; P3a adds no words over P2, so
-# the ONLY difference between P2 and P3a is the field order.
-WHY_FIRST_RUNGS = ("P3a", "P3", "P4")
+RESTING_FACES = ("small_face", "large_face")
 
 
 # ---------------------------------------------------------------------------
-# SOLO mode: one queued task, one arm, no round.
+# 1. Field aliases
 # ---------------------------------------------------------------------------
-# The batch round asked the model to serve two tasks that compete for one
-# UR. That competition is EX3's subject, not EX2's, and it meant a wrong
-# answer could be either a capability misjudgement or a coordination
-# failure. Solo queues the mustard alone. The clamp stays in the state as
-# an OBJECT and stays visible in the image, so the picture is unchanged,
-# but it is no longer a task and no longer competes for an arm.
+# Each constraint becomes a visibly matched pair, so the direction of the
+# comparison is readable from the names alone:
 #
-# What makes the single choice informative is the Franka preference below.
-# An earlier single-task attempt failed because the UR was legal under both
-# the true and the declared pose, so the arm named carried no information.
-# With a Franka preferred, the correct arm now DIFFERS by pose: upright at
-# 0.058 the Franka can take it, lying at 0.096 it cannot and only the UR
-# can. Under conflict, following the text and following the image give
-# opposite arms on every trial.
+#     object                  arm
+#     opening_needed_m        opening_max_m
+#     mass_kg                 max_load_kg
+#     delicate                handles_delicate
+#     position                arms_that_can_reach
 #
-# The wording is flat on purpose. "Prefer a Franka unless it cannot handle
-# the object" would state the exception, which is the capability check
-# being measured, and a correct answer would come cheaper than it should.
-# WHY THERE ARE TWO. G6 pulls toward one arm type, and a Franka is legal
-# only at 0.058 m. So "prefer a Franka" is a standing pull toward believing
-# 0.058, and 0.058 is the TEXT's number on a lying scene and the IMAGE's
-# number on an upright one. A model that merely leans Franka therefore
-# scores as follows_state in one direction and follows_image in the other,
-# which is exactly the shape of the observed result and is indistinguishable
-# from consulting the picture.
-#
-# Counterbalancing dissolves it. Under the UR preference the pull is toward
-# 0.096, so the two accounts predict OPPOSITE arms in both directions. If
-# image use survives the flip, it is image use; if it follows the preferred
-# arm instead, it was the preference all along.
-#
-# The wording stays flat in both. "Prefer a Franka unless it cannot handle
-# the object" would state the exception, which is the capability check
-# being measured, and a correct answer would come cheaper than it should.
-SOLO_PREFERENCES = {
-    "franka": "G6  Prefer a Franka arm for sorting tasks.\n",
-    "ur": "G6  Prefer a UR arm for sorting tasks.\n",
+# size_upright_m carries its frame in its name. resting_face replaces a
+# posture label, because posture is not what the opening follows from: the
+# name has to be geometric so it cannot be read off as an outcome.
+
+FIELD_ALIASES = {
+    "grasp_m": "opening_needed_m",
+    "max_grasp_m": "opening_max_m",
+    "payload_kg": "max_load_kg",
+    "delicate_ok": "handles_delicate",
+    "dims_m": "size_upright_m",
+    "reach_ok_arms": "arms_that_can_reach",
+    "pose": "resting_face",
 }
-# Kept only so an older caller does not break. The live path reads
-# SOLO_PREFERENCES[preference]; using this constant there silently ignored
-# the counterbalance and rendered the Franka wording under both settings.
-SOLO_PREFERENCE = SOLO_PREFERENCES["franka"]
+
+# Dead in every EX2 scene.
+DROP_FIELDS = ("at_pad",)
+
+# Withheld in the dims condition. The opening alone is not enough: with the
+# face stated, the opening follows from size_upright_m by text alone.
+DIMS_WITHHELD = ("opening_needed_m", "resting_face")
 
 
-# G4 tells the model to protect an arm another queued task needs. With one
-# queued task there is no other task, so it points at nothing; and it would
-# push toward the Franka for the same reason G6 does, which would make the
-# two indistinguishable.
-# G3 tells the model to ignore queue order and not pick the first task
-# listed. With one queued task there is no order and no other task, so it
-# describes a choice that does not exist.
-# G1 tells the model to send each object to the basket named for its
-# category. Solo renames the baskets so none is named for anything, so G1
-# would point at a property the state no longer carries.
-SOLO_TRIM_RULES = ("G4", "G3", "G1")
+# ---------------------------------------------------------------------------
+# 2. The base prompt
+# ---------------------------------------------------------------------------
 
-# The base ANSWER section already asks for ONE task and ONE arm, so unlike
-# the batch mode this is not a change of shape. Only "reason" is replaced,
-# by the same why block the batch schema uses, so width belief is graded
-# the same way in both. "regions" is kept: it is in the base wording and
-# dropping it would be one more difference from what every other
-# experiment sends.
-# Replaces the free-text reason. Same block at every rung.
-WHY_SCHEMA = (
-    '  "why": {\n'
-    '    "grasp": "<the width you judged, and whether the arm\'s '
-    'max_grasp_m covers it>",\n'
-    '    "payload": "<the object\'s mass, and whether the arm\'s '
-    'payload_kg covers it>",\n'
-    '    "delicate": "<whether the object is delicate, and whether the '
-    'arm allows it>"\n'
-    '  }')
+SCENE_WITH_IMAGE = """The image shows the four arms at their rest positions, the coloured
+boxes, and five white crosses which mark the exchange points and are
+not objects to be sorted. Objects to be sorted lie loose on the table.
+The image is a side view of this cell, taken now, and a written
+description of the same scene follows below. Both describe the cell
+you are allocating in.
+"""
+
+SCENE_NO_IMAGE = """A written description of the cell state follows below.
+"""
+
+VIEW_TEXT = """The image is taken from the south of the table, above it and
+looking back at the centre, so north (+y) is away from the camera
+and east (+x) is to the right.
+"""
 
 
-# "regions" is DROPPED with its three lines of explanation. Grading never
-# reads it: legal_arms calls the validator with task_id, arm and basket
-# only. It exists for zone locking in the live pipeline, and no EX2 scene
-# takes a zone lock.
+def _scene_block(condition, has_image, dims_frame="named"):
+    """The object field list, the viewpoint and the scene, blank-line separated.
+
+    Joined here rather than in BASE_PROMPT. Until 2026-08-27 the template
+    read "{object_fields}\\n{view}{scene}", and since the field lists carry
+    no trailing newline and VIEW_TEXT carries exactly one, two blocks ran
+    straight into the next: the field list into the viewpoint sentence, and
+    the viewpoint into the scene. Every other block in the prompt is
+    separated by a blank line.
+
+    Joining in code also keeps the no-image path right. Writing
+    "{view}\\n{scene}" in the template would fix the seam and leave a stray
+    blank line wherever `view` is empty.
+    """
+    blocks = [_object_fields(condition, dims_frame),
+              VIEW_TEXT if has_image else "",
+              SCENE_WITH_IMAGE if has_image else SCENE_NO_IMAGE]
+    return "\n\n".join(b.rstrip("\n") for b in blocks if b.strip()) + "\n"
+
+# The top-down approach and the bounding-box convention are facts about the
+# apparatus, so they sit in THE CELL and are present at every rung. Neither
+# says which dimension matters or that it changes with the resting face.
+# That is factor C.
+BASE_PROMPT = """You are the task allocator for a four-arm robotic cell. Each time you are
+asked, choose ONE queued task and ONE idle arm, or choose to wait.
+
+THE CELL
+A {tx} x {ty} m table, origin at its centre, x east, y north. Two UR10 arms sit
+mid-table on the west and east edges, two Franka arms on the south and north
+edges, all facing inward. Zones are a centre disc of radius {cr} m plus the
+quadrants nw, ne, sw, se. Three coloured boxes stand on the table for
+sorting, and five exchange points are marked on it.
+
+Every object is picked from directly above. The gripper turns to whichever
+horizontal direction suits before it closes. The cell judges an object by the
+box that encloses it, so a shape that tapers or curves counts as its full
+extent.
+
+WHAT THE STATE TELLS YOU
+Each arm states the widest its gripper opens, "opening_max_m", the heaviest
+object it can carry, "max_load_kg", and whether it is cleared for delicate
+handling, "handles_delicate".
+
+{scene_block}
+HARD RULES. A proposal that breaks any of these is rejected.
+
+R1  Task availability
+    Assign only a task whose status is "queued". A task marked
+    "in_progress" or "waiting_on_..." is already being handled.
+
+R2  Arm availability
+    Assign only an arm from the idle list. A disabled arm is never
+    available.
+
+{r3}
+R4  Load
+    The arm is capable only when its "max_load_kg" is at least the
+    object's "mass_kg".
+
+R5  Delicate handling
+    An object marked "delicate" may go only to an arm whose
+    "handles_delicate" is true.
+
+R6  Reach
+    The arm must appear in the object's "arms_that_can_reach" list. That
+    list is authoritative, so use it rather than working reach out from
+    coordinates. Reaching is not the same as handling: an arm can often
+    reach an object it cannot pick up.
+
+R7  Destination
+    The task carries no destination, so name a box in "basket". Any box
+    the arm you named can reach will do.
+
+GUIDANCE. Not enforced, but this is what a good allocation does.
+
+{preference}
+G2  Waiting can be a choice, not only a last resort. If no idle arm is a
+    good fit and a better-suited one will free up soon, wait.
+{rung}
+YOUR ANSWER
+{schema}
+"""
+
+
+# ---------------------------------------------------------------------------
+# 3. Conditions
+# ---------------------------------------------------------------------------
+# Congruent and conflict manipulate the STATE. Dims withholds two fields, and
+# two parts of the prompt have to follow, because a prompt that promises a
+# field and then retracts it, or a rule that points at a field which is not
+# there, makes the model solve a comprehension puzzle rather than the
+# derivation under test.
 #
-# "basket" is KEPT. An EX2 task is captured with "dest_xy": null and
-# "dest_zone": "unassigned", so R7 fires on every trial and the model has
-# to name one. Pre-setting destinations at capture time would let this go,
-# along with R7 and G1, but that is a change to the captures, not the
-# prompt.
+#   the glossary   lists only the fields actually present
+#   R3             keeps the check and drops the pointer to a supplied number
 #
-# "task_id" is kept because -1 is how a wait is expressed and the grader
-# reads it.
-SOLO_SCHEMA = "\n".join([
-    "Answer ONLY with JSON, no prose:",
-    '{"task_id": <int>, "arm": "<arm name>",',
-    '  "basket": "<any box the arm you named can reach>",',
-    WHY_SCHEMA,
-    "}",
-    "The boxes are interchangeable: put the object in any box the arm can",
-    "reach. Every arm can reach one, so this never decides which arm to",
-    "name.",
-    "To wait, answer task_id -1 with arm null.",
-    'Always give "why", for a wait too: say what you are waiting for.',
-])
-
-
-# P3 asks the model to justify BEFORE naming an arm. Saying so is not
-# enough: a model generates left to right, so if "arm" still comes first in
-# the schema it is committed before a word of justification exists and the
-# instruction cannot bite. This is the same failure as the opening line
-# that asked for ONE task while the schema asked for EVERY: the shape wins
-# over the sentence. P3 therefore gets a schema with "why" first.
-SOLO_SCHEMA_WHY_FIRST = "\n".join([
-    "Answer ONLY with JSON, no prose, with the fields in this order:",
-    '{"task_id": <int>,',
-    # A comma: "why" is no longer the last field, and a template that is
-    # not itself valid JSON invites a reply that is not either.
-    WHY_SCHEMA + ",",
-    '  "arm": "<arm name>",',
-    '  "basket": "<any box the arm you named can reach>"',
-    "}",
-    "The boxes are interchangeable: put the object in any box the arm can",
-    "reach. Every arm can reach one, so this never decides which arm to",
-    "name.",
-    "To wait, answer task_id -1 with arm null.",
-    'Always give "why", for a wait too: say what you are waiting for.',
-])
-
-# BATCH ANSWER. EX2 asks for the WHOLE round at once, one assignment per
-# task, rather than one task at a time as EX1 and EX3 do.
+# R3 is substituted rather than deleted, following the discipline Experiment 1
+# set with No Rules: the condition must test the value of the SUPPLIED NUMBER,
+# not the value of knowing the constraint exists. A model reading a rule that
+# names a missing field could reasonably conclude the rule is inapplicable,
+# and that would look like a derivation failure while being a rule-reading
+# failure.
 #
-# Why. With one assignment at a time the model named ur_w in every trial,
-# twelve out of twelve, and ur_w is legal whichever way the bottle lies, so
-# the choice carried no information about which source was believed. There
-# was no pressure to consider franka_n at all: taking the mustard with ur_w
-# is never wrong, and the second task could simply be left for later.
+# What neither version says is where the opening comes from, or that its
+# absence is an error. Framing the absence as a mistake would steer the model
+# toward flagging a fault or abstaining, and abstention is one of the measures
+# rather than a behaviour to induce.
 #
-# Assigning both together removes the safe answer. The clamp is 0.122 m and
-# UR-only, so ur_w is the only arm that can take EITHER object:
+# THE WITHHOLDING SENTENCE NAMES NO OBJECT. It read "no resting face are given
+# for this object" until 2026-08-27, which was wrong twice over: withhold()
+# strips per FIELD across the whole state, so it is true of every object, and
+# a sentence that says "this object" in a glossary opening "Each object
+# states" points at one of them. The same date gave the partner its own
+# dimensions in transforms.DIMS_M for the same reason. R3 keeps "this object"
+# and is correct to: R3 is a per-object rule, so there the phrase means
+# whichever object is being checked.
+
+_OBJECT_FIELDS_FULL = """Each object states the opening it needs from a gripper, "opening_needed_m",
+which face it is resting on, "resting_face", its mass, "mass_kg", whether it
+is "delicate", its height, width and depth measured standing on its smallest
+face, "size_upright_m", and the arms that can reach it,
+"arms_that_can_reach"."""
+
+_OBJECT_FIELDS_DIMS = """Each object states its mass, "mass_kg", whether it is "delicate", its height,
+width and depth measured standing on its smallest face, "size_upright_m", and
+the arms that can reach it, "arms_that_can_reach". No opening and no resting
+face are given."""
+
+# ---------------------------------------------------------------------------
+# DIMS FRAME. The gloss above names the three extents -- height, width, depth
+# -- and the state renders them under those keys. That assigns the axes: a
+# model reads height as the vertical one and takes the horizontal pair to be
+# width and depth, so on a block lying on its large face it derives
+# min(0.100, 0.050) = 0.050 without ever consulting the picture.
 #
-#   picture LYING     ur_w must take the mustard (franka_n cannot), so the
-#                     clamp waits
-#   picture UPRIGHT   franka_n can take the mustard, freeing ur_w for the
-#                     clamp, so both proceed
+# The docstring at the top of this module ALREADY argues that keeping the
+# frame in the field name is what stops "as currently placed" being read off
+# the numbers, and that argument stands. But it rests on the extents
+# "reaching the model as an unordered set", and as rendered they do not: they
+# arrive as a named dict, which is precisely the axis assignment the argument
+# assumes is absent. The frame in the NAME is the mitigation; the names on
+# the KEYS are the leak. This variant closes the second without touching the
+# first.
 #
-# Different beliefs give different ROUNDS, and no round fits both. The
-# decision stays an ALLOCATION rather than becoming a quiz about widths,
-# which matters because the allocation claim is the one the thesis makes.
+# Two changes, one decision, so they are one factor:
+#   - the extents render as a bare descending list, no axis names
+#   - the gloss defines the frame geometrically rather than by naming a
+#     face, so the words "smallest face" leave the prompt entirely
 #
-# The cost is that EX2 is joint-assignment where EX1 and EX3 are
-# sequential. Disclosed rather than glossed: EX2 is a standalone instrument
-# and its comparisons are all within itself.
-BATCH_SCHEMA = "\n".join([
-    "Answer ONLY with JSON, no prose. Assign EVERY queued task in one",
-    "answer:",
-    '{"assignments": [',
-    '  {"task_id": <int>, "arm": "<arm name, or null to leave this task>",',
-    '   "basket": "<basket name, or null if the task already has a '
-    'destination>",',
-    '   "assignable": ["<every idle arm that COULD serve this task>"],',
-    '   "why": {',
-    '     "grasp": "<the width you judged, and whether the arm\'s '
-    'max_grasp_m covers it>",',
-    '     "payload": "<the object\'s mass, and whether the arm\'s '
-    'payload_kg covers it>",',
-    '     "delicate": "<whether the object is delicate, and whether the '
-    'arm allows it>"',
-    "   }}",
-    "]}",
-    "One arm may take at most one task. List EVERY queued task, including",
-    'any you leave unassigned, with "arm" null and "why" saying what',
-    "prevents it.",
-    '"assignable" is every IDLE arm that could serve that task if it were',
-    "free, whether or not you chose it. Consider each idle arm in turn.",
-])
-
-# The whole ANSWER section is replaced, not patched: the base asks for one
-# assignment and EX2 asks for a round.
-_ANSWER_HEAD = "YOUR ANSWER"
-
-# ...and so does the OPENING SENTENCE, which the answer substitution alone
-# left behind. The base prompt's first instruction told the model to choose
-# one task; the schema forty lines later told it to assign every task. The
-# model read the first instruction and obeyed it: in the congruent floor
-# test it assigned the mustard, left the clamp, and then wrote a correct
-# explanation of why the clamp needed the arm it had just spent. Eleven of
-# eleven rounds failed that way and it was read as an inability to relate
-# two assignments, which it may not have been.
+# That second half also closes the vocabulary collision. "small_face" is an
+# answer option, and until now it was also a phrase sitting in the state.
+# Defining the frame as "longest extent vertical" says the same thing about
+# the measurement and shares no words with the answer schema, so the answer
+# vocabulary can stay geometric -- which the FIELD NAMES note above requires,
+# because a posture label could be read off as an outcome.
 #
-# The base line is NOT edited in state_builder: EX1, EX3 and the live
-# pipeline share it, and changing it there would move PROMPT_VERSION for
-# every one of them and void the byte-identical acceptance test. EX2
-# substitutes it locally, exactly as it does the answer section.
-_OLD_HEADLINE = ("Each time you are asked, choose ONE queued task and ONE "
-                 "idle arm, or\nchoose to wait.")
-_NEW_HEADLINE = ("Each time you are asked, assign EVERY queued task in one "
-                 "answer:\nname an idle arm for each, or leave a task for "
-                 "later if nothing free can\nserve it.")
+# Sorting descending leaks nothing: the three numbers are intrinsic, so the
+# order is the same in both poses and carries no information about either.
+_OBJECT_FIELDS_DIMS_EXTENTS = """Each object states its mass, "mass_kg", whether it is "delicate", its three
+extents largest first, "extents_m", and the arms that can reach it,
+"arms_that_can_reach". No opening and no resting face are given."""
+
+_OBJECT_FIELDS_FULL_EXTENTS = """Each object states the opening it needs from a gripper, "opening_needed_m",
+which face it is resting on, "resting_face", its mass, "mass_kg", whether it
+is "delicate", its three extents largest first, "extents_m", and the arms
+that can reach it, "arms_that_can_reach"."""
+
+DIMS_FRAMES = ("named", "extents")
 
 
-# Only the dims condition needs this, and only it gets it: the text no
-# longer states a graspable width, so R3 has to say where one comes from.
-DIMS_RULE = (
-    "\n\"dims_m\" gives an object's height, width and depth AS IF IT WERE\n"
-    "UPRIGHT. It describes the object, not how it is resting. The graspable\n"
-    "width is the smaller of the two horizontal extents in the object's\n"
-    "CURRENT pose, so it depends on how the object is lying or standing.\n"
-    "No graspable width is given; work it out.\n")
+def _object_fields(condition, dims_frame="named"):
+    """The object field gloss for one condition, in the named dims frame."""
+    if dims_frame not in DIMS_FRAMES:
+        raise ValueError(
+            f"unknown dims_frame {dims_frame!r}; expected one of "
+            f"{list(DIMS_FRAMES)}. Never defaulted at the call site: an "
+            f"extents result recorded as named would be invisible.")
+    if dims_frame == "named":
+        return CONDITIONS[condition]["object_fields"]
+    return (_OBJECT_FIELDS_DIMS_EXTENTS if condition == "dims"
+            else _OBJECT_FIELDS_FULL_EXTENTS)
 
 
-# The base prompt states the OVERHEAD convention. That is true for
-# table_cam and false for ex2_cam, which looks at the table from the south
-# and above. Telling the model the top edge is north when it is not would
-# be a lie in the prompt, and a plausible reason to misread a pose.
-_OLD_VIEW = ("If an overhead\nimage is given, its top edge is north (+y) "
-             "and its right edge is east (+x).")
-VIEW_TEXT = {
-    "table_cam": _OLD_VIEW,
-    "ex2_cam": ("The image is taken from the south of the table, above it "
-                "and\nlooking back at the centre, so north (+y) is away "
-                "from the camera\nand east (+x) is to the right."),
+EXTENTS_FIELD = "extents_m"
+
+
+def as_extents(value):
+    """Render every size_upright_m as a descending list under a frame-free
+    name. Applied AFTER aliasing, so the field is already renamed once.
+
+    THE NAME GOES WITH THE KEYS. "size_upright_m" states the frame its three
+    numbers were taken in, and that frame is what stops the named axes being
+    read as the extents AS CURRENTLY PLACED. With the axis names gone there
+    is nothing left for it to anchor: the three extents of a rigid box are
+    the same multiset in every orientation, so a frame adds no information
+    to a sorted list. All "upright" would still do is put a pose word in
+    front of the model for no return, which is the leak this variant exists
+    to close.
+
+    What is NOT added is a sentence saying the extents do not indicate the
+    resting pose. Removing a false claim is not scaffolding; adding a denial
+    would be, and it is A_ATTEND's job at the N-A rung. Silence about pose
+    is the correct neutral state at N0.
+    """
+    if isinstance(value, dict):
+        out = {}
+        for k, v in value.items():
+            if k == "size_upright_m" and isinstance(v, dict):
+                out[EXTENTS_FIELD] = sorted(v.values(), reverse=True)
+            else:
+                out[k] = as_extents(v)
+        return out
+    if isinstance(value, (list, tuple)):
+        return [as_extents(v) for v in value]
+    return value
+
+_R3_FULL = """R3  Gripper opening
+    The gripper must open wide enough for the object. The arm is capable
+    only when its "opening_max_m" is at least the object's
+    "opening_needed_m".
+"""
+
+_R3_DIMS = """R3  Gripper opening
+    The gripper must open wide enough for the object. The arm is capable
+    only when its "opening_max_m" is at least the opening the object needs.
+    That opening is not stated for this object.
+"""
+
+CONDITIONS = {
+    "congruent": {"object_fields": _OBJECT_FIELDS_FULL, "r3": _R3_FULL},
+    "conflict":  {"object_fields": _OBJECT_FIELDS_FULL, "r3": _R3_FULL},
+    "dims":      {"object_fields": _OBJECT_FIELDS_DIMS, "r3": _R3_DIMS},
+}
+
+# The wording stays flat. "Prefer a Franka unless it cannot handle the
+# object" would state the capability check being measured.
+#
+# The UR setting is the counterbalance, run at N0 only. Under it a UR is
+# legal in every orientation, so every model should land near zero on the
+# paired difference. A model that does not is not choosing on capability.
+PREFERENCE_TEXT = {
+    "franka": "G1  Prefer a Franka arm for sorting tasks.\n",
+    "ur": "G1  Prefer a UR arm for sorting tasks.\n",
 }
 
 
 # ---------------------------------------------------------------------------
-# EX2 trim: remove what an EX2 scene cannot use.
+# 4. Factors and rungs
 # ---------------------------------------------------------------------------
-# Measured on a real EX2 state, the user message is 3851 characters and
-# exchange_pads is 845 of them, the largest single block. Every EX2 scene
-# places both objects where the two idle arms can pick them up AND deliver
-# them directly, so no handover is possible in any of the 44 captures and
-# R5 never binds. Five pads with coordinates, arm lists and reach lists are
-# therefore not merely noise: a model reasoning carefully about routes that
-# do not exist would land that confusion in the headline as a grounding
-# failure. Removing them removes a false-result risk, not just tokens.
+
+A_ATTEND = """
+The image shows the table as it is now. Look at the object in the image
+before you choose.
+"""
+
+# Names the relation and nothing else. It does not say which faces exist,
+# which one the object is on, or where to look.
+C_DERIVE = """
+The opening an object needs is the smaller of its two horizontal extents,
+so it depends on which face the object is resting on.
+"""
+
+# Requires the report and fixes its position. It does not give the relation,
+# so a model without C must supply the relation itself.
+D_ELICIT = """
+Give "resting_face" and "opening_needed_m" BEFORE naming an arm, and choose
+the arm to fit the opening you gave.
+"""
+
+RUNGS = {
+    "N0":      {"text": "", "schema": "base", "factors": ()},
+    "N-A":     {"text": A_ATTEND, "schema": "base",
+                "factors": ("attention",)},
+    "N-C":     {"text": C_DERIVE, "schema": "base",
+                "factors": ("derivation",)},
+    "N-order": {"text": "", "schema": "report_first",
+                "factors": ("order",)},
+    "N-D":     {"text": D_ELICIT, "schema": "face_first",
+                "factors": ("elicitation", "order")},
+    "N-CD":    {"text": C_DERIVE + D_ELICIT, "schema": "face_first",
+                "factors": ("derivation", "elicitation", "order")},
+}
+
+# Recorded before the first call so the factor structure cannot be fitted to
+# the outcome, following experiments/ex1/mislabel.py.
+PREDICTIONS = {
+    "attention": "inert",
+    "derivation": "moves in conflict",
+    "elicitation": "moves in both, more than derivation alone",
+    "order": "inert",
+}
+
+
+# ---------------------------------------------------------------------------
+# 5. The answer schema
+# ---------------------------------------------------------------------------
+# Typed fields rather than prose. Every number the analysis reads is parsed
+# as a number and every category as an enum, so no extractor stands between
+# the reply and the measurement.
 #
-# The other removals are empty or irrelevant in a two-object still life:
-# zone locks that nobody holds, an event log with nothing in it, counters
-# at zero.
+# "opening_needed_m" is required at EVERY rung. R3 already names it, so
+# reporting it is a reporting requirement rather than a hint, and it gives
+# the diagnostic at N0 where Q1 and Q2 are read. "resting_face" is required
+# only under factor D, because naming the face as something to report would
+# otherwise tell the model that the face matters.
 #
-# NOT removed, because EX2 depends on them: R5 (a handover can still be
-# arranged behind the model's choice), R7 (EX2 tasks have dest_xy null and
-# the model does choose the basket), the arms block (it carries
-# max_grasp_m, the number the whole experiment turns on), objects, baskets
-# and tasks.
+# The base schema puts the opening AFTER the arm, so the arm is committed
+# first. N-order moves it before. D moves it before and adds the face.
 #
-# SCOPED TO EX2. build_state is untouched, so EX1, EX3, every recorded
-# episode and the offline acceptance test are unaffected. EX1 and EX3 keep
-# the pads because relays are real there: the seed episode produced two
-# NO_ROUTE rejections, and a model held to R5 without the pad block would
-# be judged on a rule it has no means to check.
+# Whether the reported opening is consistent with the chosen arm's aperture
+# is computed in analysis, not asked of the model. Asking invites a
+# rationalisation.
+#
+# A wait may carry a null opening. In dims a model may wait BECAUSE it
+# cannot determine the opening, and demanding a number from a model that has
+# just said it cannot produce one corrupts the reported-opening measure
+# exactly where it is most informative. A wait with null reads as "I cannot
+# tell", a wait with a value as "I can tell and no arm fits".
+#
+# OPEN: "basket" is required on every reply and decides nothing, since the
+# boxes are interchangeable and every arm reaches one. It exists only
+# because R7 fires on every capture. Pre-assigning destinations at capture
+# time would let R7, the field and two lines of the tail go together, which
+# is worth doing while the captures are being rebuilt.
+
+_SCHEMA_TAIL = """The boxes are interchangeable, so this never decides which arm to name.
+"opening_needed_m" is the opening you judge the object needs, in metres, as a
+number with three decimals.
+To wait, answer task_id -1 with arm null. Give "opening_needed_m" if you can,
+or null if you cannot."""
+
+# FACE OPTION ORDER. The answer vocabulary is two words and a model that
+# is not reading the picture will tend to the one it saw first, so the
+# order is itself a factor and not a formatting choice. It is also
+# confounded with the state, which describes the object "standing on its
+# smallest face": small_face is both the first option AND a word already
+# on the page, and until the order can be flipped the two pulls cannot be
+# told apart.
+#
+# small_first is the DEFAULT because it is what every run before
+# 2026-08-27 used. Changing the default would silently re-ask a different
+# question of every file already on disk.
+FACE_ORDERS = {
+    "small_first": ("small_face", "large_face"),
+    "large_first": ("large_face", "small_face"),
+}
+
+
+def _face_field(face_order="small_first"):
+    """The resting_face line of the schema, options in the named order."""
+    if face_order not in FACE_ORDERS:
+        raise ValueError(
+            f"unknown face_order {face_order!r}; expected one of "
+            f"{sorted(FACE_ORDERS)}. The order is never defaulted at the "
+            f"call site: a large_first result recorded as small_first "
+            f"would be invisible in the output.")
+    first, second = FACE_ORDERS[face_order]
+    return '  "resting_face": "<%s | %s>",' % (first, second)
+
+
+_FACE_FIELD = _face_field("small_first")
+_OPEN_FIELD = ('  "opening_needed_m": <number>')
+_OPEN_FIELD_C = ('  "opening_needed_m": <number>,')
+
+SCHEMAS = {
+    # N0, N-A, N-C. Arm first, report last.
+    "base": "\n".join([
+        "Answer ONLY with JSON, no prose:",
+        '{"task_id": <int>,',
+        '  "arm": "<arm name>",',
+        '  "basket": "<any box the arm you named can reach>",',
+        _OPEN_FIELD,
+        "}",
+        _SCHEMA_TAIL,
+    ]),
+    # N-order. Same fields, opening moved ahead of the arm. No added wording.
+    "report_first": "\n".join([
+        "Answer ONLY with JSON, no prose, with the fields in this order:",
+        '{"task_id": <int>,',
+        _OPEN_FIELD_C,
+        '  "arm": "<arm name>",',
+        '  "basket": "<any box the arm you named can reach>"',
+        "}",
+        _SCHEMA_TAIL,
+    ]),
+    # N-D, N-CD. Face and opening, both ahead of the arm.
+    "face_first": "\n".join([
+        "Answer ONLY with JSON, no prose, with the fields in this order:",
+        '{"task_id": <int>,',
+        _FACE_FIELD,
+        _OPEN_FIELD_C,
+        '  "arm": "<arm name>",',
+        '  "basket": "<any box the arm you named can reach>"',
+        "}",
+        _SCHEMA_TAIL,
+    ]),
+}
+
+
+# ---------------------------------------------------------------------------
+# 6. State rendering
+# ---------------------------------------------------------------------------
+
 TRIM_STATE_KEYS = ("exchange_pads", "zone_locks", "zone_inbound",
                    "recent_events", "metrics", "tasks_completed",
                    "tasks_failed")
 
-# R6 concerns an object already sitting on a pad, which never happens here.
-# G2 refers to zone_locks and zone_inbound, which the trim removes, so it
-# would be pointing at fields that no longer exist.
-#
-# R5, R7 and G1 are deliberately KEPT. An EX2 task is captured with
-# "dest_xy": null and "dest_zone": "unassigned", so R7 fires on every
-# trial and the model has to name a basket; G1 tells it which one; and R5
-# governs how that destination is reached. R4 also ends with "see R5", so
-# dropping R5 would leave a dangling reference. Trimming any of the three
-# was tried on a fixture whose tasks carried destinations, which the real
-# captures do not, and the harness caught it.
-TRIM_RULES = ("R6", "G2")
-
-# The zone-lock clause describes contention between arms over a shared
-# zone. G2 was already dropped for referring to fields the trim removes,
-# and this is the last mention of a mechanism that never binds: an EX2
-# scene holds two objects and no zone lock is ever taken.
-_ZONE_LOCK = ", and one arm may hold a zone at a time"
-
-# The render is unfamiliar and a model that mistakes a basket for an object
-# is failing at something EX2 does not test. This names the FIXED FURNITURE
-# only: no objects, no pose, no counts of anything that varies. Anything
-# more would be an attention cue and P0 would stop being the neutral rung.
-SCENE_TEXT = (
-    "The image shows the four arms at their rest positions, three coloured\n"
-    "boxes which are the sorting baskets, and five white crosses marking\n"
-    "the exchange points. Objects to be sorted lie loose on the table.\n"
-    "The image is a side view of this cell, taken now, and a written\n"
-    "description of the same scene follows below. Both describe the\n"
-    "cell you are allocating in.\n")
-
-# The text-only version of the same paragraph. build_prompt's mode A keeps
-# the system prompt byte-identical to V and drops only the image block,
-# which was the right call for the original fairness comparison. It is the
-# wrong call for a text-only RUNG: the prompt would describe a side view
-# that is not attached, and a model asked to check an absent image is being
-# tested on something other than modality. So EX2 strips the references.
-#
-# The cost is that the two prompts differ by more than the image block, and
-# that has to be stated rather than presented as a clean single-variable
-# contrast.
-SCENE_TEXT_TEXT_ONLY = (
-    "The cell holds four arms at their rest positions, three coloured\n"
-    "boxes which are the sorting baskets, and five white crosses marking\n"
-    "the exchange points. Objects to be sorted lie loose on the table.\n"
-    "A written description of the cell state follows below.\n")
-
-# Sentences in the SHARED base that talk about the image. Removed in
-# text-only mode for the same reason.
-# In text-only mode the camera convention is dropped rather than
-# substituted: there is no camera.
-_NO_VIEW = ""
-
-
-# Every float in the state is written to the same number of decimals.
-#
-# WHY. json.dumps prints 0.08 as "0.08" and 0.096 as "0.096", so the two
-# widths the experiment turns on are written to different precisions. One
-# gpt reply echoed the Franka limit back as "0.080", which suggests it was
-# normalising them itself before comparing. A comparison that decides the
-# whole trial should not also ask the model to reconcile formats.
-#
-# HOW. Not by subclassing float: json's encoder calls float.__repr__
-# directly and ignores subclasses. Not by converting to strings either: a
-# quoted "0.080" changes the field's type and invites the model to read a
-# measurement as text. Instead each float becomes a marked string, the
-# state is serialised, and the marks and their surrounding quotes are
-# stripped from the text, leaving a bare number.
-# Printable on purpose. A control character is escaped by json as \u0000,
-# so the marks survive the regex, the guard below checks for a form that is
-# no longer present, and the markers reach the model. That happened.
+# json.dumps prints 0.05 as "0.05" and 0.100 as "0.1", so the openings the
+# experiment turns on would reach the model at different precisions. Each
+# float is marked, the state is serialised, and the marks and their quotes
+# are stripped, leaving a bare fixed-width number.
 _MARK = "@F@"
 _DECIMALS = 3
 
 
-def mark_decimals(value):
-    """Replace every float with a marked, fixed-width string.
+def apply_aliases(value):
+    """Rename fields for display and drop the ones no EX2 scene uses."""
+    if isinstance(value, dict):
+        return {FIELD_ALIASES.get(k, k): apply_aliases(v)
+                for k, v in value.items() if k not in DROP_FIELDS}
+    if isinstance(value, (list, tuple)):
+        return [apply_aliases(v) for v in value]
+    return value
 
-    Three decimals because the measured widths carry three, 0.096 and
-    0.058. Fewer would round them together and destroy the manipulation.
-    """
+
+def withhold(value, fields):
+    """Drop named fields, after aliasing, wherever they appear."""
+    if isinstance(value, dict):
+        return {k: withhold(v, fields) for k, v in value.items()
+                if k not in fields}
+    if isinstance(value, (list, tuple)):
+        return [withhold(v, fields) for v in value]
+    return value
+
+
+def trim_state(state):
+    """A copy with the blocks no EX2 scene can use removed."""
+    import copy as _copy
+    out = _copy.deepcopy(state)
+    for key in TRIM_STATE_KEYS:
+        out.pop(key, None)
+    return out
+
+
+def mark_decimals(value):
+    """Replace every float with a marked, fixed-width string."""
     if isinstance(value, bool):
         return value
     if isinstance(value, float):
@@ -553,7 +639,7 @@ def unmark_decimals(text):
     """Strip the marks and the quotes json put around them."""
     import re as _re
     out = _re.sub(r'"%s([-0-9.]+)%s"' % (_MARK, _MARK), r"\1", text)
-    if _MARK in out or _MARK.encode("unicode_escape").decode() in out:
+    if _MARK in out:
         raise ValueError(
             "a marked number survived into the prompt text. Sending the "
             "marker to the model would corrupt a measurement it has to "
@@ -561,166 +647,248 @@ def unmark_decimals(text):
     return out
 
 
-def trim_state(state):
-    """A copy with the blocks no EX2 scene can use removed."""
-    import copy as _copy
-    out = _copy.deepcopy(state)
-    for key in TRIM_STATE_KEYS:
-        out.pop(key, None)
-    return out
+def render_state(state, condition, dims_frame="named"):
+    """The user-message text: trimmed, aliased, withheld, fixed-width."""
+    if condition not in CONDITIONS:
+        raise ValueError(f"unknown condition {condition!r}")
+    body = apply_aliases(trim_state(state))
+    if condition == "dims":
+        body = withhold(body, DIMS_WITHHELD)
+    if dims_frame == "extents":
+        body = as_extents(body)
+    elif dims_frame not in DIMS_FRAMES:
+        raise ValueError(f"unknown dims_frame {dims_frame!r}")
+    idle = [a["name"] for a in state["arms"]
+            if a["state"] == "IDLE" and not a["disabled"]]
+    return unmark_decimals(
+        "Cell state:\n" + json.dumps(mark_decimals(body), indent=1)
+        + "\nIdle arms right now: " + (", ".join(idle) or "none")
+        + ".\nAssign the queued task to ONE of these idle arms, or answer "
+          "task_id -1 if none can take it now.")
 
 
-def _drop_rule(text, tag):
-    """Remove one numbered rule or guidance line, keeping the rest intact."""
-    start = text.find("\n" + tag + "  ")
-    if start < 0:
-        raise ValueError(f"{tag} is not in the prompt; the base wording has "
-                         f"changed and the trim must be rechecked rather "
-                         f"than silently skipping it")
-    i = start + 1
-    end = len(text)
-    for j in range(i + 1, len(text)):
-        if text[j] == "\n" and j + 1 < len(text) and text[j + 1] not in " \n":
-            end = j
-            break
-    return text[:start] + text[end:]
+# ---------------------------------------------------------------------------
+# 7. Build
+# ---------------------------------------------------------------------------
 
+def schema_text(name, face_order="small_first"):
+    """The answer schema, with the face options in the named order.
 
-def build_ex2_prompt(state, rung, condition, image_b64=None, view=None,
-                     trim=True, describe_scene=True, solo=False,
-                     preference="franka"):
-    """Messages for one EX2 trial.
-
-    Built on the REAL build_prompt, so the cell description, the hard rules
-    and the guidance are identical to what every other experiment sends.
-    Only the additions below differ, and each is a single contiguous block
-    so a diff against the base prompt shows exactly what EX2 changed.
+    SCHEMAS itself stays the default-order rendering so that anything
+    reading it directly keeps seeing what it always saw; only the face
+    line is rebuilt, and only when the order is not the default.
     """
+    text = SCHEMAS[name]
+    if face_order == "small_first":
+        return text
+    return text.replace(_FACE_FIELD, _face_field(face_order))
+
+
+def system_prompt(rung, condition, has_image=True, preference="franka",
+                  face_order="small_first", dims_frame="named"):
+    """The system prompt for one cell of the design."""
     if rung not in RUNGS:
         raise ValueError(
-            f"unknown rung {rung!r}; expected one of {list(RUNGS)}. Rungs "
-            f"are never defaulted: a P0 result recorded as P2 would be "
+            f"unknown rung {rung!r}; expected one of {sorted(RUNGS)}. Rungs "
+            f"are never defaulted: an N0 result recorded as N-C would be "
             f"invisible in the output.")
+    if condition not in CONDITIONS:
+        raise ValueError(f"unknown condition {condition!r}; expected one of "
+                         f"{sorted(CONDITIONS)}")
+    if preference not in PREFERENCE_TEXT:
+        raise ValueError(f"unknown preference {preference!r}; expected one "
+                         f"of {sorted(PREFERENCE_TEXT)}")
 
-    if view is not None and view not in VIEW_TEXT:
-        raise ValueError(f"unknown view {view!r}; expected one of "
-                         f"{sorted(VIEW_TEXT)}")
+    spec = RUNGS[rung]
+    return BASE_PROMPT.format(
+        tx=C.TABLE_TOP[0], ty=C.TABLE_TOP[1], cr=C.CENTER_RADIUS,
+        scene_block=_scene_block(condition, has_image, dims_frame),
+        r3=CONDITIONS[condition]["r3"],
+        preference=PREFERENCE_TEXT[preference],
+        rung=spec["text"],
+        schema=schema_text(spec["schema"], face_order),
+    )
 
-    messages = build_prompt(mark_decimals(trim_state(state) if trim
-                                         else state),
-                            "V" if image_b64 else "A", image_b64=image_b64)
-    sys_text = messages[0]["content"]
 
-    if trim:
-        for tag in TRIM_RULES + (SOLO_TRIM_RULES if solo else ()):
-            sys_text = _drop_rule(sys_text, tag)
-
-    # Without an image the camera convention describes nothing, so it goes
-    # whether or not a view was named. Guarding on `view` alone left the
-    # base overhead sentence in every text-only prompt built without one.
-    if image_b64 is None or view is not None:
-        if _OLD_VIEW not in sys_text:
-            raise ValueError(
-                "the base prompt's camera convention has changed and cannot "
-                "be substituted. EX2 must not describe an oblique image as "
-                "overhead: the model would be told north is at the top when "
-                "it is not.")
-        sys_text = sys_text.replace(
-            _OLD_VIEW, _NO_VIEW if image_b64 is None else VIEW_TEXT[view], 1)
-
-    if trim:
-        if _ZONE_LOCK not in sys_text:
-            raise ValueError(
-                "the base prompt's zone wording has changed and the clause "
-                "cannot be removed. Trimming must fail loudly rather than "
-                "silently leaving in a mechanism the scene never uses.")
-        sys_text = sys_text.replace(_ZONE_LOCK, "", 1)
-
-    # SOLO leaves the opening line alone: the base already asks for one
-    # task and one arm, which is exactly what solo wants. The substitution
-    # exists only because the BATCH schema contradicted it.
-    if not solo:
-        if _OLD_HEADLINE not in sys_text:
-            raise ValueError(
-                "the base prompt's opening instruction has changed and "
-                "cannot be substituted. EX2 must not ask for ONE task in "
-                "its first line and EVERY task in its schema: the model "
-                "obeys the first line, and a round it was told to leave "
-                "half-done cannot be scored as a failure to coordinate.")
-        sys_text = sys_text.replace(_OLD_HEADLINE, _NEW_HEADLINE, 1)
-
-    if _ANSWER_HEAD not in sys_text:
-        raise ValueError(
-            "the base answer section has changed and the batch schema "
-            "cannot be substituted. EX2 must not silently fall back to a "
-            "single assignment: with one task at a time the model named the "
-            "always-safe arm in every trial and the choice carried no "
-            "information about which source it believed.")
-    if solo:
-        # G6 goes at the end of the guidance block, where a reader of the
-        # prompt would expect the next guidance line to be.
-        sys_text = (sys_text[:sys_text.index(_ANSWER_HEAD)].rstrip("\n")
-                    + "\n" + SOLO_PREFERENCES[preference]
-                    + "\nYOUR ANSWER\n"
-                    + (SOLO_SCHEMA_WHY_FIRST if rung in WHY_FIRST_RUNGS
-                       else SOLO_SCHEMA) + "\n")
-    else:
-        sys_text = (sys_text[:sys_text.index(_ANSWER_HEAD)]
-                    + "YOUR ANSWER\n" + BATCH_SCHEMA + "\n")
-
-    if describe_scene:
-        # Text-only gets the same paragraph with the image references
-        # removed, not the image paragraph minus the picture.
-        scene = SCENE_TEXT if image_b64 is not None else SCENE_TEXT_TEXT_ONLY
-        sys_text = sys_text.replace("\nHARD RULES.",
-                                    "\n" + scene + "\nHARD RULES.", 1)
-
-    if condition == "dims":
-        sys_text += DIMS_RULE
-    sys_text += RUNG_TEXT[rung]
-
-    messages = list(messages)
-    messages[0] = dict(messages[0], content=unmark_decimals(sys_text))
-
-    # The state lives in the user message, which may be plain text or a
-    # list of blocks when an image is attached.
-    user = messages[1]
-    content = user["content"]
-    if isinstance(content, str):
-        messages[1] = dict(user, content=unmark_decimals(content))
-    else:
-        blocks = []
-        for b in content:
-            if isinstance(b, dict) and b.get("type") == "text":
-                b = dict(b, text=unmark_decimals(b["text"]))
-            blocks.append(b)
-        messages[1] = dict(user, content=blocks)
-    return messages
+def build_ex2_prompt(state, rung, condition, image_b64=None,
+                     preference="franka", face_order="small_first",
+                     dims_frame="named"):
+    """Messages for one EX2 trial."""
+    content = [{"type": "text",
+                "text": render_state(state, condition, dims_frame)}]
+    if image_b64 is not None:
+        content = [{"type": "image_url",
+                    "image_url":
+                        {"url": f"data:image/png;base64,{image_b64}"}}
+                   ] + content
+    return [
+        {"role": "system",
+         "content": system_prompt(rung, condition,
+                                  has_image=image_b64 is not None,
+                                  preference=preference,
+                                  face_order=face_order,
+                                  dims_frame=dims_frame)},
+        {"role": "user", "content": content},
+    ]
 
 
 def manipulation_check(image_b64):
-    """The control, asked once per scene per view.
+    """The control, asked once per scene per view and per blur level.
 
-    No allocation, no state, no rules: can the model read the pose when
-    asked about nothing else. If this fails under a view, every
-    image-following number under that view is uninterpretable, and the
-    result is reported as unreadable rather than as a model failure.
+    Two-way since 2026-08-27. It was three-way, and the extra option was
+    the middle face, which no model separated from large_face: 58 percent
+    over 81 trials, Fisher p = 0.76. Chance is now one in two.
+
+    THE THIRD FACE IS NOT NAMED, not even to exclude it. Mentioning it
+    would make this a three-way question with one option discouraged,
+    which is a different measurement from the one the captures support.
+    The capture script guarantees no scene shows it.
     """
     return [
         {"role": "system",
          "content": "Answer with one word and nothing else."},
         {"role": "user", "content": [
             {"type": "text",
-             "text": "Look at the block on the table. Is it standing "
-                     "upright or lying down? Answer 'upright' or 'lying'."},
+             "text": "The block on the table is resting on one of two "
+                     "faces. They measure 0.130 x 0.100 m (the larger) and "
+                     "0.100 x 0.050 m (the smaller). Which one is it "
+                     "resting on? Answer 'large_face' or 'small_face'."},
             {"type": "image_url",
              "image_url": {"url": f"data:image/png;base64,{image_b64}"}},
         ]},
     ]
 
 
-def rung_diff(state, condition="congruent"):
-    """What each rung adds, for eyeballing before any spend."""
-    base = build_ex2_prompt(state, "P0", condition)[0]["content"]
-    return {r: build_ex2_prompt(state, r, condition)[0]["content"][len(base):]
-            for r in RUNGS}
+# ---------------------------------------------------------------------------
+# 8. Verification
+# ---------------------------------------------------------------------------
+
+_ANCHOR = "\nYOUR ANSWER"
+
+
+def rung_diff(condition="congruent", **kw):
+    """Each rung's system prompt, for eyeballing before any spend."""
+    return {r: system_prompt(r, condition, **kw) for r in RUNGS}
+
+
+def assert_glossary_matches_state(condition):
+    """The glossary names exactly the fields the state carries.
+
+    Per condition, because dims withholds two of them. A promise the state
+    does not keep, or a field present but unglossed, both make the model
+    solve a comprehension puzzle rather than the derivation under test.
+    """
+    text = system_prompt("N0", condition)
+    # The head only. The answer schema legitimately asks the model to REPORT
+    # the opening in every condition, including dims where the state does not
+    # supply it, and the schema tail defines it there.
+    text = text[:text.index("\nYOUR ANSWER")]
+    absent = DIMS_WITHHELD if condition == "dims" else ()
+    for name in FIELD_ALIASES.values():
+        named = ('"%s"' % name) in text
+        if name in absent and named:
+            raise ValueError(
+                f"{name} is withheld from the state in {condition} but the "
+                f"prompt still names it.")
+        if name not in absent and not named:
+            raise ValueError(
+                f"{name} is rendered into the state but not glossed.")
+    for dead in DROP_FIELDS:
+        if '"%s"' % dead in text:
+            raise ValueError(f"{dead} is dropped from the state but still "
+                             f"named in the prompt.")
+    return True
+
+
+def assert_r3_matches_state(condition):
+    """R3 never points at a field the state does not carry.
+
+    R3 is substituted rather than deleted in dims. Deleting it would test
+    the value of knowing the constraint exists, which is not the question.
+    """
+    text = system_prompt("N0", condition)
+    r3 = text[text.index("R3  Gripper opening"):text.index("R4  Load")]
+    names_field = '"opening_needed_m"' in r3
+    if condition == "dims" and names_field:
+        raise ValueError(
+            "R3 names opening_needed_m in dims, where the field is "
+            "withheld. A model could read the rule as inapplicable, and "
+            "that would score as a derivation failure while being a "
+            "rule-reading failure.")
+    if condition != "dims" and not names_field:
+        raise ValueError(f"R3 does not name opening_needed_m in {condition}.")
+    return True
+
+
+def assert_base_states_no_relation():
+    """The base prompt states the conventions and never the relation.
+
+    The bounding-box and top-down sentences are deliberately close to
+    factor C, so the boundary is enforced on the base as well as on the
+    rungs.
+    """
+    head = BASE_PROMPT[:BASE_PROMPT.index("{rung}")].lower()
+    for phrase in ("smaller of", "horizontal extent", "depends on which face",
+                   "changes when"):
+        if phrase in head:
+            raise ValueError(
+                f"the base prompt contains {phrase!r}, which states the "
+                f"pose-to-opening relation. That is factor C, and putting "
+                f"it in the base gives every rung the derivation fact.")
+    return True
+
+
+def assert_rungs_isolated(condition="congruent", **kw):
+    """Every rung differs from N0 by its own factor and nothing else.
+
+    A wording factor inserts one block at the anchor. The order factor
+    changes the schema and adds no words. Factor D does both, so it is
+    checked against N0's head plus its block, and separately on its schema.
+    """
+    p = rung_diff(condition, **kw)
+    base = p["N0"]
+    if base.count(_ANCHOR) != 1:
+        raise ValueError("the answer anchor is not unique, so a factor "
+                         "block cannot be located unambiguously.")
+
+    head = lambda t: t[:t.index(_ANCHOR)]
+
+    for rung in ("N-A", "N-C"):
+        if p[rung] != base.replace(_ANCHOR, RUNGS[rung]["text"] + _ANCHOR, 1):
+            raise ValueError(
+                f"{rung} does not equal N0 with its factor block inserted, "
+                f"so its contrast against N0 carries more than one change.")
+
+    if head(p["N-order"]) != head(base):
+        raise ValueError(
+            "N-order differs from N0 before the answer section. It is the "
+            "control for the report order and must add no wording.")
+    if p["N-order"] == base:
+        raise ValueError(
+            "N-order is identical to N0. The reordered schema was not "
+            "applied, so the control measures nothing.")
+
+    for rung in ("N-D", "N-CD"):
+        if head(p[rung]) != head(base) + RUNGS[rung]["text"]:
+            raise ValueError(
+                f"{rung}'s wording is not N0's plus its blocks, so its "
+                f"effect cannot be separated from the report order.")
+        if RUNGS[rung]["schema"] != "face_first":
+            raise ValueError(f"{rung} must use the face-first schema.")
+
+    # The boundary rule, mechanically. N-CD is exempt: it is a declared
+    # combination rather than a single factor.
+    forbidden = {
+        "N-A": ("resting_face", "face", "orientation", "opening", "extent"),
+        "N-C": ("look", "image", "give", "report"),
+        "N-D": ("smaller of", "horizontal extent", "depends on"),
+    }
+    for rung, words in forbidden.items():
+        block = RUNGS[rung]["text"].lower()
+        for w in words:
+            if w in block:
+                raise ValueError(
+                    f"{rung} names {w!r}, which belongs to another factor. "
+                    f"The boundary rule in the module docstring is what "
+                    f"makes the factor structure auditable.")
+    return True

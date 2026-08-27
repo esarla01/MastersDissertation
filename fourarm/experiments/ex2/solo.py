@@ -3,21 +3,33 @@
 WHY THIS REPLACES THE ROUND. The batch version asked the model to serve two
 tasks that compete for one UR. That competition is EX3's subject, and it
 meant a wrong answer could be a capability misjudgement OR a coordination
-failure, with no way to tell which. Solo queues the mustard alone. The
-clamp stays in the state as an object and stays visible in the image, so
+failure, with no way to tell which. Solo queues the flip object alone. The
+partner stays in the state as an object and stays visible in the image, so
 the picture is unchanged, but it is no longer a task and no longer competes
 for an arm.
+
+Since the batch mode was retired this is the only shape there is, so run.py
+and cue.py send the same one-task prompt. The difference is what they
+sweep, not what they ask.
 
 WHY A SINGLE CHOICE CARRIES INFORMATION HERE. An earlier single-task
 attempt failed because the UR was legal under both the true and the
 declared pose, so the arm named said nothing about which source the model
-believed. The prompt's G6 fixes that by preferring a Franka:
+believed. The prompt's G1 fixes that by preferring a Franka. For the block
+(0.130 x 0.100 x 0.050), against the Franka's 0.080 aperture:
 
-    upright, 0.058   the Franka can take it        correct arm: franka_n
-    lying,   0.096   over the Franka's 0.080       correct arm: the UR
+    resting face   face down     opening   Franka   correct arm
+    small_face     0.100 x 0.050   0.050    fits     franka_n
+    edge           0.130 x 0.050   0.050    fits     franka_n
+    large_face     0.130 x 0.100   0.100    too big  the UR
 
-So the correct arm differs by pose, and under conflict, following the text
-and following the image give OPPOSITE arms on every trial.
+So the correct arm differs by resting face, and a conflict always crosses
+the aperture, so following the text and following the image give OPPOSITE
+arms on every conflict trial.
+
+The sharp contrast is edge against large_face: neither is standing up,
+both are flat, and only the geometry differs, so a model that maps a
+posture word to an opening scores nothing on it.
 
 Verified across all 22 pair scenes: franka_n is reachable and idle in every
 one, and the idle set is always exactly one UR plus franka_n. Note that
@@ -56,22 +68,27 @@ from core.decision.vlm_allocator import openai_chat              # noqa: E402
 from experiments.ex2 import grade as G                           # noqa: E402
 from experiments.ex2 import prompts as P                         # noqa: E402
 from experiments.ex2 import transforms as T                      # noqa: E402
-from experiments.ex2.labels import pose_prim                     # noqa: E402
+from experiments.ex2.labels import pose_prim, require_face       # noqa: E402
 from experiments.ex2.run import (flip_task_id, legal_arms,       # noqa: E402
-                                 load_scenes, select_scenes)
+                                 load_scenes, neutralise_baskets,
+                                 queue_flip_only, select_scenes)
 
 CONDITIONS = ("congruent", "conflict", "dims")
 DEFAULT_MODELS = ("qwen", "gpt")
 VIEW = "ex2_cam"
-RUNG = "P2"          # default; --rung overrides
+# N0 is the base prompt with no factor block. Q1 and Q2 are read there, so
+# it is the rung a run with no --rung should produce.
+RUNG = "N0"          # default; --rung overrides
+RUNGS = tuple(P.RUNGS)
 
-# G6 pulls toward one arm type, and a Franka is legal only at 0.058 m. On a
-# lying scene 0.058 is the TEXT's number; on an upright one it is the
-# IMAGE's. So a model that merely leans Franka scores as follows_state in
-# one direction and follows_image in the other, and cannot be told apart
-# from one reading the picture. Under the UR preference the pull is toward
-# 0.096 and the two accounts predict opposite arms.
-PREFERENCES = ("franka", "ur")
+# G1 pulls toward one arm type, and a Franka is legal only below its 0.080
+# aperture. On a large-face scene the small opening is the TEXT's number;
+# on a small-face or edge scene it is the IMAGE's. So a model that merely
+# leans Franka scores as follows_state in one direction and follows_image
+# in the other, and cannot be told apart from one reading the picture.
+# Under the UR preference the pull runs the other way and the two accounts
+# predict opposite arms.
+PREFERENCES = tuple(P.PREFERENCE_TEXT)
 
 # "V" sends the image, "A" does not. The text-only rung is the floor for
 # the whole ladder: whatever the model gets right with no picture at all is
@@ -80,81 +97,41 @@ PREFERENCES = ("franka", "ur")
 MODALITIES = ("V", "A")
 
 
-def queue_flip_only(state, flip_label):
-    """Drop every task except the flip object's. Objects are untouched.
-
-    The clamp remains in "objects", so the state still describes the scene
-    the camera saw. Removing it from the objects list would leave the text
-    denying something plainly visible in the image, which is a mismatch the
-    experiment never intended to introduce.
-    """
-    out = copy.deepcopy(state)
-    kept = [t for t in out.get("tasks", []) if t.get("object") == flip_label]
-    if len(kept) != 1:
-        raise ValueError(
-            f"expected exactly one task for {flip_label!r}, found "
-            f"{len(kept)}. A solo trial with no task has nothing to ask "
-            f"about, and one with two is not solo.")
-    out["tasks"] = kept
-    return out
-
-
-def neutralise_baskets(state):
-    """Rename the baskets so none is named for a category.
-
-    WHY. basket_food is reachable by ur_w and franka_n. In the eleven west
-    scenes the idle UR is ur_w and can deliver directly; in the eleven east
-    scenes it is ur_e and cannot reach that basket at all. So a correctly
-    assigned lying bottle needed a handover in one half of the sample and
-    not the other, putting a delivery cost on the very arm choice under
-    test, in exactly the cells where the conflict manipulation works.
-
-    Renaming rather than moving. Which physical box holds which category is
-    arbitrary, so dropping the categories misrepresents nothing, and it
-    leaves the captured images untouched. Relabelling one box as food in
-    east scenes would instead make the text disagree with whatever the
-    colours in the picture imply, which is an unintended text-image
-    conflict inside an experiment that measures text-image conflict.
-
-    The object's "category" field is left alone: it is true, and with no
-    basket named for a category it now decides nothing.
-    """
-    out = copy.deepcopy(state)
-    baskets = out.get("baskets") or {}
-    if not baskets:
-        raise ValueError(
-            "the state has no baskets. A solo trial still names a "
-            "destination, since dest_xy is null in every capture.")
-    rename = {}
-    for i, name in enumerate(sorted(baskets), start=1):
-        rename[name] = "box_%d" % i
-    out["baskets"] = {rename[k]: v for k, v in baskets.items()}
-    for task in out.get("tasks", []):
-        if task.get("dest_basket") in rename:
-            task["dest_basket"] = rename[task["dest_basket"]]
-    return out
+# queue_flip_only and neutralise_baskets moved to run.py when the batch
+# mode was retired: every driver needs them now, and a second copy here
+# would drift from the one the other runners use. They are re-exported
+# above so callers and the harness keep reaching them through this module.
 
 
 def render(scene, condition, preference="franka", rung=RUNG,
-           modality="V"):
+           modality="V", face_order="small_first", dims_frame="named"):
     """(messages, meta) for one solo trial."""
     probe = {"state": scene["state"],
              "positions_exact": scene["positions_exact"]}
     state, meta = T.transform(probe, condition)
+    # See run.render: the prompt module renders the pose value as it finds
+    # it, so this is what stops a non-face vocabulary reaching the model.
+    require_face(meta["true_pose"], P.RESTING_FACES)
     state = queue_flip_only(state, meta["flip_label"])
     state = neutralise_baskets(state)
     b64 = None
     if modality == "V":
         with open(scene["images"][VIEW], "rb") as f:
             b64 = base64.b64encode(f.read()).decode("ascii")
+    # No view argument: the camera convention is fixed in the prompt module
+    # and VIEW now only chooses which captured frame to attach. No solo
+    # argument either: one task and one arm is the only shape there is.
     return P.build_ex2_prompt(state, rung, condition, image_b64=b64,
-                              view=VIEW, solo=True,
-                              preference=preference), meta
+                              preference=preference,
+                              face_order=face_order,
+                              dims_frame=dims_frame), meta
 
 
 def one_trial(scene, condition, model, preference="franka", rung=RUNG,
-              modality="V", model_fn=openai_chat, timeout=90.0):
-    messages, meta = render(scene, condition, preference, rung, modality)
+              modality="V", model_fn=openai_chat, timeout=90.0,
+              face_order="small_first", dims_frame="named"):
+    messages, meta = render(scene, condition, preference, rung, modality,
+                            face_order, dims_frame)
 
     text, error, usage = "", None, {}
     t0 = time.time()
@@ -197,6 +174,7 @@ def one_trial(scene, condition, model, preference="franka", rung=RUNG,
                 "view": VIEW, "rung": rung, "error": error, "solo": True,
                 "ex2_prompt_version": P.EX2_PROMPT_VERSION,
                 "preference": preference, "modality": modality,
+                "face_order": face_order, "dims_frame": dims_frame,
                 "latency_ms": round((time.time() - t0) * 1000, 1),
                 "prompt_tokens": (usage or {}).get("prompt_tokens"),
                 "completion_tokens": (usage or {}).get("completion_tokens"),
@@ -249,10 +227,15 @@ def table(rows):
     out += [head, "-" * max(len(head), 70)]
     prefs = sorted({(r.get("preference", "franka"), r.get("rung", RUNG))
                     for r in rows})
+    # Read the resting faces off the rows. The block has three
+    # (small_face, edge, large_face) where the mustard pilot had two
+    # postures, and a hardcoded ("lying", "upright") silently dropped every
+    # block row from the table rather than reporting an empty cell.
+    poses = sorted({r["true_pose"] for r in rows})
     for model in sorted({r["model"] for r in rows}):
       for pref, rung in prefs:
         for cond in CONDITIONS:
-            for pose in ("lying", "upright"):
+            for pose in poses:
                 sub = [r for r in rows if r["model"] == model
                        and r.get("preference", "franka") == pref
                        and r.get("rung", RUNG) == rung
@@ -362,7 +345,8 @@ def run(capture_dir, out_path=None, models=DEFAULT_MODELS,
         conditions=CONDITIONS, preferences=("franka",), rungs=(RUNG,),
         modalities=("V",), kind="pair", repeats=1, pair=None, limit=None,
         dry_run=False,
-        model_fn=openai_chat, timeout=90.0):
+        model_fn=openai_chat, timeout=90.0,
+        face_orders=("small_first",), dims_frames=("named",)):
     scenes = [s for s in load_scenes(capture_dir)
               if kind is None or s["kind"] == kind]
     scenes = select_scenes(scenes, pair)
@@ -379,10 +363,12 @@ def run(capture_dir, out_path=None, models=DEFAULT_MODELS,
                   % (scene["seq"], cond, meta["true_pose"],
                      meta["declared_pose"]))
         print("--- %d scene-conditions x %d model(s) x %d preference(s) "
-              "x %d rung(s) x %d repeat(s) = %d calls, none made"
+              "x %d rung(s) x %d face order(s) x %d dims frame(s) "
+              "x %d repeat(s) = %d calls, none made"
               % (len(plan), len(models), len(preferences), len(rungs),
-                 repeats, len(plan) * len(models) * len(preferences)
-                 * len(rungs) * repeats))
+                 len(face_orders), len(dims_frames), repeats,
+                 len(plan) * len(models) * len(preferences) * len(rungs)
+                 * len(face_orders) * len(dims_frames) * repeats))
         return []
 
     # A row that ERRORED is not an answer. Skipping it on resume is how a
@@ -403,31 +389,46 @@ def run(capture_dir, out_path=None, models=DEFAULT_MODELS,
             for pref in preferences:
               for rung in rungs:
                for modality in modalities:
-                for rep in range(1, repeats + 1):
-                    for scene, cond in plan:
-                        # The rung is part of the id. Without it a P3 run
-                        # pointed at a P2 file would find every trial
-                        # present, skip the lot and report itself complete
-                        # having spent nothing.
-                        tid = "%s|%s|%s|%s|%s|%s|r%d" % (
-                            scene["seq"], cond, model, pref, rung, modality,
-                            rep)
-                        if tid in done:
-                            continue
-                        row = one_trial(scene, cond, model, pref, rung,
-                                        modality, model_fn=model_fn,
-                                        timeout=timeout)
-                        row["trial_id"] = tid
-                        row["repeat"] = rep
-                        if handle:
-                            handle.write(json.dumps(row) + "\n")
-                            handle.flush()
-                        print("%-5s %-6s %-3s %s r%d %-8s %-10s true=%-8s "
-                              "-> arm=%-10s %s"
-                              % (model, pref, rung, modality, rep,
-                                 scene["seq"], cond,
-                                 row["true_pose"], row.get("arm") or "none",
-                                 row["outcome"]))
+                for face_order in face_orders:
+                 for dims_frame in dims_frames:
+                  for rep in range(1, repeats + 1):
+                   for scene, cond in plan:
+                         # The rung is part of the id. Without it an
+                         # N-D run pointed at an N0 file would find every
+                         # trial present, skip the lot and report itself
+                         # complete having spent nothing.
+                         tid = "%s|%s|%s|%s|%s|%s|r%d" % (
+                             scene["seq"], cond, model, pref, rung, modality,
+                             rep)
+                         # The face order is appended ONLY when it is not
+                         # the default, so every id already written stays
+                         # exactly as it was and a resume onto an existing
+                         # file still finds its answers. Appending it
+                         # unconditionally would make every stored id stale
+                         # and re-spend a whole run.
+                         if face_order != "small_first":
+                             tid += "|" + face_order
+                         if dims_frame != "named":
+                             tid += "|" + dims_frame
+                         if tid in done:
+                             continue
+                         row = one_trial(scene, cond, model, pref, rung,
+                                         modality, model_fn=model_fn,
+                                         timeout=timeout,
+                                         face_order=face_order,
+                                         dims_frame=dims_frame)
+                         row["trial_id"] = tid
+                         row["repeat"] = rep
+                         if handle:
+                             handle.write(json.dumps(row) + "\n")
+                             handle.flush()
+                         print("%-6s %-6s %-3s %s %-11s %-7s r%d %-8s "
+                               "true=%-10s -> face=%-10s arm=%-9s %s"
+                               % (model, pref, rung, modality, face_order,
+                                  dims_frame, rep, scene["seq"],
+                                  row["true_pose"],
+                                  row.get("resting_face") or "none",
+                                  row.get("arm") or "none", row["outcome"]))
     finally:
         if handle:
             handle.close()
@@ -463,10 +464,12 @@ def main(argv=None):
                          "image-reading model apart from one that just "
                          "leans toward the preferred arm.")
     ap.add_argument("--rung", action="append", dest="rungs", default=None,
-                    choices=P.RUNGS,
-                    help="prompt rung; repeatable. P3 asks the model to "
-                         "justify before naming an arm, and gets a schema "
-                         "with \"why\" first so the instruction can bite.")
+                    choices=RUNGS,
+                    help="prompt rung; repeatable. N-D and N-CD ask for "
+                         "the resting face and the opening BEFORE the arm, "
+                         "and get a schema in that order so the "
+                         "instruction can bite; N-order is the control "
+                         "that reorders the schema and adds no wording.")
     ap.add_argument("--modality", action="append", dest="modalities",
                     default=None, choices=MODALITIES,
                     help="V sends the image, A does not. A is the text-only "

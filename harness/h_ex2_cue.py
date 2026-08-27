@@ -68,7 +68,7 @@ _buf = io.StringIO()
 try:
     import contextlib
     with contextlib.redirect_stdout(_buf):
-        exec(compile(_src[:_src.index("# --- 3c. task presentation order")],
+        exec(compile(_src[:_src.index("# --- 3c. REMOVED")],
                      "fixture", "exec"), _g)
 except Exception as exc:                                   # noqa: BLE001
     raise SystemExit("could not build the shared capture fixture from "
@@ -77,14 +77,15 @@ CAP = _g["CAP"]
 TMP = tempfile.mkdtemp()
 
 
-def reply(flip_arm, partner_arm=None, width="0.096 m"):
-    return json.dumps({"assignments": [
-        {"task_id": 0, "arm": flip_arm, "basket": None,
-         "assignable": [flip_arm] if flip_arm else [],
-         "why": {"grasp": width, "payload": "ok", "delicate": "no"}},
-        {"task_id": 1, "arm": partner_arm, "basket": None,
-         "assignable": [], "why": {"grasp": "0.122 m", "payload": "ok",
-                                   "delicate": "no"}}]})
+def reply(flip_arm, opening=0.100):
+    """A reply in the CURRENT schema: one task, one arm, typed fields.
+
+    The partner argument is gone with the batch round. The prompt queues
+    the flip task alone, so a reply naming two tasks would not be in
+    schema and the grader would have nothing to compare it against.
+    """
+    return json.dumps({"task_id": 0, "arm": flip_arm, "basket": "box_1",
+                       "opening_needed_m": opening})
 
 
 def fixed(text):
@@ -97,7 +98,7 @@ def fixed(text):
 check("legality comes from the shared run module",
       C.legal_arms is R.legal_arms and C.flip_task_id is R.flip_task_id,
       "a private copy would drift from the rest of EX2")
-check("the grader is the shared one", C.G.grade_round is G.grade_round)
+check("the grader is the shared one", C.G.grade is G.grade)
 check("the conditions are the shared ones",
       set(C.CONDITIONS) == set(T.CONDITIONS))
 
@@ -130,15 +131,24 @@ check("dims declares no pose at all",
       "naming it would let the model pick the right dimension unseen")
 
 # 4. scoring vocabulary per condition.
-_belief = {"round_image", "round_state", "round_partial"}
-_truth = {"round_correct", "round_wrong"}
+#
+# grade() reads image-versus-state off the two legal sets. Under congruent
+# and dims those sets are identical, so a legal arm can only land in
+# "uninformative" and an illegal one in "illegal_both": the source labels
+# are unreachable there by construction, which is the point. Only conflict
+# can produce them.
+_belief = {"follows_image", "follows_state"}
 for cond in ("congruent", "dims"):
-    check("%s is scored right or wrong, not image or state" % cond,
+    check("%s cannot be scored image or state" % cond,
           all(r["outcome"] not in _belief for r in by_cond[cond]),
-          "nothing disagrees, so there is no source to prefer")
-check("conflict is scored image or state, not right or wrong",
-      all(r["outcome"] not in _truth for r in by_cond["conflict"]),
-      str(sorted({r["outcome"] for r in by_cond["conflict"]})))
+          "nothing disagrees, so there is no source to prefer: got %s"
+          % sorted({r["outcome"] for r in by_cond[cond]}))
+check("every outcome is one the single-assignment grader declares",
+      all(r["outcome"] in G.OUTCOMES for r in rows),
+      str(sorted({r["outcome"] for r in rows})))
+check("the typed opening reaches the row",
+      all(r["opening_needed_m"] == 0.100 for r in rows),
+      "no extractor stands between the reply and the measurement")
 
 # 5. nulls, whatever is asked for.
 _null_rows = C.run(CAP, out_path=os.path.join(TMP, "n.jsonl"),

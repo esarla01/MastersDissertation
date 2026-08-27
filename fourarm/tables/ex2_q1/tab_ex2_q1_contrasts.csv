@@ -1,0 +1,5 @@
+condition,model,contrast,n_positions,mean_diff_pts,newcombe_lo,newcombe_hi,paired_lo,paired_hi,spans_zero,ratio_to_congruent
+congruent,gpt,small_minus_large,0,NA,NA,NA,NA,NA,True,NA
+congruent,gemini,small_minus_large,0,NA,NA,NA,NA,NA,True,NA
+dims,gpt,small_minus_large,0,NA,NA,NA,NA,NA,True,NA
+dims,gemini,small_minus_large,0,NA,NA,NA,NA,NA,True,NA

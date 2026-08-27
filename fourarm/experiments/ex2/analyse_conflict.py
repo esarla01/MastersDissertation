@@ -11,11 +11,32 @@ Usage:
 
 import collections
 import json
+import os
 import sys
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(
+    os.path.dirname(os.path.abspath(__file__)))))
+
+from experiments.ex2 import labels as L                           # noqa: E402
 
 MODELS = ("gpt", "qwen", "gemini")
 PREFERENCES = ("franka", "ur")
-RUNGS = ("P0", "P1", "P2a", "P2", "P3a", "P3", "P4")
+
+# Rung names in declaration order across BOTH designs: the P-rung attention
+# ladder that produced All_conflict.jsonl and the N-rung factor set that
+# replaced it. RUNGS is set from the file in main(), so a table never
+# prints an empty row for a design the file does not contain and never
+# silently omits a rung the tuple did not name.
+RUNG_ORDER = ("P0", "P1", "P2a", "P2", "P3a", "P3", "P4",
+              "N0", "N-A", "N-C", "N-order", "N-D", "N-CD")
+RUNGS = RUNG_ORDER
+
+
+def rungs_in(rows):
+    """Rungs present in the data, in declaration order, unknown ones last."""
+    seen = {r.get("rung") for r in rows if r.get("rung")}
+    known = [x for x in RUNG_ORDER if x in seen]
+    return tuple(known + sorted(seen - set(known)))
 
 SCENES_PER_POSE = 11
 REPEATS = 3
@@ -184,7 +205,41 @@ def check_repeats(rows):
 # audited against what the physics allows, and the stored classification is
 # recomputed from the raw fields and compared.
 
+# The mustard pilot's two openings. The block's are 0.050 and 0.100, so
+# this is set from the file in main() rather than trusted as written: a
+# fixed pair reported every block reply as off-candidate.
 TRUE_WIDTHS = (0.058, 0.096)
+
+
+def reported(row):
+    """What the model reported, whichever schema it answered in.
+
+    The typed "opening_needed_m" and "resting_face" on a row from the
+    current design; the prose "why.grasp" on one from the pre-2026-08-26
+    files. Reading only the prose printed blanks for every current row.
+    """
+    bits = []
+    if row.get("resting_face"):
+        bits.append("face=%s" % row["resting_face"])
+    if row.get("opening_needed_m") is not None:
+        bits.append("opening=%.3f" % row["opening_needed_m"])
+    # Both, when both are there: a row carrying a face but no typed
+    # opening still has its prose, and that is the row worth reading.
+    why = row.get("why")
+    prose = why.get("grasp") if isinstance(why, dict) else why
+    if prose:
+        bits.append(str(prose))
+    return "  ".join(bits)
+
+
+def widths_in(rows):
+    """The opening values this file's own design admits."""
+    out = set()
+    for r in rows:
+        for key in ("true_grasp_m", "declared_grasp_m"):
+            if r.get(key) is not None:
+                out.add(r[key])
+    return tuple(sorted(out)) or TRUE_WIDTHS
 APERTURES = (0.080, 0.140)      # Franka and UR. Never an object width.
 
 
@@ -255,9 +310,8 @@ def check_extraction(rows):
     if not odd:
         print("none")
     for r in odd:
-        why = r.get("why")
-        grasp = why.get("grasp") if isinstance(why, dict) else why
-        print("%-7s %-4s %-7s %-8s width=%s arm=%s" %
+        grasp = reported(r)
+        print("%-7s %-6s %-7s %-8s width=%s arm=%s" %
               (r.get("model"), r.get("rung"), r.get("preference"),
                r.get("true_pose"), r.get("believed_width_m"), r.get("arm")))
         print("    %s" % str(grasp)[:200])
@@ -753,7 +807,9 @@ def check_reasoning(rows):
     print()
     print("-" * 70)
     print("8a  REPLIES REFERENCING THE IMAGE OR THE POSE, out of 66")
-    print("    stored classification over why.grasp; indicative only")
+    print("    stored classification over the reply prose; indicative")
+    print("    only, and EMPTY on a current run: the typed schema carries")
+    print("    no prose to keyword-match. That is not a zero result.")
     print("-" * 70)
     print("rung   " + "".join("%-12s" % ("%s/%s" % (m[:3], p[:3]))
                               for m in MODELS for p in PREFERENCES))
@@ -804,9 +860,8 @@ def check_reasoning(rows):
                and r.get("width_belief") == "state"]
         print("%s   %d such replies" % (model, len(sub)))
         for r in sub[:4]:
-            why = r.get("why")
-            grasp = why.get("grasp") if isinstance(why, dict) else why
-            print("   %-4s %-7s %-8s  %s"
+            grasp = reported(r)
+            print("   %-6s %-7s %-8s  %s"
                   % (r.get("rung"), r.get("preference"), r.get("true_pose"),
                      str(grasp)[:150]))
         print()
@@ -919,6 +974,23 @@ def main(argv):
         return 1
     rows = load(argv)
     unique, errors, dupes = clean(rows)
+
+    # The design is read off the file rather than assumed. Every table below
+    # walks RUNGS and every extraction check compares against TRUE_WIDTHS,
+    # and both were written for the mustard pilot's P-rung ladder. Left
+    # fixed, a block run printed seven empty rows and reported all 2,000-odd
+    # of its replies as off-candidate.
+    moved = L.modernise_poses(unique)
+    if moved:
+        print("pose vocabulary  translated %d pre-2026-08-27 block rows"
+              % moved)
+
+    global RUNGS, TRUE_WIDTHS
+    RUNGS = rungs_in(unique)
+    TRUE_WIDTHS = widths_in(unique)
+    print("rungs in this file   %s" % ", ".join(RUNGS))
+    print("openings in this file %s"
+          % ", ".join("%.3f" % w for w in TRUE_WIDTHS))
     report_load(rows, unique, errors, dupes)
     faults = check_cells(unique)
     check_versions(unique)

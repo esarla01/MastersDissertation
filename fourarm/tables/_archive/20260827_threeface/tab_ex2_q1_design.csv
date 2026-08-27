@@ -1,0 +1,4 @@
+resting_face,vertical_m,horiz_a_m,horiz_b_m,opening_needed_m,franka_max_m,ur_max_m,franka_feasible,ur_feasible,deriving_model_picks
+small_face,0.130,0.100,0.050,0.050,0.080,0.140,True,True,"franka, preference satisfied"
+edge,0.100,0.130,0.050,0.050,0.080,0.140,True,True,"franka, preference satisfied"
+large_face,0.050,0.130,0.100,0.100,0.080,0.140,False,True,"UR, preference overridden"

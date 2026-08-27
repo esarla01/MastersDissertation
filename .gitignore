@@ -27,3 +27,12 @@ fourarm/out/*.txt
 *.out
 *.toc
 *.synctex.gz
+
+# API keys pasted into a local file by the notebook cell 0. Never tracked.
+fourarm/env/keys.local.env
+
+# Notebook copies. The .ipynb itself is tracked deliberately, but a .bak and
+# JupyterLab's checkpoints are unreviewed duplicates of it sitting beside it,
+# and cell 0 is a place keys get pasted.
+*.ipynb.bak
+.ipynb_checkpoints/

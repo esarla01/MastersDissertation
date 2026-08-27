@@ -10,22 +10,41 @@ changes; only what the text claims about it does.
     conflict    the text describes the OTHER pose, completely and
                 consistently. Only the picture reveals the disagreement.
 
-    dims        pose and graspable width are withheld. The object's own
-                dimensions remain, so the model must read the pose from
+    dims        resting face and opening are withheld. The object's own
+                dimensions remain, so the model must read the face from
                 the picture to know which of them the gripper meets.
 
-WHAT THE STATE CARRIES. Every object gets the same three pose-related
-fields in every condition, so the conditions differ in one thing only:
+WHAT THE STATE CARRIES. The conditions differ in one thing only, so the
+three pose-related fields are what a condition adds or withholds:
 
-    pose      "upright" or "lying"     which way it is resting
+    pose      the RESTING FACE         "small_face" or "large_face"
+                                       for the block; the mustard pilot
+                                       keeps "upright" and "lying"
     dims_m    height, width, depth     the object's OWN dimensions, stated
-                                       as if it were upright
-    grasp_m   one number               the width the gripper meets, which
-                                       follows from the pose
+                                       as if it were standing on its
+                                       smallest face
+    grasp_m   one number               the opening the gripper meets, which
+                                       follows from the resting face
 
 dims_m is INTRINSIC. It describes the object, not its placement, so it is
 identical in both poses and identical in every condition. That is why it
 can always be shown without leaking anything.
+
+AND IT IS SHOWN FOR EVERY OBJECT (2026-08-27), not only the flip object.
+Withholding is done per FIELD, across the whole state, so in the dims
+condition no object states an opening. An object left without dimensions
+therefore had no opening and no way to reach one, which made R3
+unanswerable for its task and left the flip object as the only one in the
+scene carrying a number the rule could act on. That is a pointer to the
+answer, and it does not become less of one for arriving through the field
+list rather than through the words. See DIMS_M, which now needs a row per
+object and raises without one.
+
+What is NOT symmetric, and is disclosed rather than patched: only the flip
+object states a "pose". The partner is a clamp, and the two-word
+small_face / large_face vocabulary the answer schema enumerates has no
+truthful value for it. Inventing one would be a lie the grader would have
+to special-case.
 
 WHY THE FALSIFICATION IS COMPLETE. In a conflict cell, pose, grasp_m,
 mass_kg and delicate are all swapped together to the other registry row.
@@ -38,11 +57,20 @@ WHY dims_m STAYS TRUE IN A CONFLICT CELL. Being intrinsic it is compatible
 with either pose, so leaving it alone costs nothing and swapping it would
 be a lie the model could catch by arithmetic.
 
-WHY pose MUST BE ABSENT IN dims. If the text named the pose, the model
-could pick the right pair of dimensions and never look at the picture,
-which is the failure this condition exists to rule out.
+WHY THE RESTING FACE MUST BE ABSENT IN dims. If the text named the face,
+the model could pick the right pair of dimensions and never look at the
+picture, which is the failure this condition exists to rule out.
 
-Measured values, from run_ycb_probe:
+The BLOCK, 0.130 x 0.100 x 0.050, authored (see ycb_objects.py):
+
+    small_face   face down 0.100 x 0.050   grasp 0.050   all four arms
+    large_face   face down 0.130 x 0.100   grasp 0.100   URs only (0.080)
+
+The block can also rest on 0.130 x 0.050, which the design called "edge"
+until 2026-08-27. It is no longer captured and no longer a value here; the
+capture script fails a scene that settles on it. labels.py records why.
+
+The MUSTARD pilot, measured by run_ycb_probe, kept for provenance:
 
     upright   box 0.096 x 0.058 x 0.191   grasp 0.058   all four arms
     lying     box 0.096 x 0.191 x 0.058   grasp 0.096   URs only (0.080)
@@ -62,15 +90,35 @@ CONDITIONS = ("congruent", "conflict", "dims")
 # The object's own dimensions, as if upright. Identical for every pose
 # because they describe the OBJECT. Taken from the probe measurements
 # (mustard) or the authored cuboid dimensions (block).
+#
+# EVERY OBJECT IN THE SCENE NEEDS A ROW HERE, not just the flip object.
+# Until 2026-08-27 only the flip object carried dims_m, which made it the
+# only object in the state with dimensions. In the dims condition, where
+# the opening is withheld from every object, that left the partner with no
+# opening AND nothing to derive one from: R3 was unanswerable for its task,
+# and the one object carrying numbers was the one the model had to reason
+# about. A pointer to the answer, arriving through the field list rather
+# than through the words.
 DIMS_M = {
     "ycb_mustard": {"height": 0.191, "width": 0.096, "depth": 0.058},
     "ycb_block": {"height": 0.130, "width": 0.100, "depth": 0.050},
+    # The partner. Not a cuboid, so these are the enclosing box, which is
+    # the convention the prompt already states ("the cell judges an object
+    # by the box that encloses it"). From ycb_objects.py: footprint_m 0.165
+    # is the larger horizontal extent, grasp_m 0.122 the smaller, height
+    # 0.036 the vertical. rest_z 0.018 is the CENTRE height, half of
+    # height, and is not a third extent.
+    #
+    # A free internal check: the clamp lies on its 0.165 x 0.122 face, so
+    # the same derivation the block requires gives min(0.165, 0.122) =
+    # 0.122, which is exactly the grasp_m the registry declares for it.
+    "ycb_large_clamp": {"height": 0.165, "width": 0.122, "depth": 0.036},
 }
 
 # The pose-dependent facts, one row per pose. A conflict swaps the WHOLE
-# row, never part of it. POSE_FACTS keeps the mustard's flat two-pose form
-# (upright/lying) unchanged; the block, which has three poses across two
-# capability classes, lives in POSE_FACTS_BY_LABEL alongside it.
+# row, never part of it. POSE_FACTS keeps the mustard pilot's flat two-pose
+# form (upright/lying) unchanged; the block, which has three resting faces
+# across two capability classes, lives in POSE_FACTS_BY_LABEL alongside it.
 POSE_FACTS = {
     "upright": {"grasp_m": 0.058, "mass_kg": 0.603, "delicate": False},
     "lying": {"grasp_m": 0.096, "mass_kg": 0.603, "delicate": False},
@@ -78,33 +126,38 @@ POSE_FACTS = {
 
 OTHER_POSE = {"upright": "lying", "lying": "upright"}
 
-# Per-label facts, so two objects can share a pose name yet differ. The
-# block's "upright" (0.050) is not the mustard's (0.058); a flat pose->facts
-# map could not hold both.
+# Per-label facts, so two objects can never collide on a pose name. The
+# block names resting faces and the mustard names postures, and a flat
+# pose->facts map could not hold both vocabularies.
+# The block is keyed by RESTING FACE, which is what determines the opening.
+# Read labels.TRUE_POSE for why "small_face" is the block standing tall and
+# The retired third face, "edge", is documented there too.
 POSE_FACTS_BY_LABEL = {
     "ycb_mustard": POSE_FACTS,
     "ycb_block": {
-        "upright":          {"grasp_m": 0.050, "mass_kg": 0.500,
-                             "delicate": False},
-        "lying_large_face": {"grasp_m": 0.100, "mass_kg": 0.500,
-                             "delicate": False},
-        "lying_small_face": {"grasp_m": 0.050, "mass_kg": 0.500,
-                             "delicate": False},
+        # resting on 0.100 x 0.050, the smallest face; vertical 0.130
+        "small_face": {"grasp_m": 0.050, "mass_kg": 0.500,
+                       "delicate": False},
+        # resting on 0.130 x 0.100, the largest face; vertical 0.050
+        "large_face": {"grasp_m": 0.100, "mass_kg": 0.500,
+                       "delicate": False},
     },
 }
 
-# The pose a conflict cell DECLARES, given the true one. The block's flip is
-# a capability flip, so a conflict always crosses the 0.080 Franka aperture:
-# an all-arms pose (upright or small face, 0.050) is declared as the UR-only
-# large face (0.100), and the large face is declared upright. Declaring an
-# upright block "small face down" would change nothing a model must ground
-# (both are all-arms), so that pairing is never used.
+# The resting face a conflict cell DECLARES, given the true one. The block's
+# flip is a capability flip, so a conflict always crosses the 0.080 Franka
+# aperture: the all-arms small_face (0.050) is declared as the UR-only
+# large_face (0.100), and large_face is declared small_face.
+#
+# With two faces this is a strict involution, which the three-face version
+# was not: the retired "edge" declared large_face, but large_face never
+# declared edge, because edge and small_face are both all-arms and swapping
+# one for the other would change nothing a model must ground.
 OTHER_POSE_BY_LABEL = {
     "ycb_mustard": OTHER_POSE,
     "ycb_block": {
-        "upright": "lying_large_face",
-        "lying_large_face": "upright",
-        "lying_small_face": "lying_large_face",
+        "small_face": "large_face",
+        "large_face": "small_face",
     },
 }
 
@@ -144,7 +197,24 @@ def transform(probe, condition):
             f"no intrinsic dimensions recorded for {label!r}. They come "
             f"from run_ycb_probe (or the authored cuboid) and must be "
             f"measured, not assumed.")
-    obj["dims_m"] = dict(DIMS_M[label])
+
+    # EVERY object, not only the flip object. An object left without
+    # dimensions is an object the dims condition cannot ask about, and with
+    # the opening withheld from all of them it is also the one object the
+    # model can safely ignore. That singles out the flip object without a
+    # word of the prompt saying so. Raising rather than skipping, because a
+    # new object added to the scene must not reintroduce the asymmetry
+    # silently.
+    for entry in state.get("objects", []):
+        if entry["name"] not in DIMS_M:
+            raise ValueError(
+                f"no intrinsic dimensions recorded for {entry['name']!r}. "
+                f"Every object in the scene needs a DIMS_M row, not just "
+                f"the flip object: in the dims condition the opening is "
+                f"withheld from all of them, so an object with no "
+                f"dimensions has nothing to derive an opening from and "
+                f"points at the object that has.")
+        entry["dims_m"] = dict(DIMS_M[entry["name"]])
 
     facts = POSE_FACTS_BY_LABEL[label]
 
@@ -167,9 +237,9 @@ def transform(probe, condition):
         obj.pop("grasp_m", None)
 
     # Direction from geometry, not from a pose name: permissive when the
-    # true pose is all-arms (the text under-states the arms) and restrictive
-    # when it is UR-only (the text over-states them). For the mustard this
-    # is exactly the old upright/lying split.
+    # true resting face is all-arms (the text under-states the arms) and
+    # restrictive when it is UR-only (the text over-states them). For the
+    # mustard pilot this is exactly the old upright/lying split.
     permissive = facts[true_pose]["grasp_m"] <= _FRANKA_APERTURE
 
     meta = {

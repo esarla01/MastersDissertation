@@ -1,0 +1,13 @@
+condition,model,resting_face,n_positions,n_proposals,franka_n,franka_share_pct,wilson_lo,wilson_hi
+congruent,gpt,small_face,0,0,0,NA,NA,NA
+congruent,gpt,edge,0,0,0,NA,NA,NA
+congruent,gpt,large_face,0,0,0,NA,NA,NA
+congruent,gemini,small_face,0,0,0,NA,NA,NA
+congruent,gemini,edge,0,0,0,NA,NA,NA
+congruent,gemini,large_face,0,0,0,NA,NA,NA
+dims,gpt,small_face,0,0,0,NA,NA,NA
+dims,gpt,edge,0,0,0,NA,NA,NA
+dims,gpt,large_face,0,0,0,NA,NA,NA
+dims,gemini,small_face,0,0,0,NA,NA,NA
+dims,gemini,edge,0,0,0,NA,NA,NA
+dims,gemini,large_face,0,0,0,NA,NA,NA

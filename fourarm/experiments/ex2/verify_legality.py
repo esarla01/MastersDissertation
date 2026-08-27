@@ -14,8 +14,38 @@ import json
 import sys
 
 APERTURE = {"franka": 0.080, "ur": 0.140}
-RUNGS = ("P0", "P1", "P2a", "P2", "P3a", "P3", "P4")
 MODELS = ("gpt", "qwen", "gemini")
+
+# The rungs are read OFF THE FILE, not hardcoded. This script is run over
+# whichever results file it is given, and those span two designs: the
+# P-rung attention ladder and the N-rung factor set. A fixed tuple printed
+# seven empty rows for a file from the other design and, worse, silently
+# omitted any rung the tuple did not name.
+RUNG_ORDER = ("P0", "P1", "P2a", "P2", "P3a", "P3", "P4",
+              "N0", "N-A", "N-C", "N-order", "N-D", "N-CD")
+
+
+def rungs_in(rows):
+    """Rungs present in the data, in declaration order, unknown ones last."""
+    seen = {r.get("rung") for r in rows if r.get("rung")}
+    known = [x for x in RUNG_ORDER if x in seen]
+    return known + sorted(seen - set(known))
+
+
+def over_aperture(row):
+    """Is this trial one where the TRUE opening needs a UR.
+
+    The informative cell. Under the Franka preference an object the Franka
+    can take makes the guidance-consistent choice legal whatever the model
+    believes, so only trials above the aperture cost anything.
+
+    Read from the geometry rather than from a pose name. The mustard had
+    two poses, "lying" and "upright"; the block has three and only one of
+    them is over the aperture, so a filter on true_pose == "lying" matched
+    no block row and printed an empty table.
+    """
+    tw = row.get("true_grasp_m")
+    return tw is not None and tw > APERTURE["franka"]
 
 
 def aperture(arm):
@@ -100,17 +130,18 @@ def main(paths):
     # Check C: rebuild the table from the geometry definition only.
     # ---------------------------------------------------------------
     print()
-    print("LEGAL ASSIGNMENTS, lying scenes, franka preference")
+    print("LEGAL ASSIGNMENTS, scenes over the Franka aperture, "
+          "franka preference")
     print("recomputed from gripper geometry, per-scene majority of 3 repeats")
     print("rung   " + "".join("%-22s" % m for m in MODELS))
-    for rung in RUNGS:
-        line = "%-7s" % rung
+    for rung in rungs_in(uniq):
+        line = "%-8s" % rung
         for model in MODELS:
             sub = [r for r in uniq
                    if r["model"] == model
                    and r["preference"] == "franka"
                    and r["rung"] == rung
-                   and r["true_pose"] == "lying"]
+                   and over_aperture(r)]
             by_scene = collections.defaultdict(list)
             for r in sub:
                 arm = r.get("arm")
@@ -131,11 +162,14 @@ def main(paths):
     # ---------------------------------------------------------------
     print()
     print("scenes and repeats per reported cell (expect 11 scenes x 3)")
+    print("(the expectation is the pilot's; a differently sized capture "
+          "set reports every cell as a fault and that is the flag, not a "
+          "bug)")
     for model in MODELS:
-        for rung in RUNGS:
+        for rung in rungs_in(uniq):
             sub = [r for r in uniq if r["model"] == model
                    and r["preference"] == "franka"
-                   and r["rung"] == rung and r["true_pose"] == "lying"]
+                   and r["rung"] == rung and over_aperture(r)]
             per = collections.Counter(
                 r["trial_id"].split("|", 1)[0] for r in sub)
             sizes = set(per.values())

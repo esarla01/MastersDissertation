@@ -102,9 +102,13 @@ TMP = tempfile.TemporaryDirectory()
 CAP = os.path.join(TMP.name, "cap")
 os.makedirs(CAP)
 rows = []
-for seq, prim, kind in (("p01_A", "ycb_mustard_lying", "pair"),
-                        ("p01_B", "ycb_mustard_upright", "pair"),
-                        ("n01_A", "ycb_mustard_lying", "null")):
+# The BLOCK, not the mustard. The mustard is the pilot object and has two
+# posture words, not faces, so rendering it now raises in
+# labels.require_face -- correctly, since the answer schema lists three
+# face names a bottle does not have.
+for seq, prim, kind in (("p01_A", "ycb_block_large", "pair"),
+                        ("p01_B", "ycb_block_upright", "pair"),
+                        ("n01_A", "ycb_block_large", "null")):
     st, pos = make_state(prim)
     imgs = {}
     for cam in R.VIEWS:
@@ -135,89 +139,93 @@ check("nulls get congruent ONLY",
       "a null with a falsified state is not measuring answer stability")
 check("the plan covers both views and every rung",
       {t["view"] for t in plan} == set(R.VIEWS)
-      and {t["rung"] for t in plan} == set(P.RUNGS))
-# Derived from the ladder rather than hardcoded: the count moved from 56 to
-# 84 when P2a and P3a were added, and a fixed number would report a correct
+      and {t["rung"] for t in plan} == set(R.RUNGS))
+# Derived from the design rather than hardcoded: the count moves whenever
+# a rung is added or removed, and a fixed number would report a correct
 # plan as broken.
 _pairs = sum(1 for s in scenes if s["kind"] == "pair")
 _nulls = sum(1 for s in scenes if s["kind"] == "null")
-_expected = (len(R.VIEWS) * len(P.RUNGS)
+_expected = (len(R.VIEWS) * len(R.RUNGS)
              * (_pairs * len(T.CONDITIONS) + _nulls))
 check("the trial count is what the design implies", len(plan) == _expected,
       "%d planned, %d implied by %d pairs, %d nulls, %d conditions, "
       "%d rungs, %d views"
       % (len(plan), _expected, _pairs, _nulls, len(T.CONDITIONS),
-         len(P.RUNGS), len(R.VIEWS)))
+         len(R.RUNGS), len(R.VIEWS)))
 
 # --- 3. legality is computed per POSE, not from the rendered state --------
 scene = {s["seq"]: s for s in scenes}["p01_B"]        # truly upright
-tid = R.flip_task_id(scene["state"], "ycb_mustard")
-up = R.legal_arms(scene, "ycb_mustard_upright", tid)
-ly = R.legal_arms(scene, "ycb_mustard_lying", tid)
-check("the two poses give different legal sets",
-      up != ly, f"upright {sorted(up)} vs lying {sorted(ly)}")
-check("upright admits a Franka and lying does not",
+tid = R.flip_task_id(scene["state"], "ycb_block")
+up = R.legal_arms(scene, "ycb_block_upright", tid)
+ly = R.legal_arms(scene, "ycb_block_large", tid)
+check("the two resting faces give different legal sets",
+      up != ly, f"small_face {sorted(up)} vs large_face {sorted(ly)}")
+check("the small face admits a Franka and the large face does not",
       any(a.startswith("franka") for a in up)
       and not any(a.startswith("franka") for a in ly),
-      "0.058 m is under the Franka limit, 0.096 m is over it")
+      "0.050 m is under the Franka limit, 0.100 m is over it")
 
-# --- 3c. task presentation order is a factor, not a silent default -------
-# In the floor test the model assigned whichever task was listed first and
-# then discovered, while justifying the second, that its own choice had
-# taken the only arm the second one could use. Reversing the order asks
-# whether that is premature commitment or an inability to relate two
-# assignments. Only the ORDER may change: if ids moved with it, the two
-# runs would not be comparable and the grader would key on the wrong task.
-_sc = {s["seq"]: s for s in scenes}["p01_B"]
-_msg_g, _meta_g = R.render(_sc, "congruent", "P2", "ex2_cam", "given")
-_msg_r, _meta_r = R.render(_sc, "congruent", "P2", "ex2_cam", "reversed")
+# --- 3d. the idle UR is the one that can actually reach the object -------
+# Every block capture was made with capture_ex2_scene's default
+# --idle "ur_w,franka_n", which is right for the west positions and wrong
+# for the east ones: there the object is reached by ur_e, so idle & reach
+# collapses to {franka_n} and large_face has no legal arm at all. The whole
+# east half carried no contrast. This is the fix, and it is checked against
+# the REAL validator rather than against the arm list.
+_e = {s["seq"]: s for s in scenes}
+_flip = lambda st: [o for o in st["objects"] if "block" in o["name"]][0]
 
+for _seq, _s in _e.items():
+    _obj = _flip(_s["state"])
+    _idle = {a["name"] for a in _s["state"]["arms"]
+             if a["state"] == "IDLE" and not a["disabled"]}
+    _urs = {a["name"] for a in _s["state"]["arms"]
+            if a["name"].startswith("ur")}
+    _reach = set(_obj.get("reach_ok_arms") or [])
+    check("%s: exactly one UR is idle" % _seq, len(_idle & _urs) == 1,
+          sorted(_idle & _urs))
+    check("%s: the idle UR is one that reaches the object" % _seq,
+          (_idle & _urs) <= _reach,
+          "idle UR %s, reach %s" % (sorted(_idle & _urs), sorted(_reach)))
+    check("%s: franka_n stays idle" % _seq, "franka_n" in _idle)
 
-def _task_ids(messages):
-    """Task ids in the order the model actually sees them.
+check("the idle UR is recorded on the scene",
+      all(s["idle_ur"] in ("ur_w", "ur_e") for s in scenes),
+      "a row must be traceable to the idle set it was asked under")
 
-    Read out of the rendered prompt rather than off the state dict, because
-    what matters is the order presented, and a reorder that never reached
-    the text would be a silent no-op that still recorded 'reversed'.
-    """
-    content = messages[1]["content"]
-    blocks = content if isinstance(content, list) else [content]
-    for block in blocks:
-        text = block.get("text") if isinstance(block, dict) else None
-        if not text or "{" not in text:
-            continue
-        body, _ = json.JSONDecoder().raw_decode(text[text.index("{"):])
-        if "tasks" in body:
-            return [t["id"] for t in body["tasks"]]
-    return None
+# The raw captures are still readable unchanged, which is what makes this a
+# presentation choice rather than an edit to the record.
+_raw = R.load_scenes(CAP, present_ur=False)
+check("present_ur=False reads the captures as written",
+      all(s["idle_ur"] is None for s in _raw))
+check("the normalisation changes only arm states",
+      all(R.present_reachable_ur(r["state"])[0].get("objects")
+          == r["state"].get("objects") for r in _raw),
+      "it must not touch an object, a task or a basket")
 
-
-_ids_g, _ids_r = _task_ids(_msg_g), _task_ids(_msg_r)
-check("the rendered state carries its tasks in the given order",
-      _ids_g is not None and len(_ids_g) == 2, str(_ids_g))
-check("reversing changes the ORDER the tasks are presented in",
-      _ids_r == list(reversed(_ids_g)), "%s then %s" % (_ids_g, _ids_r))
-check("reversing changes no task id, only their order",
-      sorted(_ids_r) == sorted(_ids_g), "%s vs %s" % (_ids_g, _ids_r))
-check("the order is recorded in meta so a row can be traced",
-      _meta_g["task_order"] == "given"
-      and _meta_r["task_order"] == "reversed")
-check("the flip task is found identically whichever order was shown",
-      R.flip_task_id(_sc["state"], "ycb_mustard")
-      == R.flip_task_id(_sc["state"], "ycb_mustard"))
-
-_t = {"seq": "p01_B", "view": "ex2_cam", "condition": "congruent",
-      "rung": "P2"}
-check("trial ids of the two orders do not collide",
-      R.trial_id(_t, "m", "given") != R.trial_id(_t, "m", "reversed"),
-      "a reversed run resuming onto a given file would skip everything "
-      "and look like success")
+# It must FAIL rather than guess when no single UR is nearer.
+_nostate = {"objects": [{"name": "ycb_block_large", "reach_ok_arms": []}],
+            "arms": [], "tasks": []}
 try:
-    R.reorder_tasks({"tasks": []}, "shuffled")
-    check("an unknown order raises", False, "no exception")
-except ValueError as e:
-    check("an unknown order raises rather than defaulting to given",
-          "shuffled" in str(e), str(e)[:60])
+    R.present_reachable_ur(_nostate)
+    check("an ambiguous idle set raises", False, "no exception")
+except ValueError as exc:
+    check("an ambiguous idle set raises rather than defaulting",
+          "Exactly one must" in str(exc), str(exc)[:60])
+
+# --- 3c. REMOVED 2026-08-27 ----------------------------------------------
+# This section checked a task-presentation-order factor: R.reorder_tasks,
+# a "task_order" key in meta, a fifth argument to R.render and a third to
+# R.trial_id. None of those exist in run.py and none ever did in this
+# tree, so the section raised TypeError on import and the whole file
+# reported nothing. It was already failing before the prompt module was
+# replaced.
+#
+# It is deleted rather than skipped: a harness that skips is a harness
+# that passes while measuring nothing. If the order factor is wanted, it
+# has to be built in run.py first and pinned here afterwards. Note that
+# a trial now queues ONE task, so a presentation order over two tasks no
+# longer describes anything the model sees.
 
 # --- 3b. legal_declared under CONGRUENT is legal_true ---------------------
 # The runner asked "is there a declared pose?" when it had to ask "does the
@@ -230,15 +238,14 @@ _seen = {}
 
 
 def _spy(messages, timeout=30.0, alias=None):
-    return json.dumps({"assignments": [
-        {"task_id": 0, "arm": "ur_w", "basket": None,
-         "assignable": ["ur_w"],
-         "why": {"grasp": "0.058 m", "payload": "ok", "delicate": "no"}}]})
+    """A reply in the CURRENT schema: one task, one arm, typed fields."""
+    return json.dumps({"task_id": 0, "arm": "ur_w", "basket": "box_1",
+                       "opening_needed_m": 0.100})
 
 
 _rows_path = os.path.join(TMP.name, "congruent.jsonl")
 R.run(CAP, _rows_path, model="fake", model_fn=_spy,
-      conditions=("congruent",), rungs=("P2",), views=("ex2_cam",))
+      conditions=("congruent",), rungs=("N0",), views=("ex2_cam",))
 _cong = [json.loads(x) for x in open(_rows_path) if x.strip()]
 check("a congruent trial declares the pose it truly has",
       all(r["declared_pose"] == r["true_pose"] for r in _cong),
@@ -252,16 +259,22 @@ check("congruent legal_declared equals legal_true",
 check("an upright congruent trial still admits a Franka",
       all(any(a.startswith("franka") for a in r["legal_true"])
           for r in _cong if r["true_pose"] == "upright"),
-      "0.058 m is under the limit whoever is asked")
+      "0.050 m is under the limit whoever is asked")
 
 # The declared prim is derived from the DECLARED pose, not the true one.
 # Both give the same answer in a conflict cell, but only by coincidence.
 check("pose_prim resolves a label and pose to a registry entry",
-      L.pose_prim("ycb_mustard", "lying") == "ycb_mustard_lying"
-      and L.pose_prim("ycb_mustard", "upright") == "ycb_mustard_upright")
+      L.pose_prim("ycb_block", "small_face") == "ycb_block_upright"
+      and L.pose_prim("ycb_block", "large_face") == "ycb_block_large",
+      "read the geometry, not the prim names: ycb_block_upright rests on "
+      "the SMALLEST face, and the names predate the geometric vocabulary")
+check("a face the design no longer uses resolves to nothing",
+      L.pose_prim("ycb_block", "edge") is None,
+      "the middle face was withdrawn on 2026-08-27; a stale caller must "
+      "get None rather than a prim that is still on disk")
 check("pose_prim returns None for a pose that has no entry",
-      L.pose_prim("ycb_mustard", "tilted") is None
-      and L.pose_prim("ycb_large_clamp", "lying") is None,
+      L.pose_prim("ycb_block", "tilted") is None
+      and L.pose_prim("ycb_large_clamp", "large_face") is None,
       "a fabricated entry would fabricate the comparison")
 
 # --- one pair at a time, and its null with it -----------------------------
@@ -287,27 +300,32 @@ check("a dry run writes nothing", not os.path.exists(out) and n == 4)
 
 
 def answer(messages, timeout=30.0, alias=None):
-    """A BATCH reply: EX2 asks for the whole round, not one assignment."""
-    return json.dumps({"assignments": [
-        {"task_id": 0, "arm": "franka_n", "basket": "basket_food",
-         "why": {"grasp": "0.058 m", "payload": "ok", "delicate": "no"}},
-        {"task_id": 1, "arm": "ur_w", "basket": "basket_tools",
-         "why": {"grasp": "0.122 m", "payload": "ok", "delicate": "no"}},
-    ]})
+    """A single-assignment reply. The batch round is gone: the prompt asks
+    for ONE task and ONE arm, so a round reply would not be in schema."""
+    return json.dumps({"task_id": 0, "resting_face": "large_face",
+                       "opening_needed_m": 0.100, "arm": "ur_w",
+                       "basket": "box_1"})
 
 
 R.run(CAP, out, model="fake", limit=6, model_fn=answer)
 got = [json.loads(l) for l in open(out)]
 check("rows are written as they are produced", len(got) == 6, len(got))
 check("each row carries its trial identity and every legal set",
-      all({"trial_id", "legal_true", "legal_declared", "partner_legal",
-           "partner_task", "outcome"} <= set(r) for r in got))
-check("rows are graded as ROUNDS, not single assignments",
-      all(r["outcome"] in G.ROUND_OUTCOMES for r in got),
+      all({"trial_id", "legal_true", "legal_declared", "flip_task",
+           "preference", "outcome"} <= set(r) for r in got),
+      sorted(set(got[0]) & {"trial_id", "legal_true", "legal_declared",
+                            "flip_task", "preference", "outcome"}))
+check("rows are graded as SINGLE assignments, not rounds",
+      all(r["outcome"] in G.OUTCOMES for r in got),
       {r["outcome"] for r in got})
-check("the partner task is found and differs from the flip task",
-      all(r["partner_task"] != 0 for r in got),
-      "a round with one task missing is a schema failure, not a belief")
+check("only the flip task is queued",
+      all(r["flip_task"] is not None for r in got),
+      "the prompt asks for ONE task, so a scene with two queued would let "
+      "the model answer about the partner and measure nothing")
+check("the typed fields reach the row",
+      all(r["opening_needed_m"] == 0.100 and r["resting_face"] == "large_face"
+          for r in got),
+      "no extractor stands between the reply and the measurement")
 
 # --- 2. resume ------------------------------------------------------------
 n2 = R.run(CAP, out, model="fake", limit=6, model_fn=answer)

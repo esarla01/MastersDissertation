@@ -1,9 +1,9 @@
-"""EX2 probe: what the model says it SEES, alongside the pose it names.
+"""EX2 probe: what the model says it SEES, alongside the face it names.
 
 mancheck.py asks for one word and nothing else, which keeps it a clean
-perception number. This asks the model to describe the bottle first and
-then name the pose, which is a different question: not only whether it can
-tell, but what it reports looking at.
+perception number. This asks the model to describe the block first and
+then name the resting face, which is a different question: not only
+whether it can tell, but what it reports looking at.
 
 The two are kept apart on purpose. Reasoning aloud can change the answer,
 so a description-first accuracy is not comparable to the terse one, and
@@ -13,17 +13,18 @@ has results.
 WHAT IT IS FOR. Two things the terse check cannot show:
 
   - Whether the model is reading the object or guessing from context. A
-    reply describing the cap and label is looking; one saying bottles
-    usually stand up is not, and that would explain a lopsided score.
+    reply describing the block's proportions on the table is looking; one
+    reciting what blocks usually do is not, and that would explain a
+    lopsided score.
   - Whether the failures are all one kind. Describing the wrong object is
-    occlusion; describing the bottle correctly and still naming the wrong
-    pose is a perception limit.
+    occlusion; describing the block correctly and still naming the wrong
+    face is a perception limit.
 
 REPLY FORMAT. Two lines, because free prose cannot be tallied and a JSON
 schema invites the model to fill fields rather than look:
 
-    SEES: <one sentence about the bottle>
-    POSE: upright
+    SEES: <one sentence about the block>
+    FACE: large_face
 
 Anything else is recorded as unparseable rather than wrong, since failing
 to follow a format is not failing to see.
@@ -53,21 +54,32 @@ for _p in (_ROOT, os.path.join(_ROOT, "ycb")):
 
 from core.decision.vlm_allocator import openai_chat              # noqa: E402
 from experiments.ex2 import prompts as P                          # noqa: E402
-from experiments.ex2.labels import describe                      # noqa: E402
+from experiments.ex2.labels import describe, require_face        # noqa: E402
 from experiments.ex2.run import VIEWS, load_scenes               # noqa: E402
 
-ANSWERS = ("upright", "lying")
+# The face words, from the prompt module, so the two probes cannot drift.
+ANSWERS = P.RESTING_FACES
+
+
+def _face(row):
+    """The true resting face of a row.
+
+    Rows written before the three-way probe carry only "true_pose", which
+    for a block file holds the same word; require_face guards against a
+    mustard row reaching a table that scores against face names.
+    """
+    return row.get("true_face") or require_face(row["true_pose"],
+                                                P.RESTING_FACES)
 
 # Defaults chosen so the ordinary run needs no flags.
 #
-#   pairs only   every null is a LYING bottle, so the full set is 33 lying
-#                against 11 upright and any overall accuracy is weighted
-#                three to one toward the easier pose. Each pair has an _A
-#                lying and a _B upright member, so pairs alone give 11 and
-#                11, balanced by construction.
-#   ex2_cam      the overhead camera scored 0 of 11 upright in the terse
+#   pairs only   the null scenes do not cover the three faces evenly, so
+#                including them weights any overall accuracy toward
+#                whichever face they happen to carry. The pair members
+#                cover the faces by construction.
+#   ex2_cam      the overhead camera scored at the floor in the terse
 #                check: a top-down projection discards the vertical extent
-#                that separates the poses, so it carries no cue to probe.
+#                that separates the faces, so it carries no cue to probe.
 #   both models  the comparison is the point, and one is not a baseline
 #                for the other.
 DEFAULT_KIND = "pair"
@@ -76,17 +88,19 @@ DEFAULT_MODELS = ("qwen", "gpt")
 DEFAULT_FORMATS = ("terse", "describe")
 DEFAULT_REPEATS = 1
 
-# A two-way forced choice, so an uninformed guesser scores this. Cells
-# BELOW it are not merely uninformative: the view is inverting the cue.
-CHANCE = 50.0
-DEFAULT_REPEATS = 1
-DEFAULT_REPEATS = 1
+# DERIVED from the vocabulary, never typed, so it follows RESTING_FACES
+# rather than needing to be remembered. Two-way since 2026-08-27.
+CHANCE = 100.0 / len(ANSWERS)
 
-PROMPT = ("Look at the block on the table. Reply with exactly "
-          "two lines and nothing else:\n"
+# The retired middle face is not named here either, for the reason given in
+# prompts.manipulation_check: naming it to exclude it is a different
+# question from not asking about it.
+PROMPT = ("The block on the table is resting on one of two faces. They "
+          "measure 0.130 x 0.100 m (the larger) and 0.100 x 0.050 m (the "
+          "smaller). Reply with exactly two lines and nothing else:\n"
           "SEES: <one sentence describing the block and how you can tell "
-          "which way it is resting>\n"
-          "POSE: <upright or lying>")
+          "which face it is resting on>\n"
+          "FACE: <large_face or small_face>")
 
 
 def messages_for(image_b64, fmt):
@@ -94,7 +108,7 @@ def messages_for(image_b64, fmt):
 
     terse     one word, nothing else. The REAL manipulation_check from
               prompts.py, so the two probes cannot drift apart.
-    describe  a sentence about the bottle first, then the pose.
+    describe  a sentence about the block first, then the face.
 
     These are not one probe refined. Generating a description first can
     change the answer, so each needs its own number and neither is a
@@ -118,7 +132,7 @@ def messages_for(image_b64, fmt):
 
 
 def parse(reply, fmt="describe"):
-    """(sees, pose) from a reply. Either may be None.
+    """(sees, face) from a reply. Either may be None.
 
     A terse reply is one bare word and has no description, so it is matched
     whole. Anything longer is a compliance failure, not a perception one,
@@ -127,26 +141,26 @@ def parse(reply, fmt="describe"):
     if fmt == "terse":
         word = (reply or "").strip().strip(".,!'\"").lower()
         return None, (word if word in ANSWERS else None)
-    sees, pose = None, None
+    sees, face = None, None
     for line in (reply or "").splitlines():
         line = line.strip()
         low = line.lower()
         if low.startswith("sees:"):
             sees = line[5:].strip() or None
-        elif low.startswith("pose:"):
+        elif low.startswith("face:"):
             word = low[5:].strip().strip(".,!'\"")
-            pose = word if word in ANSWERS else None
-    return sees, pose
+            face = word if word in ANSWERS else None
+    return sees, face
 
 
 def probes(scenes, views, seqs=None, kind=None):
     """One probe per scene per view, in a stable order.
 
     kind='pair' drops the nulls, and that is what balances the sample.
-    Every null is a LYING bottle, so the full set is 33 lying against 11
-    upright and any overall accuracy is weighted three to one toward one
-    pose. Each pair contributes an _A lying and a _B upright member, so
-    restricting to pairs gives 11 and 11 with no subsetting.
+    The null scenes do not cover the three resting faces evenly, so any
+    overall accuracy over the full set is weighted toward whichever face
+    they happen to carry. The pair members cover the faces by
+    construction, so restricting to pairs balances with no subsetting.
     """
     out = []
     for scene in scenes:
@@ -160,6 +174,8 @@ def probes(scenes, views, seqs=None, kind=None):
                 out.append({"seq": scene["seq"], "view": view,
                             "kind": scene["kind"],
                             "true_pose": truth["true_pose"],
+                            "true_face": require_face(truth["true_pose"],
+                                                      P.RESTING_FACES),
                             "image": scene["images"][view]})
     return out
 
@@ -179,24 +195,29 @@ def ask(row, model, fmt, model_fn=openai_chat, timeout=60.0):
             if attempt == 2:
                 break
             time.sleep(2.0)
-    sees, pose = parse(reply, fmt)
+    sees, face = parse(reply, fmt)
     out = dict(row)
-    out.update({"format": fmt, "reply": reply, "sees": sees, "pose": pose,
-                "correct": (pose == row["true_pose"]) if pose else None,
+    # One vocabulary end to end. The field stays named "pose" so existing
+    # readers of this file keep working.
+    true_face = row.get("true_face") or require_face(row["true_pose"],
+                                                     P.RESTING_FACES)
+    out.update({"format": fmt, "reply": reply, "sees": sees, "pose": face,
+                "true_face": true_face,
+                "correct": (face == true_face) if face else None,
                 "error": error})
     return out
 
 
 def summarise(rows):
-    """Counts per view and per view crossed with true pose.
+    """Counts per view and per view crossed with the true face.
 
-    Split by pose because a model answering one word for everything scores
+    Split by face because a model answering one word for everything scores
     near half overall, which reads as partial competence, and only the
     split shows it at 100 and 0.
     """
     tally = {}
     for r in rows:
-        for key in ((r["view"], "all"), (r["view"], r["true_pose"])):
+        for key in ((r["view"], "all"), (r["view"], _face(r))):
             slot = tally.setdefault(key, {"n": 0, "correct": 0,
                                           "unparseable": 0, "error": 0,
                                           "described": 0})
@@ -280,7 +301,7 @@ def cell_stats(rows):
         by_run.setdefault(r.get("repeat", 0), []).append(r)
 
     scored = [(seq, majority(a)) for seq, a in by_image.items()]
-    truth = {r["seq"]: r["true_pose"] for r in rows}
+    truth = {r["seq"]: _face(r) for r in rows}
     usable = [(s, m) for s, m in scored if m is not None]
     k = sum(1 for s, m in usable if m == truth[s])
     n = len(usable)
@@ -337,7 +358,7 @@ def cell_stats(rows):
         by_run.setdefault(r.get("repeat", 0), []).append(r)
         if r["pose"] is None:
             unusable += 1
-    truth = {r["seq"]: r["true_pose"] for r in rows}
+    truth = {r["seq"]: _face(r) for r in rows}
     verdicts = [majority(v, truth[k]) for k, v in by_image.items()]
     verdicts = [v for v in verdicts if v is not None]
     n, ok = len(verdicts), sum(1 for v in verdicts if v)
@@ -358,7 +379,7 @@ def wilson(correct, n, z=1.96):
     The normal approximation puts bounds outside 0 to 100 when a cell sits
     at or near either end, and several cells here are exactly 0 or 100.
     Wilson stays inside the range and behaves at small n, which is what
-    eleven images per pose is.
+    eleven images per face is.
     """
     if n == 0:
         return (float("nan"), float("nan"))
@@ -401,7 +422,7 @@ def cell_stats(rows):
             unusable += 1
             continue
         images += 1
-        if verdict == votes[0]["true_pose"]:
+        if verdict == _face(votes[0]):
             correct += 1
 
     spread = []
@@ -415,10 +436,10 @@ def cell_stats(rows):
 
 
 def table(rows):
-    """One line per cell per pose, with an interval and the run spread.
+    """One line per cell per face, with an interval and the run spread.
 
     TWO uncertainties, kept apart because they answer different questions.
-    The interval covers sampling across IMAGES: with eleven per pose it is
+    The interval covers sampling across IMAGES: with eleven per face it is
     wide, and no number of repeats narrows it. The spread covers run to run
     variability of the MODEL on the same pictures, which is the thing that
     moved between two runs of the same cell and which only repeats can
@@ -427,15 +448,15 @@ def table(rows):
     keys = sorted({(r["model"], r.get("format", "describe"), r["view"])
                    for r in rows})
     head = ("%-6s %-9s %-10s %-8s %-7s %-8s %-15s %-9s %s"
-            % ("model", "format", "view", "pose", "images", "acc",
+            % ("model", "format", "view", "face", "images", "acc",
                "95% CI", "unusable", "runs"))
     out = [head, "-" * len(head)]
     for model, fmt, view in keys:
         base = [r for r in rows if r["model"] == model
                 and r.get("format", "describe") == fmt and r["view"] == view]
-        for pose in ("lying", "upright", "ALL"):
+        for pose in list(P.RESTING_FACES) + ["ALL"]:
             sub = base if pose == "ALL" else [r for r in base
-                                              if r["true_pose"] == pose]
+                                              if _face(r) == pose]
             if not sub:
                 continue
             st = cell_stats(sub)
@@ -457,13 +478,18 @@ def run(capture_dir, out_path=None, models=DEFAULT_MODELS,
         formats=DEFAULT_FORMATS, views=DEFAULT_VIEWS, seqs=None,
         kind=DEFAULT_KIND, repeats=DEFAULT_REPEATS, limit=None,
         dry_run=False, model_fn=openai_chat, timeout=60.0):
-    plan = probes(load_scenes(capture_dir), views, seqs, kind)
+    # present_ur=False: this probe shows a picture and asks one question.
+    # It never assigns an arm, so the idle set means nothing to it, and
+    # normalising one would be work that can fail on a scene built for
+    # perception alone.
+    plan = probes(load_scenes(capture_dir, present_ur=False),
+                  views, seqs, kind)
     if limit:
         plan = plan[:limit]
 
     if dry_run:
         for r in plan:
-            print("%-8s %-10s %-8s %s" % (r["seq"], r["view"], r["true_pose"],
+            print("%-8s %-10s %-11s %s" % (r["seq"], r["view"], _face(r),
                                           os.path.basename(r["image"])))
         print("--- %d scenes x %d model(s) x %d format(s) x %d repeat(s) "
               "= %d calls, none made"
@@ -503,7 +529,7 @@ def run(capture_dir, out_path=None, models=DEFAULT_MODELS,
                             handle.flush()
                         print("%-5s %-9s r%d %-8s true=%-8s said=%-8s %s"
                               % (model, fmt, rep, out["seq"],
-                                 out["true_pose"], out["pose"] or "?",
+                                 _face(out), out["pose"] or "?",
                                  (out["sees"] or "")[:40]))
     finally:
         if handle:

@@ -1,0 +1,10 @@
+role,path,rows,sha256,prompt_version,model_string,run_date
+captures,out/ex2_capture_block/consults.jsonl,102,b1579d5d8d1fcb53b09c60f285a1f1a52489908badd6f504b5b664fbdba42dba,2026-08-27b,,2026-08-27
+congruent,runs/ex2_q1_congruent_N0.jsonl,0,MISSING,,,2026-08-27
+dims,runs/ex2_q1_dims_N0.jsonl,0,MISSING,,,2026-08-27
+cue_gpt_r1,runs/ex2_q1_cue2way_gpt_r1.jsonl,22,b10261b7efb53edf824fb54a417030c284c818f52cf69197bd4ebff881d0a848,2026-08-27b,gpt,2026-08-27
+cue_gpt_r2,runs/ex2_q1_cue2way_gpt_r2.jsonl,20,9641da90620ddb89737bd0f7189ee0f59d858b0a6f47d196412fb806b0ddf4e8,2026-08-27b,gpt,2026-08-27
+cue_gpt_r3,runs/ex2_q1_cue2way_gpt_r3.jsonl,20,ac9b89a9c428c06314334debbbb250fa628bbfa6673b572b9e075712d6b327d9,2026-08-27b,gpt,2026-08-27
+cue_gemini_r1,runs/ex2_q1_cue2way_gemini_r1.jsonl,20,27212a296cbf46ae7bffeed29f56fc13bb1856ac1526f63d4194bca81f95070c,2026-08-27b,gemini,2026-08-27
+cue_gemini_r2,runs/ex2_q1_cue2way_gemini_r2.jsonl,20,27212a296cbf46ae7bffeed29f56fc13bb1856ac1526f63d4194bca81f95070c,2026-08-27b,gemini,2026-08-27
+cue_gemini_r3,runs/ex2_q1_cue2way_gemini_r3.jsonl,20,27212a296cbf46ae7bffeed29f56fc13bb1856ac1526f63d4194bca81f95070c,2026-08-27b,gemini,2026-08-27

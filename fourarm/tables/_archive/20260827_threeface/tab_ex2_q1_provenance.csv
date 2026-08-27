@@ -1,0 +1,4 @@
+role,path,rows,sha256,prompt_version,model_string,run_date
+captures,out/ex2_capture_block/consults.jsonl,90,a680490b81f101de651cb699aecd9f2673c5bea5f6e01fbdb3d3d43bbd33dd22,2026-08-26b,,2026-08-27
+congruent,runs/ex2_q1_congruent_N0.jsonl,0,MISSING,,,2026-08-27
+dims,runs/ex2_q1_dims_N0.jsonl,0,MISSING,,,2026-08-27

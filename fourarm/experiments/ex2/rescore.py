@@ -29,6 +29,7 @@ for _p in (_ROOT, os.path.join(_ROOT, "ycb")):
         sys.path.insert(0, _p)
 
 from experiments.ex2 import grade as G                           # noqa: E402
+from experiments.ex2 import labels as L                           # noqa: E402
 from experiments.ex2 import solo as SOLO                          # noqa: E402
 from experiments.ex2.run import load_scenes                      # noqa: E402
 
@@ -57,22 +58,42 @@ def rescore(run_path, capture_dir):
         r = seen[tid]
         scene = scenes.get(r.get("seq"))
         limits = G.arm_limits(scene["state"]) if scene else {}
-        # Recompute the stated width from the raw prose, do not trust the
-        # value on disk. believed_width_m was written at run time by
-        # whatever extractor existed then, and the extractor has changed:
-        # it used to take the first number in why.grasp, which is an
-        # extent the model REJECTED when the reply enumerates before
-        # concluding. Rows written before that fix carry 0.191 where the
-        # model concluded 0.096, and every downstream verdict inherits it.
-        _rw = G.believed_width({"why": r.get("why")})
+        # Recompute the stated width, do not trust the value on disk.
+        # believed_width_m was written at run time by whatever extractor
+        # existed then, and the extractor has changed: it used to take the
+        # first number in why.grasp, which is an extent the model REJECTED
+        # when the reply enumerates before concluding. Rows written before
+        # that fix carry 0.191 where the model concluded 0.096, and every
+        # downstream verdict inherits it.
+        #
+        # Both fields are passed. A row from the current schema carries the
+        # typed "opening_needed_m" and is read straight off it; a row from
+        # a pre-2026-08-26 file carries only prose and falls back to the
+        # extractor. Passing the why block alone would have thrown away the
+        # typed number on every new row and re-mined prose that is not
+        # there.
+        _rw = G.believed_width({"opening_needed_m": r.get("opening_needed_m"),
+                                "why": r.get("why")})
         if _rw is not None:
             r["believed_width_m"] = _rw
         r["width_belief"] = G.classify_width(r.get("believed_width_m"), r)
         r["self_contradicted"] = G.self_contradicted(
             r.get("believed_width_m"), r.get("arm"), limits)
         r["reasoning"] = G.classify_reasoning(r.get("why"))
+        r["resting_face"] = r.get("resting_face")
         r["infeasible"] = SOLO.infeasible(r)
         rows.append(r)
+
+    # A block file written before 2026-08-27 names its resting faces
+    # "upright", "lying_large_face" and "lying_small_face". Translate those
+    # so the per-face tables group, and SAY SO rather than doing it
+    # silently. A mustard file is left alone and reports 0: its "upright"
+    # means the bottle standing, and rewriting it would be a lie about
+    # which object was run.
+    moved = L.modernise_poses(rows)
+    if moved:
+        print("[rescore] translated %d pre-2026-08-27 block rows to the "
+              "resting-face vocabulary" % moved)
     return rows
 
 
@@ -114,6 +135,12 @@ def report(rows):
         reasoning = {}
         for r in sub:
             reasoning[r["reasoning"]] = reasoning.get(r["reasoning"], 0) + 1
+        # Only N-D and N-CD ask for the face, so this is empty everywhere
+        # else BY DESIGN and an empty column is not a failure to report.
+        faces = {}
+        for r in sub:
+            if r.get("resting_face"):
+                faces[r["resting_face"]] = faces.get(r["resting_face"], 0) + 1
         # Unambiguous regardless of which source was followed: the named
         # arm cannot span the object's TRUE width.
         named = [r for r in sub if r.get("arm")]
@@ -132,6 +159,9 @@ def report(rows):
         print("  reasoning: %s"
               % "  ".join("%s=%d" % (k, reasoning[k])
                           for k in sorted(reasoning, key=str)))
+        if faces:
+            print("  resting_face reported: %s"
+                  % "  ".join("%s=%d" % (k, faces[k]) for k in sorted(faces)))
         print()
 
 

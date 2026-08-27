@@ -5,9 +5,9 @@ and is harnessed, so this file imports it rather than writing it again:
 
     transforms.transform    builds the congruent, conflict and dims states
     run.legal_arms          asks the REAL validator which arms are legal
-    run.flip_task_id        finds the mustard task in a captured state
-    run.partner_task_id     finds the clamp task
-    grade.grade_round       scores the reply
+    run.flip_task_id        finds the flip object's task in a captured state
+    run.queue_flip_only     drops the partner task, via run.render
+    grade.grade              scores the reply
     prompts.build_ex2_prompt  renders the prompt
 
 If any of those change, this file changes with them. A second copy of the
@@ -23,8 +23,9 @@ times, changing only what the text claims about the bottle:
     conflict    text describes the OTHER pose, completely and
                 consistently. Only the picture reveals the disagreement,
                 so following one source or the other is now visible.
-    dims        pose and graspable width withheld. The object's own
-                dimensions remain, so the pose has to come from the image.
+    dims        resting face and opening withheld. The object's own
+                dimensions remain, so the face has to come from the image
+                and the opening has to be derived from it.
 
 DEFAULTS, so the ordinary run needs no flags:
 
@@ -33,9 +34,10 @@ DEFAULTS, so the ordinary run needs no flags:
     ex2_cam     the overhead camera scored below chance on pose in all
                 four model-by-format cells, so a conflict result there
                 could not be interpreted.
-    P2          one rung. It states the pose-affects-width rule outright,
-                which is the fair test: a model that fails when the rule
-                is spelled out will not be rescued by weaker wording.
+    N0          one rung. The base prompt with no factor block, which is
+                where Q1 and Q2 are read: what the model does when nothing
+                points at the image, states the relation or asks for a
+                report.
     both models the comparison is the point; neither is a baseline.
 
 Usage:
@@ -60,13 +62,12 @@ from core.decision.vlm_allocator import openai_chat              # noqa: E402
 from experiments.ex2 import grade as G                           # noqa: E402
 from experiments.ex2.prompts import EX2_PROMPT_VERSION           # noqa: E402
 from experiments.ex2.run import (flip_task_id, legal_arms,       # noqa: E402
-                                 load_scenes, partner_task_id,
-                                 render, select_scenes)
+                                 load_scenes, render, select_scenes)
 
 CONDITIONS = ("congruent", "conflict", "dims")
 DEFAULT_MODELS = ("qwen", "gpt")
 VIEW = "ex2_cam"
-RUNG = "P2"
+RUNG = "N0"
 
 
 def scenes_for(capture_dir, kind="pair"):
@@ -95,9 +96,7 @@ def one_trial(scene, condition, model, model_fn=openai_chat, timeout=90.0):
             time.sleep(2.0)
 
     task_id = flip_task_id(scene["state"], meta["flip_prim"])
-    partner_id = partner_task_id(scene["state"], meta["flip_prim"])
     legal_true = legal_arms(scene, meta["flip_prim"], task_id)
-    partner_legal = legal_arms(scene, meta["flip_prim"], partner_id)
 
     # The declared legal set is the same question asked of the pose the
     # TEXT claims. Under congruent and dims the text claims nothing
@@ -111,17 +110,20 @@ def one_trial(scene, condition, model, model_fn=openai_chat, timeout=90.0):
         legal_decl = legal_arms(scene, pose_prim(meta["flip_label"],
                                                  declared), task_id)
 
-    row = G.grade_round(text, meta, task_id, partner_id,
-                        legal_true, legal_decl, partner_legal)
+    # One task, one arm: the prompt asks for a single assignment, so the
+    # round grader would file every reply as an incomplete round.
+    row = G.grade(text, meta, legal_true, legal_decl,
+                  limits=G.arm_limits(scene["state"]))
     row.update({"seq": scene["seq"], "condition": condition, "model": model,
                 "view": VIEW, "rung": RUNG, "error": error,
                 "ex2_prompt_version": EX2_PROMPT_VERSION,
                 "true_pose": meta["true_pose"],
                 "declared_pose": meta["declared_pose"],
+                "true_grasp_m": meta["true_grasp_m"],
+                "declared_grasp_m": meta.get("declared_grasp_m"),
+                "flip_task": task_id,
                 "legal_true": sorted(legal_true),
-                "legal_declared": sorted(legal_decl),
-                "partner_task": partner_id,
-                "partner_legal": sorted(partner_legal)})
+                "legal_declared": sorted(legal_decl)})
     return row
 
 

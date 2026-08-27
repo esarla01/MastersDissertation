@@ -17,9 +17,10 @@ What is pinned, and the failure each one guards:
   2. The split view separates what the arm column cannot. A UR is legal
      under both poses, so an "uninformative" verdict is a fact about the
      arm rather than the trial. Crossed with the stated width, a UR choice
-     on a lying trial is either the model overriding the preference on the
-     strength of the picture (0.096) or believing the text and declining
-     the Franka anyway (0.058). Pooling them loses the finding.
+     on a trial whose true opening is over the Franka aperture is either
+     the model overriding the preference on the strength of the picture
+     (0.100) or believing the text and declining the Franka anyway
+     (0.050). Pooling them loses the finding.
   3. The reading INVERTS between poses, because the text claims the
      opposite pose in each. A view that applied one legend to both would
      mislabel half the data.
@@ -54,12 +55,25 @@ def check(label, ok, detail=""):
         fails.append(label)
 
 
-def row(belief, arm, pose="lying", **kw):
-    r = {"model": "m", "preference": "franka", "rung": "P3",
-         "condition": "conflict", "true_pose": pose, "arm": arm,
+# view_split and view_odd now read the candidate openings OFF THE ROW
+# (true_grasp_m / declared_grasp_m) instead of a module constant, and
+# view_split bands on the geometry rather than on a pose name. So the
+# fixture has to carry both numbers, and "over"/"under" name which side of
+# the 0.080 Franka aperture the TRUE opening sits.
+_OVER = {"true_pose": "large_face", "true_grasp_m": 0.100,
+         "declared_pose": "small_face", "declared_grasp_m": 0.050}
+_UNDER = {"true_pose": "small_face", "true_grasp_m": 0.050,
+          "declared_pose": "large_face", "declared_grasp_m": 0.100}
+
+
+def row(belief, arm, band="over", **kw):
+    r = {"model": "m", "preference": "franka", "rung": "N-D",
+         "condition": "conflict", "arm": arm,
          "width_belief": belief, "seq": "p01_A", "repeat": 1,
-         "why": {"grasp": "0.058 m"}, "reasoning": "state_only",
-         "believed_width_m": 0.058, "outcome": "uninformative"}
+         "resting_face": "large_face", "opening_needed_m": 0.050,
+         "why": None, "reasoning": "none",
+         "believed_width_m": 0.050, "outcome": "uninformative"}
+    r.update(_OVER if band == "over" else _UNDER)
     r.update(kw)
     return r
 
@@ -69,34 +83,38 @@ check("split is one of the views", "split" in A.VIEWS, str(A.VIEWS))
 
 # 2, 3. the four combinations, and the inversion between poses.
 rows = []
-for belief, arm, pose, n in (("image", "ur_w", "lying", 5),
-                             ("state", "franka_n", "lying", 3),
-                             ("state", "ur_w", "lying", 2),
-                             ("image", "franka_n", "lying", 1),
-                             ("image", "franka_n", "upright", 4),
-                             ("state", "ur_w", "upright", 6)):
+for belief, arm, band, n in (("image", "ur_w", "over", 5),
+                             ("state", "franka_n", "over", 3),
+                             ("state", "ur_w", "over", 2),
+                             ("image", "franka_n", "over", 1),
+                             ("image", "franka_n", "under", 4),
+                             ("state", "ur_w", "under", 6)):
     for i in range(n):
-        rows.append(row(belief, arm, pose, seq="p%02d_A" % i))
+        rows.append(row(belief, arm, band, seq="p%02d_A" % i))
 
 out = A.view_split(rows)
-check("image plus UR on a lying trial reads as overriding the preference",
+check("image plus UR over the aperture reads as overriding the preference",
       "overrode the preference" in out,
       "the arm column scores this uninformative; the width shows it is "
       "image use")
-check("state plus UR on a lying trial reads as declining the Franka",
+check("state plus UR over the aperture reads as declining the Franka",
       "declined the Franka anyway" in out,
       "not perception: the guidance was simply not followed")
-check("state plus Franka on a lying trial reads as following both",
+check("state plus Franka over the aperture reads as following both",
       "followed the text and the preference" in out)
-check("image plus Franka on a lying trial is flagged as contradictory",
+check("image plus Franka over the aperture is flagged as contradictory",
       "cannot span" in out)
-check("the reading inverts on upright trials",
+check("the reading inverts under the aperture",
       "used the wider arm set" in out
-      and "followed the text, which claims lying" in out,
-      "the text claims the opposite pose, so a Franka choice needs the "
+      and "followed the text, which claims the wider opening" in out,
+      "the text claims the opposite face, so a Franka choice needs the "
       "image there")
-check("all four lying combinations appear separately",
+check("all four over-aperture combinations appear separately",
       out.count("width=") >= 6, out)
+check("the split is on the geometry, not on a pose name",
+      "over aperture" in out and "under aperture" in out,
+      "the block has three poses and only one is over the aperture, so a "
+      "split on lying-versus-upright matched no row at all")
 
 # 4. a wait is its own family.
 check("a wait is not folded into an arm family",
@@ -110,18 +128,24 @@ check("a third width is surfaced",
 # view_odd filters on the NUMBER against the two candidate values, not on
 # the width_belief label. That is the right way round: the label is derived
 # and could be wrong, the number is what the model actually wrote.
-_clean = A.view_odd([row("state", "ur_w", believed_width_m=0.058)])
+_clean = A.view_odd([row("state", "ur_w", believed_width_m=0.050)])
 check("a candidate width is not counted as odd",
       _clean.startswith("0 replies"), _clean.splitlines()[0])
 check("the clean case says what it means",
       "SELECTING" in _clean,
-      "every width being one of two supplied values is itself the "
+      "every opening being one of the supplied values is itself the "
       "finding: the model picks between given numbers rather than "
       "measuring anything")
-_rounded = A.view_odd([row("image", "ur_w", believed_width_m=0.10)])
-check("a rounded 0.096 is tolerated, not counted as odd",
+_rounded = A.view_odd([row("image", "ur_w", believed_width_m=0.1)])
+check("a rounded 0.100 is tolerated, not counted as odd",
       _rounded.startswith("0 replies"),
-      "0.006 covers a model writing 0.10 for 0.096")
+      "0.006 covers a model writing 0.1 for 0.100")
+# The candidates come from the ROW, so a file measuring a different object
+# is judged against its own numbers. A module constant reported every
+# reply in a block run as off-candidate.
+check("the candidates are read off the row, not from a constant",
+      A.candidates(row("image", "ur_w")) == (0.100, 0.050),
+      str(A.candidates(row("image", "ur_w"))))
 
 # 1. deduplication, if the module loads files itself.
 if hasattr(A, "load"):
@@ -144,7 +168,7 @@ else:
           "reading every line would count a retry twice")
 
 # the selector must not silently ignore an unknown field value.
-sub = A.select(rows, model="m", rung="P3")
+sub = A.select(rows, model="m", rung="N-D")
 check("select filters on the fields it names", len(sub) == len(rows))
 check("select returns nothing for a model that is not there",
       A.select(rows, model="nobody") == [])
@@ -166,6 +190,11 @@ _prose = ("Mustard is lying down; its horizontal extents are 0.191 m and "
 check("the extractor reads the conclusion, not the rejected extent",
       G.believed_width({"why": {"grasp": _prose}}) == 0.096)
 
+# A row from a PRE-2026-08-26 file: a P-rung, mustard geometry, a prose
+# why block and no typed opening. It stays exactly as it was written. The
+# point of the check is that the legacy fallback still re-mines a stale
+# believed_width_m correctly, and rewriting the fixture in the current
+# schema would test the typed path and quietly stop testing this one.
 _stale = os.path.join(tempfile.mkdtemp(), "stale.jsonl")
 with open(_stale, "w") as _fh:
     _fh.write(json.dumps({
@@ -206,21 +235,36 @@ else:
 # fault than a model one, and this view exists to be run before any
 # width-derived number is quoted.
 check("extract is one of the views", "extract" in A.VIEWS, str(A.VIEWS))
-_clean = A.view_extract([row("state", "ur_w", believed_width_m=0.058),
-                         row("image", "ur_w", believed_width_m=0.096)])
-check("a file of candidate widths reports none",
+_clean = A.view_extract([row("state", "ur_w", believed_width_m=0.050),
+                         row("image", "ur_w", believed_width_m=0.100)])
+check("a file of candidate openings reports none",
       "none." in _clean, _clean.splitlines()[0])
 check("the clean case states what it means",
-      "selecting between the two supplied numbers" in _clean)
+      "selecting between the supplied numbers" in _clean)
+
+# A LEGACY row: the number was mined out of prose, so the full sentence has
+# to be printed for a fault to be visible rather than inferred.
 _dirty = A.view_extract([row("other", "ur_w", believed_width_m=0.140,
-                             why={"grasp": "0.058 m graspable width, "
+                             opening_needed_m=None,
+                             why={"grasp": "0.050 m graspable width, "
                                            "covered by ur_e 0.140 m"})])
-check("a non-candidate width is surfaced", "1 of 1" in _dirty)
+check("a non-candidate opening is surfaced", "1 of 1" in _dirty)
 check("the FULL prose is printed, not a truncation",
       "covered by ur_e 0.140 m" in _dirty,
       "a fault has to be visible rather than inferred")
 check("the view tells the reader to check before concluding",
-      "CHECK EACH ONE" in _dirty)
+      "CHECK THE REST" in _dirty)
+
+# A row from the CURRENT schema. The number is typed, so no extractor sits
+# between the reply and it, and an off-candidate value is a model fault
+# rather than an instrument one. Saying so is the point of the change.
+_typed = A.view_extract([row("other", "ur_w", believed_width_m=0.075,
+                             opening_needed_m=0.075)])
+check("a typed off-candidate value is named as a model fault",
+      "came from the TYPED field" in _typed and "1 of those" in _typed,
+      _typed.splitlines()[1] if len(_typed.splitlines()) > 1 else _typed)
+check("the typed field is what the view prints for a current row",
+      "opening=0.075" in _typed, _typed)
 
 print("\nRESULT: " + ("ALL PASS" if not fails
                       else f"{len(fails)} FAILURE(S): {fails}"))

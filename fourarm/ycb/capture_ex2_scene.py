@@ -17,23 +17,32 @@ THE PAIR DESIGN, and why the partner is fixed. The flip object is the
 synthetic block (ycb_objects.py), which replaced the mustard bottle on
 2026-08-26. One object, three authored resting poses:
 
-  member U   block_upright   0.050 m across  ->  all four arms
-  member L   block_large     0.100 m across  ->  URs only   (large face down)
-  member S   block_small     0.050 m across  ->  all four arms (small face down)
+  member U   block_upright   0.050 m across  ->  all four arms  (small_face)
+  member L   block_large     0.100 m across  ->  URs only       (large_face)
   partner    large_clamp     0.122 m, tools  ->  URs only, every member
 
-Each position is captured in ALL THREE poses (members U, L, S), so the three
-categories get EQUAL counts: 30 positions -> 90 captures, 30 upright, 30
-large face, 30 small face. The large face is a real capability flip against
-upright (0.100, UR-only); the small face is a lying pose that does NOT flip
-capability (0.050, all-arms). The two lying poses give different graspable
-widths, so the resting face is recorded per capture, not just "lying".
+Each position is captured in BOTH poses (members U and L), so the two
+categories get EQUAL counts and every contrast is paired within a position.
+The large face is a real capability flip against the small face: 0.100
+against 0.050, across the 0.080 Franka aperture.
+
+A THIRD MEMBER, S, WAS RETIRED on 2026-08-27. It rested on the middle face,
+0.130 x 0.050, and existed because the two flat orientations differ only in
+geometry and so made the sharper test. No model read it: over 81 answered
+trials GPT scored 58 percent separating it from the large face, Fisher
+p = 0.76, which is chance. Its captures stay on disk as the evidence for
+that and experiments/ex2/run.load_scenes skips them by name.
+
+Because the block can still physically settle on that face, the settle
+check below FAILS a capture that lands there rather than labelling it with
+the face it was asked for. That guarantee is what lets the prompt stay
+silent about the orientation.
 
 Idle arms are ur_w and franka_n. The block is food and the food basket is
 reachable by exactly ur_w and franka_n; the clamp is tools and, with
 franka_s busy, only ur_w can deliver it.
 
-POSITIONS are not guesses. ycb/ex2_block.txt holds 30, pre-screened against
+POSITIONS are not guesses. ycb/ex2_block.txt holds 34, pre-screened against
 the SAME reachability rasters the validator uses so both the idle ur_w (or
 ur_e) and franka_n reach the object, clear of every arm base and basket.
 Verify any new position the same way before capturing.
@@ -229,10 +238,10 @@ def read_spec(path):
     line by number rather than skipping it: a silently dropped scene is a
     missing position nobody notices until the analysis.
 
-    Each position is captured in ALL THREE block poses (upright, large face,
-    small face), so there is no per-line face token: the poses are enumerated
-    in main() and the resting face is recorded per capture. A tolerated fifth
-    token (a leftover 'large'/'small' from the earlier alternating design) is
+    Each position is captured in BOTH block poses (small face, large face),
+    so there is no per-line face token: the poses are enumerated in main()
+    and the resting face is recorded per capture. A tolerated fifth token
+    (a leftover 'large'/'small' from the earlier alternating design) is
     accepted and ignored, so an old scene list still runs."""
     out = []
     for n, raw in enumerate(open(path), 1):
@@ -321,6 +330,20 @@ def park_everything(scene, engine, pool, cell=None):
         f"could not park {stray}: they are still at table height after "
         f"{attempt + 1} attempts, so they would appear in the frame as "
         f"extra objects.")
+
+
+# How far a settled object may sit from its authored rest height before the
+# capture is failed. Tightened from 0.010 on 2026-08-27, when the design
+# dropped to two faces.
+#
+# Measured, not guessed. Across the 102 captures then on disk the block's
+# centre height had ZERO spread: exactly 0.0650 (small_face), 0.0500 (the
+# retired middle face) and 0.0250 (large_face), 34 of each. The blocks are
+# teleported to rest height with zero velocity and are stable cuboids, so
+# 0.005 fails nothing that passed under 0.010 and still leaves the retired
+# face's 0.0500 a clear 0.010 outside the band around either kept value.
+# It is guarding a future change in spawn behaviour, not present noise.
+SETTLE_TOL_M = 0.005
 
 
 def capture_one(cell, scene, coord, engine, zonemap, kind, pid, member,
@@ -425,9 +448,24 @@ def capture_one(cell, scene, coord, engine, zonemap, kind, pid, member,
         spec = C.OBJECT_SPECS[name]
         z = float(p[2]) - C.TABLE_H
         want = spec.get("rest_z")
+        ok = want is not None and abs(z - want) < SETTLE_TOL_M
         settled[name] = {"z_above_table": round(z, 4),
                          "expected_rest_z": want,
-                         "pose_ok": want is not None and abs(z - want) < 0.010}
+                         "pose_ok": ok}
+        # FAIL THE CAPTURE, do not relabel it. Until 2026-08-27 this was a
+        # printed warning that nothing downstream read, which meant a block
+        # that toppled onto a different face was written to disk labelled
+        # with the face it was ASKED for. With two resting faces in the
+        # design and a third the block can physically reach, that is the
+        # difference between a picture of the experiment and a picture of
+        # something else. The other two guards in this file already raise;
+        # a wrong-face settle is not weaker than a stray prim in frame.
+        if not ok:
+            raise SystemExit(
+                f"{stem}: {name} settled at z={z:.4f} m above the table, "
+                f"expected {want} within {SETTLE_TOL_M}. The object is not "
+                f"on the face this capture claims. Failing rather than "
+                f"relabelling: fix the spawn or the position and re-run.")
 
     rec = {"seq": stem, "round": 0, "condition": "V",
            "prompt_version": prompt_version(state),
@@ -490,15 +528,25 @@ def main():
 
     os.makedirs(args_cli.out_dir, exist_ok=True)
     trail = os.path.join(args_cli.out_dir, "consults.jsonl")
-    print(f"[ex2] {len(scenes)} positions x 3 poses, camera(s) {cameras}, "
-          f"one Isaac session")
 
-    # Every position is captured in all three poses, so the three categories
-    # (upright / large face / small face) get equal counts: 30 positions ->
-    # 90 captures, 30 each. Member codes U/L/S name the pose in the seq stem.
-    poses = (("U", args_cli.upright, "upright"),
-             ("L", args_cli.lying_large, "large_face"),
-             ("S", args_cli.lying_small, "small_face"))
+    # Every position is captured in BOTH poses, so the two categories get
+    # equal counts by construction and every contrast is paired within a
+    # position. Member codes U/L name the pose in the seq stem.
+    #
+    # The recorded word is the GEOMETRIC face name, the same vocabulary the
+    # registry, the prompt and the grader use. It used to be "upright" here
+    # and small_face everywhere else, and nb_cells_a.py carried a TRAIL_FACE
+    # map whose only job was to undo that; there is now one vocabulary and
+    # no translation.
+    #
+    # Member S, the middle face, was retired on 2026-08-27. Its 34 captures
+    # stay on disk as evidence and load_scenes skips them by name.
+    poses = (("U", args_cli.upright, "small_face"),
+             ("L", args_cli.lying_large, "large_face"))
+
+    print(f"[ex2] {len(scenes)} positions x {len(poses)} poses "
+          f"= {len(scenes) * len(poses)} captures, camera(s) {cameras}, "
+          f"one Isaac session")
     done = skipped = 0
     for kind, pid, fxy, pxy in scenes:
         for member, pose_obj, resting_face in poses:

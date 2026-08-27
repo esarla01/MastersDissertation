@@ -22,6 +22,14 @@ What is pinned, and the failure each one guards:
      a captured EX2 scene, and if it did the rename would merge two
      objects onto one label and corrupt both.
   6. Objects with only one pose are untouched.
+  7. The block's three poses are named by RESTING FACE, and each prim is
+     paired with the face it actually rests on. The prim names disagree
+     with the geometry -- ycb_block_small rests on the MIDDLE face, so it
+     is the edge -- and that pairing has been got wrong once.
+  8. modernise_poses translates a pre-2026-08-27 block file and leaves a
+     mustard file completely alone. A blanket rule would have rewritten
+     every results file in runs/, all of which are mustard runs whose
+     "upright" means the bottle standing.
 
 Run:  python3 h_ex2_labels.py
 """
@@ -155,6 +163,94 @@ try:
     check("a scene with no flip object raises", False, "no exception")
 except ValueError as e:
     check("a scene with no flip object raises", True, str(e)[:60])
+
+# 7. the block is named by its resting face, and the pairing is geometric.
+#
+#     prim               face down       vertical  opening  name
+#     ycb_block_upright  0.100 x 0.050     0.130    0.050   small_face
+#     ycb_block_large    0.130 x 0.100     0.050    0.100   large_face
+#
+# 0.100 x 0.050 is the SMALLEST face of a 0.130 x 0.100 x 0.050 block, so
+# the prim that rests on it is the small_face however its name reads.
+for _prim, _face in (("ycb_block_upright", "small_face"),
+                     ("ycb_block_large", "large_face")):
+    check("%s rests on the %s" % (_prim, _face),
+          L.TRUE_POSE[_prim] == _face, L.TRUE_POSE[_prim])
+check("the block's faces are two distinct names",
+      len({L.TRUE_POSE[p] for p, lab in L.POSE_ENTRIES.items()
+           if lab == "ycb_block"}) == 2)
+# The third prim is still on disk and still spawnable. It must not be a
+# registry pose entry, or a capture of it would load and be scored as if
+# the design still used it.
+check("the withdrawn middle face is not a registry entry",
+      "ycb_block_small" not in L.POSE_ENTRIES
+      and "ycb_block_small" not in L.TRUE_POSE,
+      "it was removed on 2026-08-27; its 34 captures remain on disk and "
+      "experiments.ex2.run.load_scenes skips them by name")
+check("and 'edge' is not a face of the block any more",
+      "edge" not in L.block_faces(), str(sorted(L.block_faces())))
+check("no block pose is a posture word",
+      not any(L.TRUE_POSE[p] in ("upright", "lying")
+              for p, lab in L.POSE_ENTRIES.items() if lab == "ycb_block"),
+      "posture is not what the opening follows from, so the name must be "
+      "geometric or it could be read off as an outcome")
+check("the mustard pilot keeps its posture words",
+      L.TRUE_POSE["ycb_mustard_upright"] == "upright"
+      and L.TRUE_POSE["ycb_mustard_lying"] == "lying",
+      "a bottle has no faces, and its rows must stay readable")
+check("pose_prim inverts the pairing",
+      L.pose_prim("ycb_block", "small_face") == "ycb_block_upright"
+      and L.pose_prim("ycb_block", "large_face") == "ycb_block_large")
+check("and the withdrawn face inverts to nothing",
+      L.pose_prim("ycb_block", "edge") is None,
+      "a stale caller must get None, not a prim that is still spawnable")
+check("a superseded pose word resolves to no prim",
+      all(L.pose_prim("ycb_block", w) is None
+          for w in ("lying_large_face", "lying_small_face")),
+      "an old command must fail to resolve rather than silently pick one")
+
+# 8. the shim, and what it refuses to touch.
+_mustard = [{"true_pose": "upright", "declared_pose": "lying"},
+            {"true_pose": "lying", "declared_pose": "upright"}]
+check("a mustard file is left completely alone",
+      L.modernise_poses(_mustard) == 0
+      and _mustard[0]["true_pose"] == "upright",
+      "every results file in runs/ is a mustard run, and its 'upright' "
+      "means the bottle standing, not the block's smallest face")
+
+_block = [{"true_pose": "upright", "declared_pose": "lying_large_face"},
+          {"true_pose": "lying_small_face", "declared_pose": "lying_large_face"},
+          {"true_pose": "lying_large_face", "declared_pose": "upright"}]
+check("a block file is translated, every row", L.modernise_poses(_block) == 3)
+check("the ambiguous word is translated only inside a block file",
+      _block[0]["true_pose"] == "small_face",
+      "'upright' is only read as the block's smallest face when the file "
+      "also carries a word that only ever named the block")
+check("the unambiguous words translate",
+      _block[1]["true_pose"] == "edge"
+      and _block[2]["true_pose"] == "large_face")
+check("including to a face the design has withdrawn",
+      _block[1]["true_pose"] not in L.block_faces(),
+      "runs/ex2_q1_cue_*.jsonl are kept as the evidence for withdrawing "
+      "it, so the shim must still READ them. Translating to 'edge' and "
+      "letting require_face reject it downstream is the loud failure; "
+      "deleting the mapping would leave the old word untranslated and the "
+      "failure harder to read")
+check("declared_pose is translated with true_pose",
+      [r["declared_pose"] for r in _block]
+      == ["large_face", "large_face", "small_face"],
+      "translating one and not the other would leave a conflict row "
+      "disagreeing with itself")
+check("every translated word is a pose word this module knows",
+      all(r[f] in set(L.TRUE_POSE.values()) | {"edge"} for r in _block
+          for f in ("true_pose", "declared_pose")),
+      "'edge' is knowable and no longer current: see the check above")
+check("translating twice changes nothing more",
+      L.modernise_poses(_block) == 0,
+      "the shim must be safe to run on an already-current file")
+check("a current block file is untouched",
+      L.modernise_poses([{"true_pose": "edge",
+                          "declared_pose": "large_face"}]) == 0)
 
 print("\nRESULT: " + ("ALL PASS" if not fails
                       else f"{len(fails)} FAILURE(S): {fails}"))
