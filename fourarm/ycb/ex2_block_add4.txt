@@ -1,0 +1,9 @@
+# EX2 BLOCK delta: the 4 positions added 2026-08-27 (w15,w16,e15,e16).
+# Captured into the EXISTING out/ex2_capture_block/ so its consults.jsonl and
+# PNGs GAIN these 12 frames (4 positions x U/L/S) without recapturing the 30
+# already there. Screened by ycb/screen_ex2_block.py (all four PASS); the full
+# 34-position list lives in ycb/ex2_block.txt.
+pair w15  -0.640,+0.190   +0.125,-0.210
+pair w16  -0.315,+0.465   +0.125,-0.210
+pair e15  +0.665,+0.190   -0.700,+0.140
+pair e16  +0.375,+0.525   -0.700,+0.140

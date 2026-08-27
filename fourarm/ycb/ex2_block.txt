@@ -1,6 +1,6 @@
 # EX2 BLOCK scene list. One line per POSITION; each is captured in ALL THREE
-# block poses (upright, large face, small face): 30 positions -> 90 captures
-# = 30 upright + 30 large + 30 small. Format: pair <id> <obj_x,y> <clamp_x,y>.
+# block poses (upright, large face, small face): 34 positions -> 102 captures
+# = 34 upright + 34 large + 34 small. Format: pair <id> <obj_x,y> <clamp_x,y>.
 #
 # Pre-screened offline against core/cell/reachability/rasters (the masks the
 # validator uses): every object cell is reachable by franka_n AND by the nearer
@@ -13,7 +13,16 @@
 # moved OUT of the central-x band (west x<=-0.25, east x>=0.15). franka_s parks
 # at the south-centre, directly between the camera and any centre-table object.
 #
-# ---- 15 west positions (ur_w nearer) ----
+# Extended 2026-08-27: 4 more positions (w15,w16 west, e15,e16 east) so each
+# category gains 4 captures. Screened by ycb/screen_ex2_block.py through the
+# SAME rasters/clearances (all four PASS). Placed as ~0.06 m offsets from
+# already image-reviewed positions (w15<-w02, w16<-w10, e15<-e02, e16<-e13):
+# a first attempt in the sparse regions farthest from every existing cell was
+# camera-occluded and skipped by --min-visible, since the screen models
+# reachability, not occlusion. Proximity to a proven-visible cell fixes that
+# while staying >=0.06 m from every existing cell. 30 -> 34.
+#
+# ---- 17 west positions (ur_w nearer) ----
 pair w00  -0.350,-0.010   -0.250,+0.540
 pair w01  -0.250,+0.540   +0.125,-0.210
 pair w02  -0.700,+0.190   +0.125,-0.210
@@ -29,7 +38,9 @@ pair w11  -0.300,+0.140   +0.125,-0.210
 pair w12  -0.450,-0.110   +0.075,+0.340
 pair w13  -0.575,+0.165   +0.125,-0.210
 pair w14  -0.425,+0.090   +0.125,-0.210
-# ---- 15 east positions (ur_e nearer) ----
+pair w15  -0.640,+0.190   +0.125,-0.210
+pair w16  -0.315,+0.465   +0.125,-0.210
+# ---- 17 east positions (ur_e nearer) ----
 pair e00  +0.350,-0.010   -0.700,+0.165
 pair e01  +0.250,+0.540   -0.700,+0.140
 pair e02  +0.725,+0.190   -0.700,+0.140
@@ -45,3 +56,5 @@ pair e11  +0.550,+0.165   -0.700,+0.140
 pair e12  +0.300,+0.140   -0.700,+0.165
 pair e13  +0.375,+0.465   -0.700,+0.140
 pair e14  +0.450,+0.065   -0.700,+0.165
+pair e15  +0.665,+0.190   -0.700,+0.140
+pair e16  +0.375,+0.525   -0.700,+0.140
