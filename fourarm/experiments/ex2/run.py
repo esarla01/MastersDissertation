@@ -52,7 +52,7 @@ for _p in (_ROOT, os.path.join(_ROOT, "ycb")):
 from core.cell import cell_config as C                            # noqa: E402
 from core.cell.zones import ZoneMap                               # noqa: E402
 from core.decision.vlm_allocator import (validate_decision,       # noqa: E402
-                                         openai_chat)
+                                         chat)
 from analysis.frozen_coord import from_record                     # noqa: E402
 from experiments.ex2 import grade as G                            # noqa: E402
 from experiments.ex2 import prompts as P                          # noqa: E402
@@ -451,7 +451,7 @@ def render(scene, condition, rung, view, preference="franka"):
 
 def run(capture_dir, out_path, model=None, limit=None, dry_run=False,
         views=VIEWS, rungs=RUNGS, conditions=T.CONDITIONS,
-        preference="franka", model_fn=openai_chat, timeout=90.0, pair=None,
+        preference="franka", model_fn=chat, timeout=90.0, pair=None,
         retry_errors=True):
     all_scenes = load_scenes(capture_dir)
     chosen = select_scenes(all_scenes, pair)

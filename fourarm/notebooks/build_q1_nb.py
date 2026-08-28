@@ -23,6 +23,7 @@ CELLS = [
     ("md", A.MD5), ("code", A.C5),
     ("md", B.MD5B), ("code", B.C5B),
     ("md", B.MD6), ("code", B.C6), ("code", B.C7),
+    ("md", B.MD7B), ("code", B.C7B),
     ("md", B.MD8), ("code", B.C8),
     ("md", B.MD9), ("code", B.C9),
     ("md", B.MD10), ("code", B.C10),
@@ -30,6 +31,7 @@ CELLS = [
     ("md", B.MD12), ("code", B.C12),
     ("md", B.MD13), ("code", B.C13),
     ("md", B.MD14), ("code", B.C14),
+    ("md", B.MD15), ("code", B.C15),
 ]
 
 def lines(src):

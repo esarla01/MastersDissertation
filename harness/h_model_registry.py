@@ -207,9 +207,10 @@ check("an unresolvable alias records WHY rather than a bare None",
 
 # --- gemini and claude, added 2026-08-07 --------------------------------
 # A third and fourth model turn a two-model dissociation into a claim about
-# the class. Both are reached through OpenAI-compatible surfaces so
-# openai_chat needs no change; what needs checking is that the registry
-# resolves them and that nothing here carries a secret.
+# the class. gemini is reached through an OpenAI-compatible surface; claude
+# is spoken natively since 2026-08-27, so what needs checking is that the
+# registry resolves both, that each is routed to the right wire protocol,
+# and that nothing here carries a secret.
 # Earlier checks repoint the registry at a fixture, so the real file has to
 # be restored before asserting anything about its contents.
 os.environ.pop("FOURARM_MODELS_ENV", None)
@@ -236,13 +237,41 @@ check("gemini uses the OpenAI compatibility shim",
       "onto Gemini's own API")
 check("gemini points at chat/completions",
       mr.describe("gemini")["endpoint"].endswith("/chat/completions"))
-check("claude is flagged as needing a real gateway",
-      "REPLACE" in mr.describe("claude")["endpoint"],
-      "the native Anthropic API uses /v1/messages, x-api-key rather than "
-      "Bearer, and returns content blocks; openai_chat will fail against "
-      "it, so this must fail loudly rather than 404 mid-run")
-check("every alias has distinct model id",
-      len({mr.describe(a)["model"] for a in mr.aliases()}) == len(mr.aliases()))
+# Until 2026-08-27 this asserted the endpoint still said REPLACE, because
+# the alias could not work: openai_chat cannot speak to /v1/messages. Now
+# that anthropic_chat exists the thing worth pinning is that the two travel
+# together. An Anthropic endpoint reached by the OpenAI client fails with a
+# KeyError on "choices" AFTER the call has been paid for, so the pairing is
+# checked here rather than discovered mid-run.
+check("claude points at the native Anthropic messages endpoint",
+      mr.describe("claude")["endpoint"].endswith("/v1/messages"),
+      str(mr.describe("claude")["endpoint"]))
+check("claude is routed to the anthropic client",
+      mr.describe("claude")["api"] == "anthropic",
+      "an Anthropic endpoint addressed with the OpenAI wire format fails "
+      "on the reply shape, after the money is spent")
+check("claude carries max_tokens",
+      "max_tokens" in mr.describe("claude")["params"],
+      "the Anthropic API requires it and has no default, so a missing one "
+      "is a 400 on every trial of a paid sweep")
+check("every OpenAI-shaped alias still says so",
+      all(mr.describe(a)["api"] == "openai"
+          for a in mr.aliases() if a != "claude"),
+      "api defaults to openai, so an alias written before the field "
+      "existed must be unaffected by it")
+
+# This compared model ids alone and started failing the moment gpt_hi was
+# added, because gpt and gpt_hi share gpt-5.6-terra deliberately and differ
+# only in reasoning_effort. Sharing a model id is the POINT of that pair.
+# What must stay distinct is the model PLUS its request parameters, because
+# that pair is what a row's alias actually stands for.
+_ident = {(mr.describe(a)["model"],
+           json.dumps(mr.describe(a)["params"], sort_keys=True))
+          for a in mr.aliases()}
+check("every alias asks a distinct question",
+      len(_ident) == len(mr.aliases()),
+      "two aliases resolving to the same model AND the same parameters "
+      "would be indistinguishable in a results file")
 check("no key value is written in the registry file",
       not any(tok in open(mr.env_file()).read()
               for tok in ("sk-", "AIza", "sk-ant")),

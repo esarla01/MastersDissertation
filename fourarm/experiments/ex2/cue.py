@@ -58,7 +58,7 @@ for _p in (_ROOT, os.path.join(_ROOT, "ycb")):
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
-from core.decision.vlm_allocator import openai_chat              # noqa: E402
+from core.decision.vlm_allocator import chat              # noqa: E402
 from experiments.ex2 import grade as G                           # noqa: E402
 from experiments.ex2.prompts import EX2_PROMPT_VERSION           # noqa: E402
 from experiments.ex2.run import (flip_task_id, legal_arms,       # noqa: E402
@@ -79,7 +79,7 @@ def scenes_for(capture_dir, kind="pair"):
     return out
 
 
-def one_trial(scene, condition, model, model_fn=openai_chat, timeout=90.0):
+def one_trial(scene, condition, model, model_fn=chat, timeout=90.0):
     """Ask once and grade. Nothing here decides anything on its own."""
     messages, meta = render(scene, condition, RUNG, VIEW)
 
@@ -168,7 +168,7 @@ def table(rows):
 
 def run(capture_dir, out_path=None, models=DEFAULT_MODELS,
         conditions=CONDITIONS, kind="pair", repeats=1, pair=None,
-        limit=None, dry_run=False, model_fn=openai_chat, timeout=90.0):
+        limit=None, dry_run=False, model_fn=chat, timeout=90.0):
     scenes = select_scenes(scenes_for(capture_dir, kind), pair)
     # A null has no conflict to declare: its job is to say how much the
     # answer moves when nothing meaningful does, and a null with a

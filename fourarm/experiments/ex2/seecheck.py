@@ -52,7 +52,7 @@ for _p in (_ROOT, os.path.join(_ROOT, "ycb")):
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
-from core.decision.vlm_allocator import openai_chat              # noqa: E402
+from core.decision.vlm_allocator import chat              # noqa: E402
 from experiments.ex2 import prompts as P                          # noqa: E402
 from experiments.ex2.labels import describe, require_face        # noqa: E402
 from experiments.ex2.run import VIEWS, load_scenes               # noqa: E402
@@ -180,7 +180,7 @@ def probes(scenes, views, seqs=None, kind=None):
     return out
 
 
-def ask(row, model, fmt, model_fn=openai_chat, timeout=60.0):
+def ask(row, model, fmt, model_fn=chat, timeout=60.0):
     with open(row["image"], "rb") as f:
         b64 = base64.b64encode(f.read()).decode("ascii")
     reply, error = None, None
@@ -477,7 +477,7 @@ def table(rows):
 def run(capture_dir, out_path=None, models=DEFAULT_MODELS,
         formats=DEFAULT_FORMATS, views=DEFAULT_VIEWS, seqs=None,
         kind=DEFAULT_KIND, repeats=DEFAULT_REPEATS, limit=None,
-        dry_run=False, model_fn=openai_chat, timeout=60.0):
+        dry_run=False, model_fn=chat, timeout=60.0):
     # present_ur=False: this probe shows a picture and asks one question.
     # It never assigns an arm, so the idle set means nothing to it, and
     # normalising one would be work that can fail on a scene built for

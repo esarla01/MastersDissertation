@@ -22,6 +22,7 @@ import os, pathlib
 KEYS = {
     "OPENAI_API_KEY": "",
     "GEMINI_API_KEY": "",
+    "ANTHROPIC_API_KEY": "",
 }
 
 # An EMPTY value must never be written into the environment. Assigning ""
@@ -52,6 +53,11 @@ if _local and _local.exists():
 # Report presence, NEVER the value. Printing a key would write it into the
 # notebook's saved output, which is the same leak as pasting it into a cell
 # and is easier to do by accident.
+#
+# The report loops over KEYS, so EVERY key the notebook can use needs a row
+# there even when it is only ever supplied by keys.local.env. A name missing
+# from KEYS still loads from the file, but silently, and a key that loads
+# without being reported is indistinguishable from one that did not load.
 for _name in KEYS:
     _set = bool(os.environ.get(_name))
     print("%-18s %s" % (_name, "set" if _set else "NOT SET"))
@@ -106,6 +112,34 @@ for _stale in [m for m in list(sys.modules)
                or m in ("ycb_objects",)]:
     del sys.modules[_stale]
 
+# WHICH KERNEL THIS IS, checked before the first project import.
+#
+# The very next line reaches core.decision.state_builder through
+# mancheck -> vlm_allocator, and that imports numpy; visibility.py, in cell
+# 3, needs PIL and scipy. On a kernel without them the notebook dies forty
+# lines deep inside somebody else's module with "No module named 'numpy'",
+# which reads as a broken repository rather than as a kernel picked from a
+# list of six. Checked here, where the answer is one sentence.
+_missing = []
+for _m in ("numpy", "PIL", "scipy"):
+    try:
+        __import__(_m)
+    except ImportError:
+        _missing.append(_m)
+if _missing:
+    _venv = ROOT.parent / ".venv" / "bin" / "python"
+    raise SystemExit(
+        "WRONG KERNEL.\n"
+        "  This kernel is  %s\n"
+        "  and it has no %s.\n"
+        "  Use instead     %s\n"
+        "  In VS Code: Select Kernel, then Python Environments, then the\n"
+        "  interpreter at that path. It is the only one in this tree with\n"
+        "  ipykernel AND numpy, PIL and scipy. Several unrelated kernels are\n"
+        "  registered on this machine and any of them will get this far and\n"
+        "  then fail."
+        % (sys.executable, ", ".join(_missing), _venv))
+
 from core.cell import cell_config as C
 from core.decision import model_registry as MR
 from experiments.ex2 import grade as G
@@ -117,6 +151,19 @@ from experiments.ex2 import solo as S
 from experiments.ex2 import transforms as T
 from experiments.ex2 import visibility as VIS
 from analysis.ex2.ex2_stats import newcombe, paired_mean_ci, spans_zero, wilson
+# The notebook machinery: loaders, the share definition, the paired
+# contrast and the spend gate. In a module rather than in this cell so
+# that Q2 and Q3 use the same ones rather than a second copy, and so
+# that harness/h_ex2_q_common.py can pin them. What stays in the cells
+# is what is a DECISION: the models, the rung, the conditions, the
+# usable rule, each cost, and every CONFIRM_SPEND.
+from analysis.ex2.ex2_q_common import (Outputs, answered,       # noqa
+                                       coupling, fmt, full_flip_count,
+                                       is_franka, keep_analysable,
+                                       load_run, paired_diffs, pct,
+                                       provenance_row, run_meta,
+                                       sha256, share_at, share_counts,
+                                       show, spend_gate)
 
 # --- paths ------------------------------------------------------------------
 CAPTURES = ROOT / "out" / "ex2_capture_block"
@@ -145,7 +192,47 @@ try:
 except Exception as exc:
     ALIASES = []
     print("model registry unavailable (%s); set MODELS by hand below" % exc)
-MODELS = tuple(a for a in ALIASES if a in ("gemini", "gpt")) or ("gemini", "gpt")
+# THREE models since 2026-08-27. claude-sonnet-5 was added because the
+# design needs a third model that CLEARS the two-way face probe: with two
+# models, a single failure at cell 5b leaves one, and one model cannot show
+# that a result is a property of models rather than of this one model.
+# It is not here for being the most capable available; see env/models.env.
+#
+# claude_md RATHER THAN claude. Same model, claude-sonnet-5, at effort
+# medium instead of the API default of high. At the default it read the
+# two-way face probe at 65 percent against gpt's 95 and gemini's 100, and
+# it failed by BIAS rather than blindness: large_face on 75 percent of
+# trials, 90 percent right when the block lies flat and 40 percent when it
+# stands. Deliberation is how a prior like "blocks lie flat" gains weight,
+# so lower effort is the move that fits the failure. Cell 5b is what tests
+# it. The default-effort runs stay on disk under the alias "claude".
+#
+# gpt_hi RATHER THAN gpt. Same model, gpt-5.6-terra, at reasoning_effort
+# high instead of low. Claude runs at the Anthropic default effort of high
+# and Gemini Flash exposes no effort control at all, so gpt at low made the
+# one model with the LEAST test-time compute the yardstick for the other
+# two. Effort is still not matched across providers and cannot be -- that
+# stays in Limitations -- but the reasoning models are now on the same
+# nominal tier.
+#
+# The low-effort runs are NOT deleted. runs/ex2_q1_cue2way_gpt_r*.jsonl
+# record gpt at reasoning_effort low over this same sample and stay on disk
+# as the evidence for what effort was worth here: 95 percent at low. A
+# separate alias rather than an edit to GPT_PARAMS is what makes those rows
+# still readable, which is the reason env/models.env gives for gpt_hi
+# existing at all.
+#
+# Named rather than taken wholesale from ALIASES. FOURARM_MODELS also lists
+# qwen and gpt_hi, and a run's model set must be a decision recorded here,
+# not whatever the registry happens to carry. The fallback keeps the same
+# three so a registry failure cannot silently shrink the design.
+_WANT = ("gpt_hi", "gemini", "claude_md")
+MODELS = tuple(a for a in ALIASES if a in _WANT) or _WANT
+if set(MODELS) != set(_WANT):
+    print("WARNING: %s requested, %s available from the registry. Every "
+          "table below is per model, so a missing one narrows the design "
+          "rather than breaking it -- but say so in the chapter."
+          % (list(_WANT), list(MODELS)))
 
 # --- credentials: reported, not assumed -------------------------------------
 # Until 2026-08-27 a hand-added launcher cell started JupyterLab in a browser
@@ -178,71 +265,13 @@ for _alias in MODELS:
     if not os.environ.get(_var):
         MISSING_KEYS.append("%s: %s is not set" % (_alias, _var))
 
-def rel(path):
-    """A path relative to the root when it is under it, else as given.
-    Output can legitimately sit outside the tree when a cell is re-pointed
-    at a scratch directory, and a provenance table must not fall over."""
-    try:
-        return str(pathlib.Path(path).relative_to(ROOT))
-    except ValueError:
-        return str(path)
-
-def answered(path):
-    """How many rows in a run file are real ANSWERS.
-
-    Not lines. A row that errored is a call that never landed, and a file
-    of them counts to the full sample and skips the run: that is how the
-    seven key-failure rows in ex2_q1_cue_gpt_r1.jsonl survived two reruns.
-    An unparseable reply IS an answer for this purpose -- it is a real
-    observation about the model and re-asking would be re-asking until the
-    model complies -- except in the allocation runners, which record it as
-    a trial that produced nothing and retry it themselves.
-
-    Handles both reply shapes so the same guard works in every spending
-    cell: the perception probes carry "answer", the allocation runners
-    carry "outcome"."""
-    if not pathlib.Path(path).exists():
-        return 0
-    n = 0
-    for line in open(path):
-        if not line.strip():
-            continue
-        r = json.loads(line)
-        if r.get("error") is not None:
-            continue
-        if r.get("answer") is None and r.get("outcome") in (None, "unparseable"):
-            continue
-        n += 1
-    return n
-
-def sha256(path):
-    h = hashlib.sha256()
-    with open(path, "rb") as fh:
-        for chunk in iter(lambda: fh.read(1 << 20), b""):
-            h.update(chunk)
-    return h.hexdigest()
-
-def write_csv(name, header, rows):
-    """Write a tidy CSV and return its path. Overwriting a TABLE is safe;
-    only run files are protected."""
-    path = TABLES / name
-    with open(path, "w", newline="") as fh:
-        w = csv.writer(fh)
-        w.writerow(header)
-        w.writerows(rows)
-    print("wrote %s  (%d rows)" % (rel(path), len(rows)))
-    return path
-
-def show(header, rows, widths=None):
-    """Print a table without pandas, which is not installed everywhere."""
-    cols = [str(h) for h in header]
-    data = [[("" if c is None else str(c)) for c in r] for r in rows]
-    w = [max(len(cols[i]), *(len(r[i]) for r in data)) if data else len(cols[i])
-         for i in range(len(cols))]
-    print("  ".join(c.ljust(w[i]) for i, c in enumerate(cols)))
-    print("  ".join("-" * w[i] for i in range(len(cols))))
-    for r in data:
-        print("  ".join(r[i].ljust(w[i]) for i in range(len(cols))))
+# Output paths travel together in one object, so a notebook cannot end up
+# with a root and a tables directory that disagree. Rebound to bare names
+# because every call site below reads better as write_csv(...) than as
+# OUT.write_csv(...), and because leaving those call sites untouched is
+# what made this extraction verifiable against the tables already on disk.
+OUT = Outputs(ROOT, TABLES, FIGURES)
+rel, write_csv = OUT.rel, OUT.write_csv
 
 print("root        ", ROOT)
 print("captures    ", CAPTURES.relative_to(ROOT), "(exists:", CAPTURES.is_dir(), ")")
@@ -790,7 +819,14 @@ kept in `runs/ex2_q1_cue_*.jsonl` as the evidence for that decision.
 repeats go to separate files rather than colliding on resume."""
 
 C5 = r'''# --- Cell 5. Cue validation. MAKES MODEL CALLS. -----------------------------
-CUE_POSITIONS = USABLE[:10]                 # 8-10, before capturing confidence
+# BOTH BANKS. This was USABLE[:10], which is every one of them east,
+# because "e" sorts before "w". The banks differ in which UR is idle and in
+# how the block sits relative to the camera, and this probe is the gate that
+# licenses every paid cell below it, so it should not rest on half the
+# workspace. Ten east and ten west: the east ten are the ones already
+# collected, so the runners resume and only the west are new.
+CUE_POSITIONS = ([p for p in USABLE if p.startswith("e")][:10] +
+                 [p for p in USABLE if p.startswith("w")][:10])
 CUE_REPEATS = 3
 
 # The filename NAMES THE VOCABULARY, and that is not decoration. mancheck's
@@ -806,13 +842,23 @@ n_calls = len(cue_seqs) * len(MODELS) * CUE_REPEATS
 print("COST: %d positions x %d faces x %d models x %d repeats = %d calls"
       % (len(CUE_POSITIONS), len(FACES), len(MODELS), CUE_REPEATS, n_calls))
 print("chance is %.1f%%: a %d-way forced choice." % (MC.CHANCE, len(FACES)))
-print("set CONFIRM_SPEND = %d in this cell to proceed" % n_calls)
+# What this run will ACTUALLY cost, which is not the number above once the
+# east half is already on disk. CONFIRM_SPEND is still the full design size,
+# because that is what the cell is asking permission for; this line is what
+# says how much of it has been bought already.
+_have = sum(answered(RUNS / (CUE_FILE % (m, r)))
+            for m in MODELS for r in range(1, CUE_REPEATS + 1))
+print("already answered: %d across %d files, so this run adds about %d calls"
+      % (_have, len(MODELS) * CUE_REPEATS, max(0, n_calls - _have)))
 
-CONFIRM_SPEND = None            # <-- set to the number above
+CONFIRM_SPEND = None            # <-- set to the number in the COST line
 
-if CONFIRM_SPEND != n_calls:
-    print("\nnot confirmed; no calls made.")
-else:
+# No out_path: this cell resumes per model and per repeat inside its own
+# loop below, so a single file count would not describe it.
+if spend_gate(n_calls, CONFIRM_SPEND,
+              factors=(("positions", len(CUE_POSITIONS)),
+                       ("faces", len(FACES)), ("models", len(MODELS)),
+                       ("repeats", CUE_REPEATS))):
     for model in MODELS:
         for rep in range(1, CUE_REPEATS + 1):
             out = RUNS / (CUE_FILE % (model, rep))

@@ -1,0 +1,7 @@
+model,resting_face,n_positions,n_trials,n_proposals,declines_n,franka_n,franka_share_pct,wilson_lo,wilson_hi
+gpt_hi,small_face,32,96,96,0,92,95.8,89.8,98.4
+gpt_hi,large_face,32,96,96,0,94,97.9,92.7,99.4
+gemini,small_face,32,96,96,0,84,87.5,79.4,92.7
+gemini,large_face,32,96,96,0,90,93.8,87.0,97.1
+claude_md,small_face,32,96,96,0,53,55.2,45.3,64.8
+claude_md,large_face,32,96,96,0,56,58.3,48.3,67.7

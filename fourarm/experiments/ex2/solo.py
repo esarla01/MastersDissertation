@@ -64,7 +64,7 @@ for _p in (_ROOT, os.path.join(_ROOT, "ycb")):
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
-from core.decision.vlm_allocator import openai_chat              # noqa: E402
+from core.decision.vlm_allocator import chat              # noqa: E402
 from experiments.ex2 import grade as G                           # noqa: E402
 from experiments.ex2 import prompts as P                         # noqa: E402
 from experiments.ex2 import transforms as T                      # noqa: E402
@@ -128,7 +128,7 @@ def render(scene, condition, preference="franka", rung=RUNG,
 
 
 def one_trial(scene, condition, model, preference="franka", rung=RUNG,
-              modality="V", model_fn=openai_chat, timeout=90.0,
+              modality="V", model_fn=chat, timeout=90.0,
               face_order="small_first", dims_frame="named"):
     messages, meta = render(scene, condition, preference, rung, modality,
                             face_order, dims_frame)
@@ -181,6 +181,12 @@ def one_trial(scene, condition, model, preference="franka", rung=RUNG,
                 "total_tokens": (usage or {}).get("total_tokens"),
                 "true_pose": meta["true_pose"],
                 "declared_pose": meta["declared_pose"],
+                # run.py has recorded this since the conflict condition
+                # existed and solo never did, so a solo conflict file could
+                # only have its direction re-derived by whoever read it.
+                # meta.get, not meta[], so an older transforms without the
+                # key still runs rather than failing mid-sweep.
+                "direction": meta.get("direction"),
                 "true_grasp_m": meta["true_grasp_m"],
                 "declared_grasp_m": meta.get("declared_grasp_m"),
                 "flip_task": task_id,
@@ -345,7 +351,7 @@ def run(capture_dir, out_path=None, models=DEFAULT_MODELS,
         conditions=CONDITIONS, preferences=("franka",), rungs=(RUNG,),
         modalities=("V",), kind="pair", repeats=1, pair=None, limit=None,
         dry_run=False,
-        model_fn=openai_chat, timeout=90.0,
+        model_fn=chat, timeout=90.0,
         face_orders=("small_first",), dims_frames=("named",)):
     scenes = [s for s in load_scenes(capture_dir)
               if kind is None or s["kind"] == kind]

@@ -142,18 +142,15 @@ print("      %d usable positions x %d faces = %d scenes%s"
          ", plus %d at excluded positions, asked so the exclusion is "
          "visible in the data and dropped in cell 8" % _extra
          if _extra else ""))
-have = answered(CONGRUENT_OUT)
-print("already answered: %d of %d in %s"
-      % (have, n_calls, CONGRUENT_OUT.name))
-print("set CONFIRM_SPEND = %d in this cell to proceed" % n_calls)
 
-CONFIRM_SPEND = None            # <-- set to the number above
+CONFIRM_SPEND = None            # <-- set to the number in the COST line
 
-if CONFIRM_SPEND != n_calls:
-    print("\nnot confirmed; no calls made.")
-elif have >= n_calls:
-    print("\ncomplete already; nothing to do.")
-else:
+# factors= is the guard against a later cell rebinding REPEATS: the gate
+# refuses when the counts stop multiplying to the number being confirmed,
+# rather than the run quietly coming out a third of the size.
+if spend_gate(n_calls, CONFIRM_SPEND, CONGRUENT_OUT,
+              factors=(("scenes", len(CALL_SCENES)), ("models", len(MODELS)),
+                       ("repeats", REPEATS))):
     S.run(str(CAPTURES), out_path=str(CONGRUENT_OUT), models=MODELS,
           conditions=("congruent",), preferences=(PREFERENCE,),
           rungs=(RUNG,), modalities=("V",), kind="pair", repeats=REPEATS)
@@ -175,18 +172,12 @@ print("      %d usable positions x %d faces = %d scenes%s"
          ", plus %d at excluded positions, asked so the exclusion is "
          "visible in the data and dropped in cell 8" % _extra
          if _extra else ""))
-have = answered(DIMS_OUT)
-print("already answered: %d of %d in %s"
-      % (have, n_calls, DIMS_OUT.name))
-print("set CONFIRM_SPEND = %d in this cell to proceed" % n_calls)
 
-CONFIRM_SPEND = None            # <-- set to the number above
+CONFIRM_SPEND = None            # <-- set to the number in the COST line
 
-if CONFIRM_SPEND != n_calls:
-    print("\nnot confirmed; no calls made.")
-elif have >= n_calls:
-    print("\ncomplete already; nothing to do.")
-else:
+if spend_gate(n_calls, CONFIRM_SPEND, DIMS_OUT,
+              factors=(("scenes", len(CALL_SCENES)), ("models", len(MODELS)),
+                       ("repeats", REPEATS))):
     S.run(str(CAPTURES), out_path=str(DIMS_OUT), models=MODELS,
           conditions=("dims",), preferences=(PREFERENCE,),
           rungs=(RUNG,), modalities=("V",), kind="pair", repeats=REPEATS)
@@ -198,24 +189,18 @@ No model calls. Nothing is silently dropped: every exclusion is counted and
 named, and the rows are kept."""
 
 C8 = r'''# --- Cell 8. Load and validate. No model calls. -----------------------------
-def load_run(path, condition):
-    if not pathlib.Path(path).exists():
-        print("MISSING %s" % path)
-        return []
-    seen = {}
-    for line in open(path):
-        if line.strip():
-            r = json.loads(line)
-            seen[r.get("trial_id")] = r        # last write wins, as solo does
-    rows = list(seen.values())
-    for r in rows:
-        r["condition"] = r.get("condition", condition)
-        r["position"] = r["seq"].rsplit("_", 1)[0]
-        r["face"] = r["true_pose"]
-    return rows
-
-ROWS = load_run(CONGRUENT_OUT, "congruent") + load_run(DIMS_OUT, "dims")
-print("distinct trials loaded: %d" % len(ROWS))
+# load_run FILTERS TO MODELS and reports what it skipped; the reasoning is
+# in its docstring, in analysis/ex2/ex2_q_common.py, because cell 15 applies
+# the same rules to the no-image rows and two copies would drift.
+_c_rows, _c_skip = load_run(CONGRUENT_OUT, "congruent", MODELS)
+_d_rows, _d_skip = load_run(DIMS_OUT, "dims", MODELS)
+ROWS = _c_rows + _d_rows
+SKIPPED_MODELS = _c_skip + _d_skip
+print("distinct trials loaded: %d  (models %s)"
+      % (len(ROWS), ", ".join(MODELS)))
+if SKIPPED_MODELS:
+    print("not in the design, left in the files and not counted below: %s"
+          % ", ".join("%s %d" % (m, n) for m, n in sorted(SKIPPED_MODELS.items())))
 
 flags = collections.Counter()
 for r in ROWS:
@@ -241,9 +226,10 @@ print("Nothing above is dropped. The analysis excludes declines from the")
 print("Franka-share denominator (cell 9) and reports them in cell 11; every")
 print("other flag is carried through so it can be inspected.")
 
-ANALYSED = [r for r in ROWS if not r.get("error")
-            and r.get("outcome") != "unparseable"
-            and r["position"] in USABLE]
+# The same three exclusions cell 15 applies to the no-image rows, from one
+# definition. A decline SURVIVES: it is cell 11's numerator, and it is
+# excluded from cell 9's denominator there rather than here.
+ANALYSED = keep_analysable(ROWS, USABLE)
 print()
 print("rows after removing errors and unparseables and restricting to the")
 print("%d usable positions: %d" % (len(USABLE), len(ANALYSED)))
@@ -258,18 +244,13 @@ Table 2. Declines are excluded from both numerator and denominator; they are
 reported separately in cell 11. Wilson bounds are on the proposal denominator."""
 
 C9 = r'''# --- Cell 9. Franka share by orientation. No model calls. -------------------
-def is_franka(arm):
-    return bool(arm) and arm.startswith("franka")
-
 share_rows = []
 for cond in CONDITIONS:
     for model in MODELS:
         for face in FACES:
             sub = [r for r in ANALYSED if r["condition"] == cond
                    and r["model"] == model and r["face"] == face]
-            proposals = [r for r in sub if r.get("arm")]
-            k = sum(1 for r in proposals if is_franka(r["arm"]))
-            n = len(proposals)
+            k, n = share_counts(sub)     # n is PROPOSALS, not trials
             lo, hi = wilson(k, n)
             share_rows.append([
                 cond, model, face, len({r["position"] for r in sub}), n, k,
@@ -307,12 +288,6 @@ C10 = r'''# --- Cell 10. Paired contrasts. No model calls. ---------------------
 # and this is where that loss lands.
 CONTRASTS = (("small_minus_large", "small_face", "large_face"),)
 
-def share_at(rows):
-    props = [r for r in rows if r.get("arm")]
-    if not props:
-        return None
-    return 100.0 * sum(1 for r in props if is_franka(r["arm"])) / len(props)
-
 bypos_rows, contrast_rows = [], []
 ratios = {}
 for cond in CONDITIONS:
@@ -320,23 +295,18 @@ for cond in CONDITIONS:
         base = [r for r in ANALYSED if r["condition"] == cond
                 and r["model"] == model]
         for name, a, b in CONTRASTS:
-            diffs = []
-            for pos in USABLE:
-                sa = share_at([r for r in base
-                               if r["position"] == pos and r["face"] == a])
-                sb = share_at([r for r in base
-                               if r["position"] == pos and r["face"] == b])
-                d = None if (sa is None or sb is None) else sa - sb
-                diffs.append(d)
-                bypos_rows.append([cond, model, pos, name,
-                                   "NA" if d is None else "%.1f" % d])
+            # One walk over USABLE feeds both the by-position table and the
+            # interval, in one order, so the two cannot disagree about which
+            # position is which.
+            pairs = paired_diffs(base, USABLE, a, b)
+            diffs = [d for _, d in pairs]
+            bypos_rows += [[cond, model, pos, name, fmt(d)] for pos, d in pairs]
             mean, plo, phi, npos = paired_mean_ci(diffs)
 
             # The unpaired comparison the spec asked for, pooled over proposals.
-            pa = [r for r in base if r["face"] == a and r.get("arm")]
-            pb = [r for r in base if r["face"] == b and r.get("arm")]
-            nlo, nhi = newcombe(sum(1 for r in pa if is_franka(r["arm"])), len(pa),
-                                sum(1 for r in pb if is_franka(r["arm"])), len(pb))
+            ka, na = share_counts([r for r in base if r["face"] == a])
+            kb, nb = share_counts([r for r in base if r["face"] == b])
+            nlo, nhi = newcombe(ka, na, kb, nb)
             contrast_rows.append([cond, model, name, npos,
                                   "%.1f" % mean if mean == mean else "NA",
                                   "%.1f" % nlo if nlo == nlo else "NA",
@@ -392,8 +362,15 @@ for model in MODELS:
     sm_zero = [r for r in row if r[2] == "small_minus_large"][0][9]
     crow = [r for r in contrast_rows if r[0] == "congruent" and r[1] == model]
     c_zero = [r for r in crow if r[2] == "small_minus_large"][0][9]
+    # Branch on the POSITION COUNT, not on spans_zero. spans_zero(nan, nan)
+    # is True by design, so a model with no rows at all used to fall through
+    # to "cannot obtain it from the scene" -- a reading manufactured from no
+    # data, printed in the same words as a real null.
+    npos = [r for r in row if r[2] == "small_minus_large"][0][3]
 
-    if not sm_zero:
+    if not npos:
+        v = "NOT RUN. No position carries this contrast for this model."
+    elif not sm_zero:
         v = "obtains the opening from the geometry in the scene"
     elif not c_zero:
         v = ("applies the rule when given the opening but cannot obtain it "
@@ -403,6 +380,20 @@ for model in MODELS:
              "result for this model is uninterpretable")
     print("  %-8s small-large %s" %
           (model, "NA" if d_sm != d_sm else "%+.1f" % d_sm))
+    # A cell where every position gives the same difference has zero
+    # variance, so its t interval collapses to zero width and reads as a
+    # precision no sample of 32 supports. Say how many positions flipped
+    # instead; that is the quantity with an honest interval on it.
+    if npos:
+        _d = [d for _, d in paired_diffs(
+            [r for r in ANALYSED if r["condition"] == "dims"
+             and r["model"] == model], USABLE, "small_face", "large_face")]
+        _k, _n = full_flip_count(_d)
+        if _k == _n and _n:
+            _lo, _hi = wilson(_k, _n)
+            print("           saturated: %d of %d positions flipped "
+                  "completely, Wilson [%.1f, %.1f]. Quote that, not the "
+                  "zero-width t interval." % (_k, _n, _lo, _hi))
     print("           -> %s" % v)
     if not sm_zero:
         print("              CANNOT BE DISTINGUISHED from a model that reads")
@@ -500,23 +491,43 @@ for cond in CONDITIONS:
                   "arm consistent with own report %2d"
                   % (model, face, len(stated), len(sub), len(right), consistent))
 
-# One figure: does the arm follow the reported opening, whatever the truth?
+# COUPLING, BOTH WAYS. This asked only whether the named arm COULD SPAN the
+# reported opening until 2026-08-28. A UR opens to 0.140 and every opening
+# in this design is 0.050 or 0.100, so every reply naming a UR passed
+# automatically, only Franka choices were ever tested, and it read 100
+# percent in every cell. A statistic at ceiling whenever the safe arm is
+# chosen cannot tell "the arm follows the report" from "this model always
+# picks the wide arm", which is exactly the distinction the sentence under
+# it claimed to be making.
+#
+# Agreement is now two-directional, and the two ways of disagreeing mean
+# different things, so they are reported apart rather than summed.
 print()
 print("=" * 70)
 print("COUPLING between the reported opening and the arm chosen")
 print("=" * 70)
+couple_rows = []
 for cond in CONDITIONS:
     for model in MODELS:
         sub = [r for r in ANALYSED if r["condition"] == cond
-               and r["model"] == model and r.get("arm") in C.ARMS
-               and r.get("opening_needed_m") is not None]
-        agree = sum(1 for r in sub
-                    if (r["opening_needed_m"]
-                        <= C.ARM_TYPES[C.ARMS[r["arm"]]["type"]]["max_grasp_m"] + 1e-9))
-        print("  %-10s %-8s %d of %d replies name an arm that can span the"
-              " opening they reported (%.1f%%)"
-              % (cond, model, agree, len(sub),
-                 100.0 * agree / len(sub) if sub else float("nan")))
+               and r["model"] == model]
+        agree, n, over_reach, over_cautious = coupling(sub, FRANKA_MAX)
+        lo, hi = wilson(agree, n)
+        couple_rows.append([cond, model, n, agree, fmt(pct(agree, n)),
+                            fmt(lo), fmt(hi), over_reach, over_cautious])
+show(["condition", "model", "coupled", "agree", "agree%", "lo", "hi",
+      "said_wide_chose_franka", "said_narrow_chose_ur"], couple_rows)
+print()
+print("Read the two disagreement columns, not the percentage alone.")
+print("  said_wide_chose_franka   the arm cannot close on the opening the")
+print("                           model itself reported. Arithmetic, not")
+print("                           judgement; grade.self_contradicted counts")
+print("                           the same event on the row.")
+print("  said_narrow_chose_ur     nothing is violated, but the arm does not")
+print("                           follow the report either: an opening a")
+print("                           Franka fits, and no Franka named. The old")
+print("                           statistic scored every one of these as")
+print("                           agreement.")
 print()
 print("A model whose arm follows its own reported opening is applying the")
 print("rule; where it fails, the failure is in obtaining the opening. A model")
@@ -525,7 +536,7 @@ print("apart, which is a different finding.")'''
 
 MD13 = r"""## Cell 13. Figure
 
-Franka share by orientation, both conditions, both models, with intervals and
+Franka share by orientation, every condition and every model, with intervals and
 a reference line at the level a model indifferent between arm types would
 produce.
 
@@ -557,7 +568,23 @@ print("wrote", rel(fig_csv))
 # --- TikZ, self-contained, no pgfplots --------------------------------------
 PANEL_W, PANEL_H, GAP = 5.2, 4.2, 1.4
 BAR_W, GROUP_GAP = 0.42, 0.30
-COLOURS = {"gemini": "q1blue", "gpt": "q1teal"}
+# One colour per model, and EVERY model needs its own. These were two
+# entries with a .get(..., "q1blue") default until claude was added on
+# 2026-08-27, at which point the default would have drawn claude in
+# gemini's blue: a legend naming three models over bars showing two
+# colours, which misreads as a duplicated series rather than a missing
+# definition. The assertion below is what makes that impossible.
+COLOURS = {"gpt_hi": "q1teal", "gpt": "q1teal", "gemini": "q1blue",
+           "claude_md": "q1amber", "claude": "q1amber"}
+_uncoloured = [m for m in MODELS if m not in COLOURS]
+if _uncoloured:
+    raise AssertionError(
+        "no colour defined for %s. Add one to COLOURS and a matching "
+        "\\definecolor below; two models sharing a colour makes the figure "
+        "wrong in a way that reads as a result." % _uncoloured)
+if len({COLOURS[m] for m in MODELS}) != len(MODELS):
+    raise AssertionError("two models share a colour: %s"
+                         % {m: COLOURS[m] for m in MODELS})
 
 def y(pct):
     return PANEL_H * pct / 100.0
@@ -565,10 +592,11 @@ def y(pct):
 lines = [
     "% Experiment 2, Q1. Franka share by resting face.",
     "% Generated by notebooks/ex2_q1_derivation.ipynb -- do not hand-edit.",
-    "% Swap the three colour definitions for the thesis includes.tex names.",
+    "% Swap the four colour definitions for the thesis includes.tex names.",
     "\\begin{tikzpicture}[x=1cm,y=1cm,font=\\small]",
     "\\definecolor{q1blue}{RGB}{59,110,165}",
     "\\definecolor{q1teal}{RGB}{62,150,146}",
+    "\\definecolor{q1amber}{RGB}{198,124,58}",
     "\\definecolor{q1rule}{RGB}{140,140,140}",
 ]
 for pi, cond in enumerate(CONDITIONS):
@@ -600,7 +628,7 @@ for pi, cond in enumerate(CONDITIONS):
                 continue
             share, lo, hi = m[0][3], m[0][4], m[0][5]
             bx = cx + (mi - (len(MODELS) - 1) / 2.0) * (BAR_W + 0.06)
-            col = COLOURS.get(model, "q1blue")
+            col = COLOURS[model]
             lines.append("\\fill[%s] (%.2f,0) rectangle (%.2f,%.2f);"
                          % (col, bx - BAR_W / 2, bx + BAR_W / 2, y(share)))
             lines.append("\\draw[q1rule,thick] (%.2f,%.2f) -- (%.2f,%.2f);"
@@ -614,7 +642,7 @@ legx = (len(CONDITIONS) - 1) * (PANEL_W + GAP) + PANEL_W + 0.35
 for mi, model in enumerate(MODELS):
     ly = PANEL_H - 0.4 * mi
     lines.append("\\fill[%s] (%.2f,%.2f) rectangle (%.2f,%.2f);"
-                 % (COLOURS.get(model, "q1blue"), legx, ly, legx + 0.3, ly + 0.22))
+                 % (COLOURS[model], legx, ly, legx + 0.3, ly + 0.22))
     lines.append("\\node[anchor=west] at (%.2f,%.2f) {%s};"
                  % (legx + 0.38, ly + 0.11, model))
 lines.append("\\node[anchor=west,q1rule] at (%.2f,%.2f) "
@@ -627,7 +655,7 @@ fig_tex = FIGURES / "fig_ex2_q1_share.tex"
 fig_tex.write_text("\n".join(lines) + "\n")
 print("wrote", rel(fig_tex), "(%d lines)" % len(lines))
 print()
-print("Compile inside the thesis with \\input{}. It needs only tikz; the three")
+print("Compile inside the thesis with \\input{}. It needs only tikz; the four")
 print("\\definecolor lines are local so the picture stands alone, and should be")
 print("deleted once includes.tex supplies the palette.")'''
 
@@ -640,14 +668,6 @@ can be traced back."""
 C14 = r'''# --- Cell 14. Provenance. No model calls. -----------------------------------
 prov = []
 today = datetime.date.today().isoformat()
-
-def run_meta(path):
-    if not pathlib.Path(path).exists():
-        return 0, "", ""
-    rows = [json.loads(l) for l in open(path) if l.strip()]
-    vers = sorted({r.get("ex2_prompt_version") for r in rows if r.get("ex2_prompt_version")})
-    mods = sorted({r.get("model") for r in rows if r.get("model")})
-    return len(rows), ";".join(vers), ";".join(mods)
 
 for role, path in (("captures", CAPTURES / "consults.jsonl"),
                    ("congruent", CONGRUENT_OUT),
@@ -721,3 +741,200 @@ print("   it from geometric derivation. State that in Limitations.")
 print("6. Contrasts are paired within position; the quoted interval is the")
 print("   t interval over positions, not Newcombe. Both are in the CSV.")
 print("7. Prompt version %s. Rung %s only." % (P.EX2_PROMPT_VERSION, RUNG))'''
+
+
+# ---------------------------------------------------------------------------
+# Cell 7b: the same dims condition with the picture withheld, and cell 15,
+# which reads it. Added 2026-08-28.
+# ---------------------------------------------------------------------------
+
+MD7B = r"""## Cell 7b. Dims at N0, with no image
+
+**Makes model calls.** The same condition, sample, models and repeat count as
+cell 7, with the picture withheld. This is the floor the dims result has to be
+read against: whatever a model gets right with no image at all is what the
+structured text alone supports.
+
+Under `dims` the two resting faces are **indistinguishable in text**, so the
+contrast measured here is zero by construction and what the cell actually
+records is how far a model's answer moves when nothing it can see has moved.
+The read-out is cell 15, at the end, so that it can reuse cell 8's loader and
+cell 9's definition of Franka share rather than keeping a second copy that
+could drift from them."""
+
+C7B = r'''# --- Cell 7b. Dims at N0, NO IMAGE. MAKES MODEL CALLS. ----------------------
+NOIMAGE_OUT = RUNS / "ex2_q1_dims_N0_noimage.jsonl"
+
+# THE FLOOR FOR CELL 7. Modality "A" renders the same state and attaches no
+# image. Whatever a model gets right here is what the structured text alone
+# supports, so cell 10's dims contrast has to be read against it: a contrast
+# that survives with no picture was never evidence that the model looked.
+#
+# THE TWO FACES ARE INDISTINGUISHABLE HERE, BY CONSTRUCTION. dims withholds
+# resting_face and opening_needed_m, and size_upright_m is quoted in the
+# standing frame whichever way the block actually rests, so at one position
+# the only difference between the small_face prompt and the large_face
+# prompt is the queued task's id. Checked by rendering both and diffing
+# them, not assumed. The expected contrast is therefore ZERO and this cell
+# measures how much an answer moves when nothing the model can see moves.
+# That is the number cell 10's dims contrast has to be bigger than.
+#
+# BOTH FACES AND THREE REPEATS ANYWAY, rather than half the calls. Grading,
+# legality and the Franka share are keyed on the TRUE pose, which the frozen
+# state carries whether or not the text mentions it, so asking under both
+# labels is what makes this floor comparable cell for cell with cell 7. Half
+# the calls would give a floor computed over a different denominator than
+# the number it is a floor for.
+#
+# ITS OWN FILE. The modality is part of the trial_id, so these rows could
+# not collide with cell 7's even inside one file. They are still kept apart,
+# because cell 8 reads DIMS_OUT whole: a text-only row landing there would
+# be folded into the vision condition and would move every table below
+# without appearing anywhere as a decision.
+#
+# REPEATS IS BOUND LOCALLY, not inherited. Cell 7 rebinds REPEATS for its
+# own top-up, so a bare REPEATS here would collect whatever the last cell to
+# run happened to leave behind, which is the one way this cell could quietly
+# under-sample.
+NOIMAGE_REPEATS = 3
+
+n_calls = len(CALL_SCENES) * len(MODELS) * NOIMAGE_REPEATS
+print("COST: %d scenes x %d models x %d repeats = %d calls"
+      % (len(CALL_SCENES), len(MODELS), NOIMAGE_REPEATS, n_calls))
+print("      %d usable positions x %d faces = %d scenes, plus the excluded"
+      % (len(USABLE), len(FACES), len(USABLE) * len(FACES)))
+print("      ones, asked for cell 7's reason and dropped in cell 15.")
+print("      No image is attached, so these are the cheapest calls in the")
+print("      notebook per trial. solo.cost_table reports what they cost.")
+
+CONFIRM_SPEND = None           # <-- set to the number in the COST line
+
+if spend_gate(n_calls, CONFIRM_SPEND, NOIMAGE_OUT,
+              factors=(("scenes", len(CALL_SCENES)), ("models", len(MODELS)),
+                       ("repeats", NOIMAGE_REPEATS))):
+    S.run(str(CAPTURES), out_path=str(NOIMAGE_OUT), models=MODELS,
+          conditions=("dims",), preferences=(PREFERENCE,),
+          rungs=(RUNG,), modalities=("A",), kind="pair",
+          repeats=NOIMAGE_REPEATS)
+    print("answered now:", answered(NOIMAGE_OUT))'''
+
+
+MD15 = r"""## Cell 15. The no-image floor
+
+No model calls. Reads cell 7b's file and puts it beside the vision result.
+
+Two things are being asked. First, does the dims contrast need the picture:
+the floor contrast should be indistinguishable from zero, because the two
+prompts differ only in a task id, and a floor that is **not** zero is an
+instrument fault rather than a finding. Second, what does a model do when the
+opening is genuinely unavailable, since waiting is the defensible answer there
+and R3 cannot be satisfied for either arm."""
+
+C15 = r'''# --- Cell 15. The no-image floor. No model calls. ---------------------------
+# Every helper here is the one cells 8, 9 and 10 use, imported from
+# analysis/ex2/ex2_q_common.py. A floor computed by a different rule than
+# the number it is a floor for is not a floor, and that is now enforced by
+# there being one definition rather than a comment promising there are two.
+NOIMAGE_ROWS, NOIMAGE_SKIPPED = load_run(NOIMAGE_OUT, "dims_noimage", MODELS)
+NOIMAGE = keep_analysable(NOIMAGE_ROWS, USABLE)
+print("no-image rows kept: %d   expected %d positions x %d faces x %d models"
+      " x %d reps = %d"
+      % (len(NOIMAGE), len(USABLE), len(FACES), len(MODELS), NOIMAGE_REPEATS,
+         len(USABLE) * len(FACES) * len(MODELS) * NOIMAGE_REPEATS))
+if NOIMAGE_SKIPPED:
+    print("not in the design, left in the file and not counted: %s"
+          % ", ".join("%s %d" % (m, n)
+                      for m, n in sorted(NOIMAGE_SKIPPED.items())))
+
+if not NOIMAGE:
+    print()
+    print("Cell 7b has not been run, so there is no floor to report and the")
+    print("dims contrast in cell 10 stands without one. Nothing below runs.")
+else:
+    # --- share by face, exactly as cell 9 computes it ------------------------
+    floor_share = []
+    for model in MODELS:
+        for face in FACES:
+            sub = [r for r in NOIMAGE
+                   if r["model"] == model and r["face"] == face]
+            k, n = share_counts(sub)
+            lo, hi = wilson(k, n)
+            floor_share.append([
+                model, face, len({r["position"] for r in sub}), len(sub), n,
+                len(sub) - n, k,
+                "%.1f" % (100.0 * k / n) if n else "NA",
+                "%.1f" % lo if n else "NA", "%.1f" % hi if n else "NA"])
+
+    show(["model", "face", "pos", "trials", "proposals", "declines", "franka",
+          "share%", "lo", "hi"], floor_share)
+    write_csv("tab_ex2_q1_noimage_share.csv",
+              ["model", "resting_face", "n_positions", "n_trials",
+               "n_proposals", "declines_n", "franka_n", "franka_share_pct",
+               "wilson_lo", "wilson_hi"], floor_share)
+
+    # --- the contrast, paired within position as cell 10 pairs it -----------
+    print()
+    floor_contrast = []
+    for model in MODELS:
+        base = [r for r in NOIMAGE if r["model"] == model]
+        diffs = [d for _, d in paired_diffs(base, USABLE,
+                                            "small_face", "large_face")]
+        mean, plo, phi, npos = paired_mean_ci(diffs)
+        vis = ratios.get(("dims", model, "small_minus_large"))
+        floor_contrast.append([
+            model, npos,
+            "%.1f" % mean if mean == mean else "NA",
+            "%.1f" % plo if plo == plo else "NA",
+            "%.1f" % phi if phi == phi else "NA",
+            spans_zero(plo, phi),
+            "%.1f" % vis if (vis is not None and vis == vis) else "NA"])
+
+    show(["model", "npos", "floor", "paired_lo", "paired_hi", "spans0",
+          "with_image"], floor_contrast)
+    write_csv("tab_ex2_q1_noimage_contrast.csv",
+              ["model", "n_positions", "floor_contrast_pts", "paired_lo",
+               "paired_hi", "spans_zero", "vision_contrast_pts"],
+              floor_contrast)
+
+    # --- what each model's pair of numbers means ----------------------------
+    print()
+    print("=" * 70)
+    print("READING, per model")
+    print("=" * 70)
+    for row in floor_contrast:
+        model, floor_spans, vis = row[0], row[5], row[6]
+        vrow = [r for r in contrast_rows
+                if r[0] == "dims" and r[1] == model
+                and r[2] == "small_minus_large"]
+        vis_spans = vrow[0][9] if vrow else True
+        print("  %-9s floor %s   with image %s" % (model, row[2], vis))
+        if not floor_spans:
+            print("           -> INSTRUMENT FAULT, not a result. The two")
+            print("              prompts differ only in a task id, so a")
+            print("              contrast here cannot come from the design.")
+            print("              Do not quote this model's dims contrast")
+            print("              until this is explained.")
+        elif not vis_spans:
+            print("           -> the contrast needs the picture: nothing")
+            print("              without it, an effect with it.")
+        else:
+            print("           -> null either way. This model shows no")
+            print("              contrast with the image and none without,")
+            print("              so the image is not what it is missing.")
+
+    # --- declining is the defensible answer here ----------------------------
+    print()
+    print("=" * 70)
+    print("DECLINE RATE with no image")
+    print("=" * 70)
+    print("R3 cannot be satisfied for either arm here: the opening is not")
+    print("stated and there is no picture to obtain it from, so waiting is")
+    print("the defensible answer and naming an arm is a guess. A model that")
+    print("declines is not failing this cell.")
+    for model in MODELS:
+        sub = [r for r in NOIMAGE if r["model"] == model]
+        d = sum(1 for r in sub if not r.get("arm"))
+        lo, hi = wilson(d, len(sub))
+        print("  %-9s %3d of %3d declined = %5.1f%% [%.1f, %.1f]"
+              % (model, d, len(sub), 100.0 * d / len(sub) if sub else float("nan"),
+                 lo, hi))'''

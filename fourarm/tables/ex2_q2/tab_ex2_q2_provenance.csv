@@ -1,0 +1,5 @@
+role,path,rows,sha256,prompt_version,model_string,run_date
+captures,out/ex2_capture_block/consults.jsonl,102,b1579d5d8d1fcb53b09c60f285a1f1a52489908badd6f504b5b664fbdba42dba,2026-08-27b,,2026-08-28
+congruent,runs/ex2_q1_congruent_N0.jsonl,626,ff8833e493a292b1ca5fe0f286481916ead3d90b56b481d4dac9f5a9d247acce,2026-08-27b,claude_md;gemini;gpt_hi,2026-08-28
+conflict,runs/ex2_q2_conflict_N0.jsonl,612,f8be5e5da135922683560f04a5c53f7b90ccdecd06056898b0b1c28f986ec7a8,2026-08-27b,claude_md;gemini;gpt_hi,2026-08-28
+dims,runs/ex2_q1_dims_N0.jsonl,615,01a58e0f75577512968dbebff622aaa9e8de6b9674bfde0b7ef40bf979c66889,2026-08-27b,claude_md;gemini;gpt_hi,2026-08-28

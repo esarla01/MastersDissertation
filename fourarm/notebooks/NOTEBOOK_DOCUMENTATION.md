@@ -21,9 +21,25 @@ export GEMINI_API_KEY='...'      # for the `gemini` alias
 Then run cells 1–4 (free), read the cost printed by cell 5, set
 `CONFIRM_SPEND` in that cell to the number it printed, and run it.
 
-**Use `../.venv/bin/python`.** It is the only interpreter in the project with
-`ipykernel` installed. The system `python3` can import the project stack but
-cannot host a Jupyter kernel.
+**Use the `Masters Dissertation (fourarm)` kernel.** It is registered at
+`~/Library/Jupyter/kernels/fourarm` and points at `.venv/bin/python` by
+absolute path. That venv is the only interpreter in the tree with `ipykernel`
+*and* numpy, PIL and scipy, which `visibility.py` needs in cell 3.
+
+Two notebooks selecting the same kernel still get **separate kernel
+processes** -- a kernelspec is a template, not a session -- so Q1 and Q2 can
+run side by side on it without interfering.
+
+**Why a named kernel rather than the default one.** The spec inside the venv
+had `"argv": ["python", ...]`, a bare name resolved against whatever PATH the
+launcher happened to have, so it could start a completely different
+interpreter while presenting itself as the project kernel. That is what a
+`No module named 'numpy'` forty lines inside `state_builder` looks like. Both
+specs now name the interpreter absolutely, and cell 1 checks for numpy, PIL
+and scipy before the first project import and says which interpreter it is on
+if any are missing.
+
+To remove the named kernel: `jupyter kernelspec uninstall fourarm`.
 
 ---
 
@@ -199,10 +215,11 @@ produces.
 | 2 Design check | – | `tab_ex2_q1_design.csv` |
 | 3 Capture inventory + legality | – | `tab_ex2_q1_inventory.csv` |
 | 4 Prompt inspection | – | – |
-| 5 Cue validation | **180** | `runs/ex2_q1_cue_<model>_r<n>.jsonl` (6 files) |
+| 5 Cue validation | **360**, 180 already answered | `runs/ex2_q1_cue2way_<model>_r<n>.jsonl` (9 files) |
 | 5b Cue results | – | `tab_ex2_q1_cue.csv`, `tab_ex2_q1_cue_confusion.csv` |
-| 6 Congruent N0 | **540** | `runs/ex2_q1_congruent_N0.jsonl` |
-| 7 Dims N0 | **540** | `runs/ex2_q1_dims_N0.jsonl` |
+| 6 Congruent N0 | **612** | `runs/ex2_q1_congruent_N0.jsonl` |
+| 7 Dims N0 | **612** | `runs/ex2_q1_dims_N0.jsonl` |
+| 7b Dims N0, no image | **612** | `runs/ex2_q1_dims_N0_noimage.jsonl` |
 | 8 Load and validate | – | – |
 | 9 Franka share | – | `tab_ex2_q1_share.csv` |
 | 10 Paired contrasts | – | `tab_ex2_q1_contrasts.csv`, `..._bypos.csv` |
@@ -210,12 +227,46 @@ produces.
 | 12 Reported opening | – | – (inline) |
 | 13 Figure | – | `fig_ex2_q1_share.csv`, `fig_ex2_q1_share.tex` |
 | 14 Provenance | – | `tab_ex2_q1_provenance.csv` |
+| 15 No-image floor | – | `tab_ex2_q1_noimage_share.csv`, `..._contrast.csv` |
 
-**Total ≈ 1,260 calls.** Cells 1–4 and 8–14 are free; only 5, 6 and 7 spend.
+**Total 2,196 calls** at three models and 34 captured positions, of which 180
+are already on disk, so a fresh run costs 2,016. Cells 1 to 4,
+5b and 8 to 15 are free. Only 5, 6, 7 and 7b spend.
 
-Cells 5, 6 and 7 each require `CONFIRM_SPEND` to be set to the exact number
-they print. Cells 6 and 7 also skip entirely if the output file already holds
-at least that many rows.
+Cells 5, 6, 7 and 7b each require `CONFIRM_SPEND` to be set to the exact
+number they print, and each prints a count computed from the models and
+scenes actually in the design rather than a number written into the doc. Cells
+6, 7 and 7b also skip entirely if the output file already holds at least that
+many answers.
+
+**Cell 7b is the floor for cell 7.** It renders the same `dims` condition over
+the same scenes with modality `A`, which attaches no image. Under `dims` the
+two resting faces are indistinguishable in text, so its contrast is zero by
+construction and what it measures is how far an answer moves when nothing the
+model can see moves. Cell 15 reads it against cell 10's figure. It writes its
+own file: the modality is part of the `trial_id` so the rows could not
+collide, but cell 8 reads `DIMS_OUT` whole and would fold text-only rows into
+the vision condition.
+
+### Where the machinery lives
+
+Since 2026-08-28 the loaders, the share definition, the paired contrast, the
+provenance row and the spend gate are in `analysis/ex2/ex2_q_common.py`, not in
+the cells, so Q2 and Q3 use the same ones rather than a second copy, and
+`harness/h_ex2_q_common.py` can pin them. What stays in a cell is what is a
+decision: the models, the rung, the conditions, the usable-position rule, each
+cell's own cost arithmetic, every `CONFIRM_SPEND`, and every verdict.
+
+The spend gate now also takes the factors that make up the total and refuses
+when they stop multiplying to it, so a rebound `REPEATS` is caught before the
+run rather than in a file a third of the size it should be.
+
+### The cue probe covers both banks
+
+`CUE_POSITIONS` was the first ten usable positions, which are all east because
+`e` sorts before `w`. It is now ten east and ten west. The east ten are the ones
+already collected, so the runners resume and only the west are new: the cell
+prints the full design size and the number of calls the run will actually add.
 
 ### Re-running is safe
 

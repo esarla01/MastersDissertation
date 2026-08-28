@@ -32,7 +32,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from core.decision.vlm_allocator import openai_chat   # REAL call path
+from core.decision.vlm_allocator import chat   # REAL call path
 
 PROBES = {
     "orientation": {
@@ -64,7 +64,7 @@ def extract_json(text):
         return None
 
 
-def ask(frame_path, question, model_fn=openai_chat, timeout=60.0):
+def ask(frame_path, question, model_fn=chat, timeout=60.0):
     with open(frame_path, "rb") as f:
         b64 = base64.b64encode(f.read()).decode("ascii")
     messages = [
@@ -80,7 +80,7 @@ def ask(frame_path, question, model_fn=openai_chat, timeout=60.0):
     return extract_json(model_fn(messages, timeout=timeout))
 
 
-def main(model_fn=openai_chat):
+def main(model_fn=chat):
     ap = argparse.ArgumentParser()
     ap.add_argument("frames", nargs="+", help="PNG frame paths")
     ap.add_argument("--probes", nargs="+", default=list(PROBES),

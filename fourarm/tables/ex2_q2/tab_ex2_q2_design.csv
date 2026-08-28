@@ -1,0 +1,3 @@
+direction,true_face,true_opening_m,declared_face,declared_opening_m,franka_legal_true,franka_legal_declared,legal_true,legal_declared
+text_forbids_franka,small_face,0.050,large_face,0.100,True,False,franka_n;ur_e,ur_e
+text_permits_franka,large_face,0.100,small_face,0.050,False,True,ur_e,franka_n;ur_e

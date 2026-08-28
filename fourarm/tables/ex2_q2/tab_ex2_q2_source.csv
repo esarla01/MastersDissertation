@@ -1,0 +1,19 @@
+model,direction,opening_source,n_trials,n,pct,wilson_lo,wilson_hi
+gpt_hi,text_permits_franka,matches image,96,0,0.0,0.0,3.8
+gpt_hi,text_permits_franka,matches text,96,96,100.0,96.2,100.0
+gpt_hi,text_permits_franka,neither,96,0,0.0,0.0,3.8
+gpt_hi,text_forbids_franka,matches image,96,0,0.0,0.0,3.8
+gpt_hi,text_forbids_franka,matches text,96,96,100.0,96.2,100.0
+gpt_hi,text_forbids_franka,neither,96,0,0.0,0.0,3.8
+gemini,text_permits_franka,matches image,96,0,0.0,0.0,3.8
+gemini,text_permits_franka,matches text,96,96,100.0,96.2,100.0
+gemini,text_permits_franka,neither,96,0,0.0,0.0,3.8
+gemini,text_forbids_franka,matches image,96,0,0.0,0.0,3.8
+gemini,text_forbids_franka,matches text,96,96,100.0,96.2,100.0
+gemini,text_forbids_franka,neither,96,0,0.0,0.0,3.8
+claude_md,text_permits_franka,matches image,96,0,0.0,0.0,3.8
+claude_md,text_permits_franka,matches text,96,96,100.0,96.2,100.0
+claude_md,text_permits_franka,neither,96,0,0.0,0.0,3.8
+claude_md,text_forbids_franka,matches image,96,0,0.0,0.0,3.8
+claude_md,text_forbids_franka,matches text,96,96,100.0,96.2,100.0
+claude_md,text_forbids_franka,neither,96,0,0.0,0.0,3.8

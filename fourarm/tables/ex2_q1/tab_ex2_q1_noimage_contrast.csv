@@ -1,0 +1,4 @@
+model,n_positions,floor_contrast_pts,paired_lo,paired_hi,spans_zero,vision_contrast_pts
+gpt_hi,32,-2.1,-7.1,2.9,True,2.1
+gemini,32,-6.2,-14.3,1.8,True,46.9
+claude_md,32,-3.1,-15.7,9.4,True,-10.4

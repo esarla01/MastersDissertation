@@ -161,6 +161,47 @@ Cells that spend money print the call count and refuse to run until
 a cell costs nothing and destroys nothing. Outputs go to `tables/ex2_q1/` and
 `figures/ex2_q1/`.
 
+## Question 2: precedence
+
+`notebooks/ex2_q2_precedence.ipynb` asks which source governs when the text
+states the capability-relevant quantity and the scene contradicts it. One new
+condition, `conflict`, already implemented in `transforms.py`: each face
+declares the other, so both the resting face and the opening are false and
+every trial crosses the Franka aperture.
+
+```bash
+python3 notebooks/build_q2_nb.py notebooks/ex2_q2_precedence.ipynb
+```
+
+**It shares cells with Q1 rather than copying them.** The key paste, the block
+geometry check and the capture inventory are Q1's own strings, spliced in by
+the build script; cell 1 is Q1's cell 1 with four declared substitutions. Each
+substitution must match exactly once or the build fails, so a rename in Q1
+that would leave Q2 pointing at Q1's tables stops the build instead of
+producing a wrong file quietly.
+
+**The direction names.** `transforms.py` records `permissive` when the *true*
+face is the all-arms one, so the text under-states the arms and forbids the
+Franka, which is the opposite of what the word suggests. The stored field is
+left alone, and every table names what the text does: `text_permits_franka`
+and `text_forbids_franka`. Use those two in the chapter as well.
+
+**The measure is Q1's, always anchored to the image.** Franka share on the
+`small_face` scene minus Franka share on the `large_face` scene, paired within
+position. Positive means the scene governed, negative means the text did.
+Negative is the expected result and is the finding.
+
+**`congruent` and `conflict` send byte-identical instructions**, because
+`prompts.CONDITIONS` maps both to the full glossary and the full R3. The whole
+manipulation is in the state, so no prompt difference can explain the
+contrast. Cell 5 asserts it rather than diffing it, and it belongs in the
+chapter for the same reason Experiment 1's byte-identical Full Information
+prompt does.
+
+Cell 6 is the only paid cell: 68 scenes x 3 models x 3 repeats = 612 calls.
+
+---
+
 **Three facts about the block captures that the chapter must disclose.**
 
 1. **The idle UR is chosen per position.** Every capture was

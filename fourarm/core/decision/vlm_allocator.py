@@ -39,7 +39,8 @@ from core.decision.model_registry import describe as describe_model, resolve
 
 
 # ---------------------------------------------------------------------------
-# Model client: one function, OpenAI-compatible chat completions.
+# Model clients: one per wire protocol, chosen by the alias, never by the
+# model name. chat() is the dispatcher every experiment should call.
 # ---------------------------------------------------------------------------
 
 def openai_chat(messages, timeout=30.0, alias=None,
@@ -82,6 +83,147 @@ def openai_chat(messages, timeout=30.0, alias=None,
         # wrong by an unknown factor and useless for reporting cost.
         return text, (data.get("usage") or {})
     return text
+
+
+ANTHROPIC_VERSION = "2023-06-01"
+
+# data:image/png;base64,AAAA...  ->  ("image/png", "AAAA...")
+_DATA_URI = re.compile(r"^data:([^;,]+);base64,(.*)$", re.S)
+
+
+def to_anthropic(messages):
+    """Translate OpenAI-shaped messages into Anthropic's shape.
+
+    Returns (system_text, messages). Pure: no I/O, no config, no network,
+    which is what lets it be tested for free. It is the one place a silent
+    shape error could hide, because a prompt that loses its image still
+    returns a plausible-looking answer and grades as a real trial.
+
+    Three differences are handled:
+
+      1. The system prompt is a top-level field, not a message. Anthropic
+         rejects role "system" inside messages, so it is lifted out. Every
+         EX2 prompt has exactly one, built by prompts.build_ex2_prompt.
+      2. An image is {"type": "image", "source": {...}} carrying the raw
+         base64 and its media type as separate fields, not an image_url
+         holding a data URI. The media type is read off the URI rather than
+         assumed to be PNG, so a future JPEG capture cannot be mislabelled.
+      3. Anything else in a content list passes through untouched, which
+         covers the text parts.
+
+    A content string (rather than a list) is passed through as-is; the
+    Anthropic API accepts a bare string for a user turn.
+    """
+    system, out = [], []
+    for msg in messages:
+        role = msg.get("role")
+        content = msg.get("content")
+        if role == "system":
+            system.append(content if isinstance(content, str)
+                          else json.dumps(content))
+            continue
+        if not isinstance(content, list):
+            out.append({"role": role, "content": content})
+            continue
+        parts = []
+        for part in content:
+            if part.get("type") != "image_url":
+                parts.append(part)
+                continue
+            url = (part.get("image_url") or {}).get("url", "")
+            hit = _DATA_URI.match(url)
+            if not hit:
+                raise ValueError(
+                    "an image_url part is not a base64 data URI, so it "
+                    "cannot be sent to Anthropic, which takes the bytes "
+                    "inline rather than fetching a URL. Got: %.60r" % url)
+            parts.append({"type": "image",
+                          "source": {"type": "base64",
+                                     "media_type": hit.group(1),
+                                     "data": hit.group(2)}})
+        out.append({"role": role, "content": parts})
+    return "\n\n".join(system), out
+
+
+def anthropic_chat(messages, timeout=30.0, alias=None,
+                   return_usage=False):
+    """POST messages to the Anthropic Messages API, return reply text.
+
+    Same signature and same contract as openai_chat, deliberately, so the
+    two are interchangeable behind chat() and so every harness fake and
+    every existing caller keeps working untouched.
+
+    max_tokens is REQUIRED by this API and has no default, so it comes from
+    {PREFIX}_PARAMS like every other request parameter. Sending temperature
+    would be a 400 on Sonnet 5 and later, which is exactly why parameters
+    live in config: qwen's temperature 0.0 must not follow a model here.
+
+    usage is remapped onto the OpenAI field names. Every row written since
+    EX2 began records prompt_tokens/completion_tokens/total_tokens, and
+    cost_table() sums those, so reporting Anthropic's own input_tokens and
+    output_tokens would silently blank the cost column for one model only.
+
+    NEVER raises TypeError. one_trial() probes for return_usage support with
+    a bare `except TypeError`, so a TypeError from inside this function
+    would be read as "this client has the old signature" and would trigger
+    a second, duplicate, paid call.
+    """
+    cfg = resolve(alias)
+    system, msgs = to_anthropic(messages)
+    payload = {"model": cfg["model"], "messages": msgs}
+    if system:
+        payload["system"] = system
+    payload.update(cfg["params"])
+    if "max_tokens" not in payload:
+        raise ValueError(
+            f"{cfg['alias']!r} needs max_tokens: the Anthropic API requires "
+            f"it and has no default. Add it to "
+            f"{cfg['alias'].upper()}_PARAMS in env/models.env.")
+    body = json.dumps(payload).encode("utf-8")
+    req = urllib.request.Request(
+        cfg["endpoint"], data=body, method="POST",
+        headers={"Content-Type": "application/json",
+                 "x-api-key": cfg["api_key"],
+                 "anthropic-version": ANTHROPIC_VERSION})
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        data = json.loads(resp.read().decode("utf-8"))
+
+    # A policy decline arrives as HTTP 200 with no text block. Raising puts
+    # it in the trial's `error` field, where it reads as what it is. Letting
+    # it through would grade an empty reply as an unparseable answer and
+    # count a refusal as a model failure.
+    if data.get("stop_reason") == "refusal":
+        raise RuntimeError(
+            "anthropic declined this request (stop_reason refusal, "
+            "category %r)" % ((data.get("stop_details") or {})
+                              .get("category"),))
+
+    blocks = [b for b in (data.get("content") or [])
+              if b.get("type") == "text"]
+    text = "".join(b.get("text", "") for b in blocks)
+    if return_usage:
+        u = data.get("usage") or {}
+        got = {}
+        if "input_tokens" in u or "output_tokens" in u:
+            pt = u.get("input_tokens") or 0
+            ct = u.get("output_tokens") or 0
+            got = {"prompt_tokens": pt, "completion_tokens": ct,
+                   "total_tokens": pt + ct}
+        return text, got
+    return text
+
+
+CLIENTS = {"openai": openai_chat, "anthropic": anthropic_chat}
+
+
+def chat(messages, timeout=30.0, alias=None, return_usage=False):
+    """Call whichever client the alias declares. The default model_fn.
+
+    Dispatch is on the registry's `api` field, so adding a provider is a
+    config line plus a client, never an edit to a run loop.
+    """
+    return CLIENTS[describe_model(alias)["api"]](
+        messages, timeout=timeout, alias=alias, return_usage=return_usage)
 
 
 # ---------------------------------------------------------------------------

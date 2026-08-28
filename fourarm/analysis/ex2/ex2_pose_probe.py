@@ -9,7 +9,7 @@ SEE the pose the rest of EX2 depends on. If it cannot, every downstream
 lying-vs-upright result is confounded, and we find that out here for pennies.
 
 The model call path is IMPORTED from the real allocator
-(`core.decision.vlm_allocator.openai_chat`), not reimplemented, so this runs
+(`core.decision.vlm_allocator.chat`), not reimplemented, so this runs
 against exactly the endpoint/model an episode would.
 
 GROUND TRUTH -- read this before trusting the filename.
@@ -53,7 +53,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from core.decision.vlm_allocator import openai_chat   # REAL call path
+from core.decision.vlm_allocator import chat   # REAL call path
 
 # Repo-relative default: fourarm/analysis/ -> fourarm/out/ex2_capture
 _REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -191,7 +191,7 @@ def extract_pose(text):
     return None, raw
 
 
-def ask(frame_path, model_fn=openai_chat, alias=None, timeout=60.0):
+def ask(frame_path, model_fn=chat, alias=None, timeout=60.0):
     with open(frame_path, "rb") as f:
         b64 = base64.b64encode(f.read()).decode("ascii")
     messages = [
@@ -262,7 +262,7 @@ def print_summary(rows):
 # Main
 # ---------------------------------------------------------------------------
 
-def main(model_fn=openai_chat):
+def main(model_fn=chat):
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("capture_dir", nargs="?", default=DEFAULT_CAPTURE,

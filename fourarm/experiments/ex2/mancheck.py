@@ -67,7 +67,7 @@ for _p in (_ROOT, os.path.join(_ROOT, "ycb")):
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
-from core.decision.vlm_allocator import openai_chat              # noqa: E402
+from core.decision.vlm_allocator import chat              # noqa: E402
 from experiments.ex2 import prompts as P                         # noqa: E402
 from experiments.ex2.labels import describe, require_face        # noqa: E402
 from experiments.ex2.run import VIEWS, load_scenes               # noqa: E402
@@ -208,7 +208,7 @@ def done_ids(out_path):
     return seen
 
 
-def ask(row, model, model_fn=openai_chat, timeout=60.0, retry_errors=True):
+def ask(row, model, model_fn=chat, timeout=60.0, retry_errors=True):
     """One call. Returns the row with reply, answer and correct filled in."""
     with open(row["image"], "rb") as f:
         b64 = base64.b64encode(f.read()).decode("ascii")
@@ -289,7 +289,7 @@ def format_summary(tally):
 
 
 def run(capture_dir, out_path=None, model=None, limit=None, dry_run=False,
-        views=VIEWS, seqs=None, model_fn=openai_chat, timeout=60.0,
+        views=VIEWS, seqs=None, model_fn=chat, timeout=60.0,
         retry_errors=True):
     # present_ur=False: this probe shows a picture and asks one question.
     # It never assigns an arm, so the idle set means nothing to it, and

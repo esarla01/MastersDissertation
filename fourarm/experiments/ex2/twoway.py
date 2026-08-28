@@ -56,7 +56,7 @@ for _p in (_ROOT, os.path.join(_ROOT, "ycb")):
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
-from core.decision.vlm_allocator import openai_chat              # noqa: E402
+from core.decision.vlm_allocator import chat              # noqa: E402
 from experiments.ex2 import mancheck as MC                       # noqa: E402
 from experiments.ex2 import transforms as T                      # noqa: E402
 from experiments.ex2.run import VIEWS, load_scenes               # noqa: E402
@@ -212,7 +212,7 @@ def check_id(row, model, form):
     return "%s|%s" % (MC.check_id(row, model), require_form(form))
 
 
-def ask(row, model, form, model_fn=openai_chat, timeout=60.0,
+def ask(row, model, form, model_fn=chat, timeout=60.0,
         retry_errors=True):
     """One call. Returns the row with reply, answer and correct filled."""
     require_form(form)
@@ -298,7 +298,7 @@ def format_summary(tally, form=None):
 
 
 def run(capture_dir, form, out_path=None, model=None, limit=None,
-        dry_run=False, views=VIEWS, seqs=None, model_fn=openai_chat,
+        dry_run=False, views=VIEWS, seqs=None, model_fn=chat,
         timeout=60.0, retry_errors=True):
     require_form(form)
     scenes = load_scenes(capture_dir, present_ur=False)

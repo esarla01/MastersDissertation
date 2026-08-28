@@ -1,0 +1,13 @@
+condition,model,direction,n_trials,declines_n,decline_rate_pct,wilson_lo,wilson_hi
+congruent,gpt_hi,all,192,0,0.0,0.0,2.0
+congruent,gemini,all,192,0,0.0,0.0,2.0
+congruent,claude_md,all,192,0,0.0,0.0,2.0
+conflict,gpt_hi,text_permits_franka,96,0,0.0,0.0,3.8
+conflict,gpt_hi,text_forbids_franka,96,0,0.0,0.0,3.8
+conflict,gemini,text_permits_franka,96,0,0.0,0.0,3.8
+conflict,gemini,text_forbids_franka,96,0,0.0,0.0,3.8
+conflict,claude_md,text_permits_franka,96,0,0.0,0.0,3.8
+conflict,claude_md,text_forbids_franka,96,0,0.0,0.0,3.8
+dims,gpt_hi,all,192,0,0.0,0.0,2.0
+dims,gemini,all,192,0,0.0,0.0,2.0
+dims,claude_md,all,192,0,0.0,0.0,2.0
