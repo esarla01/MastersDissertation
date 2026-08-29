@@ -1,4 +1,4 @@
 condition,model,contrast,n_positions,mean_diff_pts,newcombe_lo,newcombe_hi,paired_lo,paired_hi,spans_zero,reading,positions_full_flip,ratio_to_congruent
-conflict,gpt_hi,small_minus_large,32,-100.0,-100.0,-94.6,-100.0,-100.0,False,TRACKS THE TEXT,32/32,-1.00
-conflict,gemini,small_minus_large,32,-100.0,-100.0,-94.6,-100.0,-100.0,False,TRACKS THE TEXT,32/32,-1.00
-conflict,claude_md,small_minus_large,32,-100.0,-100.0,-94.6,-100.0,-100.0,False,TRACKS THE TEXT,32/32,-1.00
+conflict,gpt_hi,small_minus_large,32,-100.0,-100.0,-94.6,-100.0,-100.0,False,text (or R3 compliance),32/32,-1.00
+conflict,gemini,small_minus_large,32,-100.0,-100.0,-94.6,-100.0,-100.0,False,text (or R3 compliance),32/32,-1.00
+conflict,claude_md,small_minus_large,32,-100.0,-100.0,-94.6,-100.0,-100.0,False,text (or R3 compliance),32/32,-1.00

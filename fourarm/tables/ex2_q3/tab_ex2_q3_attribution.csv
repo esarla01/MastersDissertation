@@ -1,0 +1,3 @@
+condition,model,contrast,n_positions,mean_pts,paired_lo,paired_hi,reading
+dims,gemini,N-D_minus_N-C,32,0.0,0.0,0.0,spans zero
+dims,gemini,N-D_minus_N-order,32,59.4,42.1,76.7,positive

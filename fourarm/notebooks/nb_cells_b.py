@@ -192,10 +192,13 @@ C8 = r'''# --- Cell 8. Load and validate. No model calls. ----------------------
 # load_run FILTERS TO MODELS and reports what it skipped; the reasoning is
 # in its docstring, in analysis/ex2/ex2_q_common.py, because cell 15 applies
 # the same rules to the no-image rows and two copies would drift.
-_c_rows, _c_skip = load_run(CONGRUENT_OUT, "congruent", MODELS)
-_d_rows, _d_skip = load_run(DIMS_OUT, "dims", MODELS)
-ROWS = _c_rows + _d_rows
-SKIPPED_MODELS = _c_skip + _d_skip
+ROWS, SKIPPED_MODELS = [], collections.Counter()
+for _path, _cond in ((CONGRUENT_OUT, "congruent"),
+                     (CONGRUENT_FACE_OUT, "congruent_face"),
+                     (DIMS_OUT, "dims")):
+    _r, _s = load_run(_path, _cond, MODELS)
+    ROWS += _r
+    SKIPPED_MODELS += _s
 print("distinct trials loaded: %d  (models %s)"
       % (len(ROWS), ", ".join(MODELS)))
 if SKIPPED_MODELS:
@@ -938,3 +941,45 @@ else:
         print("  %-9s %3d of %3d declined = %5.1f%% [%.1f, %.1f]"
               % (model, d, len(sub), 100.0 * d / len(sub) if sub else float("nan"),
                  lo, hi))'''
+
+
+# ---------------------------------------------------------------------------
+# Cell 6b: the true face, with the opening withheld. Added 2026-08-28.
+# ---------------------------------------------------------------------------
+
+MD6B = r"""## Cell 6b. Congruent-face at N0
+
+**Makes model calls.** The **true** resting face is stated and
+`opening_needed_m` is withheld, so R3 renders in the form that names no field:
+*"That opening is not stated for this object."*
+
+This is Q1's question at one remove. `congruent` hands the model the number,
+`dims` gives it neither the number nor the face, and this sits between them:
+told the face truthfully, can the model get from a face to an opening? A model
+that scores here and fails `dims` can do the geometry but cannot read the
+orientation off the picture, which is a different failure from one that can do
+neither.
+
+It is also the matched ceiling for Q2's `conflict_face`: the two render
+byte-identical prompts and differ only in whether the stated face is true."""
+
+C6B = r'''# --- Cell 6b. Congruent-face, N0. MAKES MODEL CALLS. ------------------------
+CONGRUENT_FACE_OUT = RUNS / "ex2_q1_congruent_face_N0.jsonl"
+FACE_REPEATS = 1        # bound here, not REPEATS: one repeat settles a
+                        # saturated cell, and this one is expected to saturate
+
+n_calls = len(CALL_SCENES) * len(MODELS) * FACE_REPEATS
+print("COST: %d scenes x %d models x %d repeat = %d calls"
+      % (len(CALL_SCENES), len(MODELS), FACE_REPEATS, n_calls))
+print("      True face stated, opening withheld. R3 names no field here, so")
+print("      the model must derive the opening from the face it is given.")
+
+CONFIRM_SPEND = None            # <-- set to the number in the COST line
+
+if spend_gate(n_calls, CONFIRM_SPEND, CONGRUENT_FACE_OUT,
+              factors=(("scenes", len(CALL_SCENES)), ("models", len(MODELS)),
+                       ("repeats", FACE_REPEATS))):
+    S.run(str(CAPTURES), out_path=str(CONGRUENT_FACE_OUT), models=MODELS,
+          conditions=("congruent_face",), preferences=(PREFERENCE,),
+          rungs=(RUNG,), modalities=("V",), kind="pair", repeats=FACE_REPEATS)
+    print("answered now:", answered(CONGRUENT_FACE_OUT))'''

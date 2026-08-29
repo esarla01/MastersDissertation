@@ -160,7 +160,8 @@ from analysis.ex2.ex2_stats import newcombe, paired_mean_ci, spans_zero, wilson
 from analysis.ex2.ex2_q_common import (Outputs, answered,       # noqa
                                        coupling, fmt, full_flip_count,
                                        is_franka, keep_analysable,
-                                       load_run, paired_diffs, pct,
+                                       load_run, paired_delta,
+                                       paired_diffs, pct,
                                        provenance_row, run_meta,
                                        sha256, share_at, share_counts,
                                        show, spend_gate)
@@ -176,7 +177,7 @@ for d in (RUNS, TABLES, FIGURES):
 # --- constants, every one read from a source of truth ------------------------
 RUNG        = "N0"                       # Q1 is read here and nowhere else
 PREFERENCE  = "franka"
-CONDITIONS  = ("congruent", "dims")
+CONDITIONS  = ("congruent", "congruent_face", "dims")
 REPEATS     = 3
 FACES       = P.RESTING_FACES            # small_face, large_face
 LABEL       = "ycb_block"

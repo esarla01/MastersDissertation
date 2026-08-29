@@ -335,7 +335,39 @@ the information was available; this adds 576 where it provably was not. The
 calibration finding is now much stronger than a null: these models do not
 signal missing information, they guess.
 
-### 5.5 Declines and self-consistency
+### 5.5 Congruent-face: a stated true face, with the opening withheld
+
+Added 2026-08-28, 204 trials. The true resting face is stated and
+`opening_needed_m` is withheld, so R3 names no field and the model must get
+from a face to an opening. It sits between `congruent`, which hands over the
+number, and `dims`, which gives neither.
+
+| Model | congruent | **congruent_face** | dims |
+|---|---|---|---|
+| `gpt_hi` | +100.0 | **+87.5 [75.9, 99.1]** | +2.1 [-6.2, 10.3] |
+| `gemini` | +100.0 | **+100.0** | +46.9 [34.5, 59.3] |
+| `claude_md` | +100.0 | **+6.2 [-20.1, 32.6]** | -10.4 [-24.3, 3.5] |
+
+**This separates two failures `dims` alone could not tell apart.**
+
+**GPT can do the geometry and cannot read the orientation.** Handed a face it
+derives the opening almost perfectly; made to read the face off the picture it
+collapses to 2.1. That is a perception failure, not a derivation failure, and
+it retires the alternative reading that its `dims` null might be R3 being
+treated as unevaluable: it evaluates R3 fine when it has a face.
+
+**Claude cannot do the geometry at all.** Even told the face truthfully it sits
+at chance, 50.0 against 43.8, and in the `large_face` cells it named a Franka
+16 times on an object needing 0.100 m -- physically infeasible assignments,
+graded `illegal_both`. Its `dims` null was never about the picture.
+
+**Gemini does both**, perfectly on a stated face and at 46.9 when it has to
+read one.
+
+A three-way dissociation on one 204-call cell, and a considerably stronger
+claim than "one model of three derives".
+
+### 5.6 Declines and self-consistency
 
 Declines were zero in every cell, so Franka share reads at face value and the
 wait table can be replaced by one sentence. In the congruent condition every

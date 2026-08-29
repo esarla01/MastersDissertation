@@ -301,6 +301,11 @@ is "delicate", its height, width and depth measured standing on its smallest
 face, "size_upright_m", and the arms that can reach it,
 "arms_that_can_reach"."""
 
+_OBJECT_FIELDS_FACE = """Each object states which face it is resting on,
+"resting_face", its mass, "mass_kg", whether it is "delicate", its height,
+width and depth measured standing on its smallest face, "size_upright_m", and
+the arms that can reach it, "arms_that_can_reach". No opening is given."""
+
 _OBJECT_FIELDS_DIMS = """Each object states its mass, "mass_kg", whether it is "delicate", its height,
 width and depth measured standing on its smallest face, "size_upright_m", and
 the arms that can reach it, "arms_that_can_reach". No opening and no resting
@@ -406,10 +411,22 @@ _R3_DIMS = """R3  Gripper opening
     That opening is not stated for this object.
 """
 
+# "withheld" is per condition rather than a single DIMS_WITHHELD constant,
+# because there are now three withholding patterns, not two: nothing,
+# the opening alone, and both fields. render_state, the glossary assertion
+# and the R3 assertion all read it from here, so a new condition cannot be
+# added that renders a field the prompt does not gloss.
 CONDITIONS = {
-    "congruent": {"object_fields": _OBJECT_FIELDS_FULL, "r3": _R3_FULL},
-    "conflict":  {"object_fields": _OBJECT_FIELDS_FULL, "r3": _R3_FULL},
-    "dims":      {"object_fields": _OBJECT_FIELDS_DIMS, "r3": _R3_DIMS},
+    "congruent":     {"object_fields": _OBJECT_FIELDS_FULL, "r3": _R3_FULL,
+                      "withheld": ()},
+    "conflict":      {"object_fields": _OBJECT_FIELDS_FULL, "r3": _R3_FULL,
+                      "withheld": ()},
+    "congruent_face": {"object_fields": _OBJECT_FIELDS_FACE, "r3": _R3_DIMS,
+                       "withheld": ("opening_needed_m",)},
+    "conflict_face": {"object_fields": _OBJECT_FIELDS_FACE, "r3": _R3_DIMS,
+                      "withheld": ("opening_needed_m",)},
+    "dims":          {"object_fields": _OBJECT_FIELDS_DIMS, "r3": _R3_DIMS,
+                      "withheld": DIMS_WITHHELD},
 }
 
 # The wording stays flat. "Prefer a Franka unless it cannot handle the
@@ -652,8 +669,7 @@ def render_state(state, condition, dims_frame="named"):
     if condition not in CONDITIONS:
         raise ValueError(f"unknown condition {condition!r}")
     body = apply_aliases(trim_state(state))
-    if condition == "dims":
-        body = withhold(body, DIMS_WITHHELD)
+    body = withhold(body, CONDITIONS[condition]["withheld"])
     if dims_frame == "extents":
         body = as_extents(body)
     elif dims_frame not in DIMS_FRAMES:
@@ -783,7 +799,7 @@ def assert_glossary_matches_state(condition):
     # the opening in every condition, including dims where the state does not
     # supply it, and the schema tail defines it there.
     text = text[:text.index("\nYOUR ANSWER")]
-    absent = DIMS_WITHHELD if condition == "dims" else ()
+    absent = CONDITIONS[condition]["withheld"]
     for name in FIELD_ALIASES.values():
         named = ('"%s"' % name) in text
         if name in absent and named:
@@ -809,13 +825,14 @@ def assert_r3_matches_state(condition):
     text = system_prompt("N0", condition)
     r3 = text[text.index("R3  Gripper opening"):text.index("R4  Load")]
     names_field = '"opening_needed_m"' in r3
-    if condition == "dims" and names_field:
+    withheld = "opening_needed_m" in CONDITIONS[condition]["withheld"]
+    if withheld and names_field:
         raise ValueError(
-            "R3 names opening_needed_m in dims, where the field is "
-            "withheld. A model could read the rule as inapplicable, and "
-            "that would score as a derivation failure while being a "
-            "rule-reading failure.")
-    if condition != "dims" and not names_field:
+            f"R3 names opening_needed_m in {condition}, where the field is "
+            f"withheld. A model could read the rule as inapplicable, and "
+            f"that would score as a derivation failure while being a "
+            f"rule-reading failure.")
+    if not withheld and not names_field:
         raise ValueError(f"R3 does not name opening_needed_m in {condition}.")
     return True
 

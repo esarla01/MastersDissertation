@@ -227,7 +227,7 @@ def table(rows):
     an artefact rather than a signal.
     """
     out = []
-    head = ("%-6s %-10s %-10s %-5s %-4s %-34s | %-12s | %s"
+    head = ("%-10s %-10s %-14s %-11s %-4s %-34s | %-12s | %s"
             % ("model", "pref/rung", "condition", "pose", "n", "outcomes",
                "infeasible", "arms"))
     out += [head, "-" * max(len(head), 70)]
@@ -238,9 +238,19 @@ def table(rows):
     # postures, and a hardcoded ("lying", "upright") silently dropped every
     # block row from the table rather than reporting an empty cell.
     poses = sorted({r["true_pose"] for r in rows})
+    # AND THE CONDITIONS, for the same reason and after the same bug. This
+    # loop read the module-level CONDITIONS, which is the DEFAULT SWEEP for
+    # run() and not a list of everything that exists: a row in any condition
+    # outside it was skipped by `continue`, so a congruent_face run printed
+    # a header, no rows, and a reasoning line, which looks like a broken
+    # formatter rather than a filter. Canonical order where known, then
+    # anything else, so nothing can be dropped.
+    _present = {r["condition"] for r in rows}
+    conds = ([c for c in T.CONDITIONS if c in _present]
+             + sorted(_present - set(T.CONDITIONS)))
     for model in sorted({r["model"] for r in rows}):
       for pref, rung in prefs:
-        for cond in CONDITIONS:
+        for cond in conds:
             for pose in poses:
                 sub = [r for r in rows if r["model"] == model
                        and r.get("preference", "franka") == pref
@@ -256,7 +266,7 @@ def table(rows):
                     key = r.get("arm") or "none"
                     arms[key] = arms.get(key, 0) + 1
                 infs = sum(1 for r in sub if infeasible(r))
-                out.append("%-6s %-10s %-10s %-5s %-4d %-34s | infeas %2d/%-3d"
+                out.append("%-10s %-10s %-14s %-11s %-4d %-34s | infeas %2d/%-3d"
                            " | arms: %s"
                            % (model, "%s/%s" % (pref, rung), cond, pose,
                               len(sub),
@@ -273,7 +283,7 @@ def table(rows):
             wb = {}
             for r in sub:
                 wb[r["width_belief"]] = wb.get(r["width_belief"], 0) + 1
-            out.append("%-6s %-10s %-10s %-5s %s"
+            out.append("%-10s %-10s %-14s %-11s %s"
                        % (model, "%s/%s" % (pref, rung), "  width", "",
                           "  ".join("%s=%d" % (k, wb[k])
                                     for k in sorted(wb))))
@@ -290,7 +300,7 @@ def table(rows):
                 if r.get("self_contradicted"):
                     by_cond[r["condition"]] = by_cond.get(r["condition"],
                                                           0) + 1
-            out.append("%-6s %-10s %-10s %-4d %s"
+            out.append("%-10s %-10s %-14s %-11d %s"
                        % (model, "%s/%s" % (pref, rung), "  self-contradicted", contra,
                           "  ".join("%s=%d" % (k, by_cond[k])
                                     for k in sorted(by_cond))))
@@ -298,7 +308,7 @@ def table(rows):
         for r in allr:
             reasoning[r.get("reasoning")] = reasoning.get(
                 r.get("reasoning"), 0) + 1
-        out.append("%-6s %-10s %-10s %-5s %s"
+        out.append("%-10s %-10s %-14s %-11s %s"
                    % (model, "%s/%s" % (pref, rung), "  reasoning", "",
                       "  ".join("%s=%d" % (k, reasoning[k])
                                 for k in sorted(reasoning, key=str))))
@@ -460,7 +470,7 @@ def main(argv=None):
     ap.add_argument("--out", default=None)
     ap.add_argument("--models", default=",".join(DEFAULT_MODELS))
     ap.add_argument("--condition", action="append", dest="conditions",
-                    default=None, choices=CONDITIONS)
+                    default=None, choices=T.CONDITIONS)
     ap.add_argument("--kind", default="pair", choices=("pair", "null", "all"))
     ap.add_argument("--pair", default=None, help="one pair id, e.g. p03")
     ap.add_argument("--preference", action="append", dest="preferences",

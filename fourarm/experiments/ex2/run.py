@@ -395,7 +395,7 @@ def select_scenes(scenes, pair=None):
     return got
 
 
-def trials(scenes, views=VIEWS, rungs=RUNGS, conditions=T.CONDITIONS):
+def trials(scenes, views=VIEWS, rungs=RUNGS, conditions=T.CORE_CONDITIONS):
     """Every trial the design calls for, as plain dicts."""
     out = []
     for scene in scenes:
@@ -450,7 +450,7 @@ def render(scene, condition, rung, view, preference="franka"):
 
 
 def run(capture_dir, out_path, model=None, limit=None, dry_run=False,
-        views=VIEWS, rungs=RUNGS, conditions=T.CONDITIONS,
+        views=VIEWS, rungs=RUNGS, conditions=T.CORE_CONDITIONS,
         preference="franka", model_fn=chat, timeout=90.0, pair=None,
         retry_errors=True):
     all_scenes = load_scenes(capture_dir)

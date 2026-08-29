@@ -496,6 +496,63 @@ check("every factor named by a rung carries a recorded prediction",
       <= set(P.PREDICTIONS),
       "a prediction recorded after the fact is not a prediction")
 
+# ---------------------------------------------------------------------------
+# conflict_face, added 2026-08-28. The condition that makes a text-following
+# result mean something.
+#
+# WHY IT EXISTS. In "conflict" the state supplies opening_needed_m and R3
+# names that field, so a model that reads the number and applies R3 has
+# broken no rule. A text-following result there cannot be told apart from
+# rule-COMPLIANCE. And no rule mentions resting_face, so the false face is
+# inert -- nothing asks the model to consult it. conflict_face withholds the
+# number, which puts R3 into the form that names no field, so the false face
+# in the text and the true face in the image compete on the one quantity
+# that decides the arm, with neither privileged by a rule.
+# ---------------------------------------------------------------------------
+_cf = P.system_prompt("N0", "conflict_face")
+_cf_head = _cf[:_cf.index("\nYOUR ANSWER")]
+check("conflict_face glosses resting_face",
+      '"resting_face"' in _cf_head)
+check("conflict_face does NOT gloss opening_needed_m",
+      '"opening_needed_m"' not in _cf_head,
+      "the state does not carry it, and a prompt promising a field the "
+      "state omits makes the model solve a comprehension puzzle instead")
+_r3 = _cf[_cf.index("R3  Gripper opening"):_cf.index("R4  Load")]
+check("conflict_face's R3 names no field and says the opening is not stated",
+      '"opening_needed_m"' not in _r3 and "not stated" in _r3,
+      "this is the whole point: with R3 naming the field, following the "
+      "text is rule-compliance and the sign of the contrast is unreadable")
+check("conflict_face renders a DIFFERENT prompt from conflict",
+      _cf != P.system_prompt("N0", "conflict"),
+      "conflict and congruent are byte-identical by design; conflict_face "
+      "must not be, or it would carry the same R3")
+check("congruent and conflict are still byte-identical",
+      P.system_prompt("N0", "congruent") == P.system_prompt("N0", "conflict"),
+      "the manipulation lives in the state, so no prompt difference can "
+      "explain the contrast between those two")
+# The 2x2 the design now is: {number supplied, number withheld} x {face true,
+# face false}. Each ROW must render an identical prompt, so that within a row
+# no wording difference can explain a contrast; the two rows must differ, or
+# withholding the number did nothing.
+check("congruent_face and conflict_face render identical prompts",
+      P.system_prompt("N0", "congruent_face")
+      == P.system_prompt("N0", "conflict_face"),
+      "they are a matched pair differing only in whether the stated face is "
+      "true, which is what isolates precedence from derivation")
+check("the withheld-number row differs from the supplied-number row",
+      P.system_prompt("N0", "congruent_face")
+      != P.system_prompt("N0", "congruent"),
+      "R3 must change form when the field goes away")
+check("congruent_face withholds the number but keeps the face",
+      "grasp_m" not in str(P.CONDITIONS["congruent_face"]["object_fields"])
+      and '"resting_face"' in P.CONDITIONS["congruent_face"]["object_fields"])
+
+check("every condition declares what it withholds",
+      all("withheld" in v for v in P.CONDITIONS.values()),
+      "render_state and both assertions read it from there, so a condition "
+      "cannot render a field the prompt does not gloss")
+
+
 print("\nRESULT: " + ("ALL PASS" if not fails
                       else f"{len(fails)} FAILURE(S): {fails}"))
 sys.exit(1 if fails else 0)

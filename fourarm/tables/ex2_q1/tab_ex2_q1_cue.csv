@@ -1,7 +1,7 @@
 model,resting_face,n_images,correct_n,accuracy_pct,wilson_lo,wilson_hi
-gpt_hi,small_face,20,44,95.7,85.5,98.8
-gpt_hi,large_face,20,39,84.8,71.8,92.4
-gemini,small_face,10,30,100.0,88.6,100.0
-gemini,large_face,10,30,100.0,88.6,100.0
-claude_md,small_face,10,18,60.0,42.3,75.4
-claude_md,large_face,10,27,90.0,74.4,96.5
+gpt_hi,small_face,20,57,95.0,86.3,98.3
+gpt_hi,large_face,20,50,83.3,72.0,90.7
+gemini,small_face,20,60,100.0,94.0,100.0
+gemini,large_face,20,60,100.0,94.0,100.0
+claude_md,small_face,20,38,63.3,50.7,74.4
+claude_md,large_face,20,57,95.0,86.3,98.3

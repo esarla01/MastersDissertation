@@ -132,8 +132,16 @@ plan = R.trials(scenes)
 by_kind = {}
 for t in plan:
     by_kind.setdefault(t["kind"], set()).add(t["condition"])
-check("pairs get all three conditions",
-      by_kind["pair"] == set(T.CONDITIONS), by_kind.get("pair"))
+# CORE_CONDITIONS, not CONDITIONS. conflict_face was added on 2026-08-28
+# and run.py's default sweep is deliberately pinned to the three it swept
+# before, so that adding a condition cannot silently widen an existing
+# driver's cost by a third. The new one is opt-in via --condition.
+check("pairs get every condition run.py sweeps by default",
+      by_kind["pair"] == set(T.CORE_CONDITIONS), by_kind.get("pair"))
+check("the fourth condition is opt-in, not in the default sweep",
+      "conflict_face" in T.CONDITIONS
+      and "conflict_face" not in T.CORE_CONDITIONS,
+      "adding a condition must not widen a driver's default sweep")
 check("nulls get congruent ONLY",
       by_kind["null"] == {"congruent"},
       "a null with a falsified state is not measuring answer stability")
@@ -146,11 +154,11 @@ check("the plan covers both views and every rung",
 _pairs = sum(1 for s in scenes if s["kind"] == "pair")
 _nulls = sum(1 for s in scenes if s["kind"] == "null")
 _expected = (len(R.VIEWS) * len(R.RUNGS)
-             * (_pairs * len(T.CONDITIONS) + _nulls))
+             * (_pairs * len(T.CORE_CONDITIONS) + _nulls))
 check("the trial count is what the design implies", len(plan) == _expected,
       "%d planned, %d implied by %d pairs, %d nulls, %d conditions, "
       "%d rungs, %d views"
-      % (len(plan), _expected, _pairs, _nulls, len(T.CONDITIONS),
+      % (len(plan), _expected, _pairs, _nulls, len(T.CORE_CONDITIONS),
          len(R.RUNGS), len(R.VIEWS)))
 
 # --- 3. legality is computed per POSE, not from the rendered state --------

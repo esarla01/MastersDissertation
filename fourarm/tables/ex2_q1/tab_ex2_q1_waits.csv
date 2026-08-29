@@ -5,6 +5,12 @@ congruent,gemini,small_face,96,0,0.0,0.0,3.8
 congruent,gemini,large_face,96,0,0.0,0.0,3.8
 congruent,claude_md,small_face,96,0,0.0,0.0,3.8
 congruent,claude_md,large_face,96,0,0.0,0.0,3.8
+congruent_face,gpt_hi,small_face,32,0,0.0,0.0,10.7
+congruent_face,gpt_hi,large_face,32,0,0.0,0.0,10.7
+congruent_face,gemini,small_face,32,0,0.0,0.0,10.7
+congruent_face,gemini,large_face,32,0,0.0,0.0,10.7
+congruent_face,claude_md,small_face,32,0,0.0,0.0,10.7
+congruent_face,claude_md,large_face,32,0,0.0,0.0,10.7
 dims,gpt_hi,small_face,96,0,0.0,0.0,3.8
 dims,gpt_hi,large_face,96,0,0.0,0.0,3.8
 dims,gemini,small_face,96,0,0.0,0.0,3.8

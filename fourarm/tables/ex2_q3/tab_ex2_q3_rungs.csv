@@ -1,0 +1,14 @@
+rung,factors,schema,added_lines,added_wording
+N0,none,base,0,
+N-A,attention,base,2,"The image shows the table as it is now. Look at the object in the image
+before you choose."
+N-C,derivation,base,2,"The opening an object needs is the smaller of its two horizontal extents,
+so it depends on which face the object is resting on."
+N-order,order,report_first,0,
+N-D,elicitation;order,face_first,2,"Give ""resting_face"" and ""opening_needed_m"" BEFORE naming an arm, and choose
+the arm to fit the opening you gave."
+N-CD,derivation;elicitation;order,face_first,5,"The opening an object needs is the smaller of its two horizontal extents,
+so it depends on which face the object is resting on.
+
+Give ""resting_face"" and ""opening_needed_m"" BEFORE naming an arm, and choose
+the arm to fit the opening you gave."

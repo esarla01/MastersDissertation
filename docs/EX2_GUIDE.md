@@ -200,6 +200,101 @@ prompt does.
 
 Cell 6 is the only paid cell: 68 scenes x 3 models x 3 repeats = 612 calls.
 
+**The result, collected 2026-08-28.** Two conditions, and they must be read
+together. The measure is Franka share on the `small_face` scene minus Franka
+share on the `large_face` scene, paired within position, always anchored to the
+face the image shows.
+
+| model | congruent | congruent_face | conflict | conflict_face |
+|---|---|---|---|---|
+| `gpt_hi` | +100.0 | +87.5 [75.9, 99.1] | -100.0 | **-84.4 [-97.2, -71.6]** |
+| `gemini` | +100.0 | +100.0 | -100.0 | **-100.0 [-100.0, -100.0]** |
+| `claude_md` | +100.0 | +6.2 [-20.1, 32.6] | -100.0 | **+15.6 [-10.9, +42.2]** |
+
+**`conflict` on its own cannot support a precedence claim, and an earlier
+version of this section wrongly said it could.** R3 names `opening_needed_m`
+verbatim and the state supplies it, so a model that reads the number and
+applies the rule has broken nothing: it is complying. No rule mentions
+`resting_face`, so the false face there is inert. `congruent` and `conflict`
+send byte-identical instructions, so the model has no signal that the trial
+differs from one where obeying R3 is correct.
+
+**`conflict_face` removes that escape, and the effect survives.** With the
+number withheld, R3 renders in the form that names no field, there is nothing
+to comply with, and the only route to an opening is a face -- one asserted by
+the text, one visible in the image. GPT still reads -84.4 and Gemini a complete
+-100.0, against their own matched ceilings of +87.5 and +100.0 on
+`congruent_face`, which renders a byte-identical prompt and differs only in
+whether the stated face is true.
+
+So the finding is real and the evidence for it is now sound: **when a supplied
+face contradicts the scene, the two models that can derive an opening follow
+the text, and they do so whether or not a rule directs them to the stated
+field.**
+
+**Claude dissociates, and needs its own sentence.** Its +6.2 on `congruent_face`
+and +15.6 on `conflict_face` are both nulls: it cannot derive an opening from a
+face even when the face is true, so it has no source to prefer. Its -100.0 in
+`conflict` was pure R3 compliance -- hand it a number and it applies the rule,
+take the number away and it is at chance. Reporting the three models as one
+unanimous block, which the `conflict`-only result invited, would have been
+wrong about one of them.
+
+**Two supporting readings.** In `conflict`, every one of 576 analysed trials
+reported an opening matching the **text**: zero matching the image, zero
+matching neither, in both directions. And the `text_forbids_franka` direction
+is what makes this more than caution -- there the model passes over a Franka
+that would fit.
+
+`gpt_hi`'s -84.4 rather than -100 is four positions of 32 that did not flip;
+it also names a Franka on 3.1% of `small_face` trials in `congruent_face`, so
+some of that is its own derivation noise rather than a partial escape from the
+text.
+
+---
+
+## Question 3: remediation
+
+`notebooks/ex2_q3_remediation.ipynb` asks which kind of instruction moves a
+model from following the text to using the scene. The six rungs come from
+`prompts.RUNGS` and are not redefined.
+
+```bash
+python3 notebooks/build_q3_nb.py notebooks/ex2_q3_remediation.ipynb
+```
+
+**The gate is N-D, not N-CD.** The 2026-08-27 pilots already show Gemini going
+from 46.9 at N0 to a complete flip under elicitation alone, with the face
+named correctly on all 64 trials, and GPT not moving. So elicitation is the
+rung the evidence implicates, `N-D` minus `N0` is the contrast that matters,
+and `N-C` becomes the informative comparison rather than an intermediate step.
+`N-CD` is demoted to a sufficiency cell for a model `N-D` does not move.
+
+**Three verdicts, not two.** At one repeat over 32 positions an effect below
+about 30 points cannot be told from zero, so the gate reports *moved*, *not
+moved* and **unresolved**, the last meaning the cell needs more repeats before
+it can be called either way. Exercised against the pilot files it reads Gemini
+`MOVED` (+53.1 [40.7, 65.5]), gpt_hi `UNRESOLVED` (+13.5 [-9.3, 36.4]) and
+claude_md `NOT RUN`, and narrows the later stages to Gemini alone.
+
+**The staged spend.**
+
+| Stage | Cell | Calls | Gated on |
+|---|---|---|---|
+| Gate: N-D in dims | 6 | 204 | nothing |
+| Control: N-D with no image | 8 | 68 per model | models the gate moved |
+| Stage 2: N-C, N-order, N-A, and N-CD where needed | 9 | up to 816 | the gate |
+| Stage 3: the five rungs in conflict | 10 | 1,020 | stage 2 and Q2's N0 |
+
+**The no-image control is the decisive one.** Q1's ablation answers the
+question at `N0`; it cannot answer it at `N-D`, because a schema effect only
+shows under the schema. Cell 8 runs `N-D` in dims with no image, and it must
+land at zero or the rung is a text artefact and is withdrawn.
+
+**No figure cell.** Q3's endpoint is a table of second-order contrasts whose
+intervals are about thirty points wide by construction. Drawn as bars they
+would imply a precision the design does not have.
+
 ---
 
 **Three facts about the block captures that the chapter must disclose.**

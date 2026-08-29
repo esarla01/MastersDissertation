@@ -85,7 +85,13 @@ import copy
 from core.cell import cell_config as C
 from experiments.ex2.labels import neutralise, describe
 
-CONDITIONS = ("congruent", "conflict", "dims")
+CONDITIONS = ("congruent", "congruent_face", "conflict",
+              "conflict_face", "dims")
+
+# The three run.py swept before conflict_face existed. Its default is pinned
+# to these so that adding a condition does not silently widen an existing
+# driver's sweep by a third; conflict_face is opt-in, via --condition.
+CORE_CONDITIONS = ("congruent", "conflict", "dims")
 
 # The object's own dimensions, as if upright. Identical for every pose
 # because they describe the OBJECT. Taken from the probe measurements
@@ -231,6 +237,55 @@ def transform(probe, condition):
         # looking at the picture.
         obj.update(facts[declared])
 
+    elif condition == "congruent_face":
+        # THE TRUE FACE, WITH THE NUMBER WITHHELD. The matched ceiling for
+        # conflict_face, and the reason that condition can be read at all.
+        #
+        # conflict_face differs from congruent in TWO ways at once: the face
+        # is false AND the number is gone. Compared against congruent, its
+        # contrast would confound "the text lied" with "the model had to
+        # derive". congruent_face removes the second: it renders a
+        # byte-identical prompt to conflict_face and differs only in whether
+        # the stated face is true. The pair isolates precedence exactly.
+        #
+        # It is also a question in its own right, and Q1's: told the face
+        # but not the opening, can the model get from one to the other? That
+        # sits between congruent, where the number is handed over, and dims,
+        # where neither is.
+        declared = true_pose
+        obj["pose"] = declared
+        obj.update(facts[declared])
+        obj.pop("grasp_m", None)
+
+    elif condition == "conflict_face":
+        # THE FACE LIES AND THE NUMBER IS WITHHELD.
+        #
+        # Why this exists, when "conflict" already lies. In conflict the
+        # state supplies opening_needed_m, and R3 names that field: "the
+        # arm is capable only when its opening_max_m is at least the
+        # object's opening_needed_m". So a model that reads the stated
+        # number and applies R3 has broken no rule -- it is COMPLYING --
+        # and a text-following result there cannot be told apart from
+        # rule-following. Worse, no rule mentions resting_face at all, so
+        # the false face in conflict is inert: nothing asks the model to
+        # consult it, so nothing has to be overcome.
+        #
+        # Withholding the number puts R3 into its _R3_DIMS form, which
+        # names no field and says the opening is not stated. The model
+        # then has to derive an opening from a face, and the false face in
+        # the text competes with the true face in the image on the one
+        # quantity that decides the arm. Neither source is privileged by a
+        # rule, so the SIGN of the contrast means what conflict's sign was
+        # taken to mean and could not support.
+        #
+        # declared_grasp_m below is still the declared face's opening, so
+        # legal_declared, width_belief and every outcome label are computed
+        # exactly as they are in conflict. Nothing downstream changes.
+        declared = OTHER_POSE_BY_LABEL[label][true_pose]
+        obj["pose"] = declared
+        obj.update(facts[declared])
+        obj.pop("grasp_m", None)        # dropped here AND withheld at render
+
     else:                                   # dims
         declared = None
         obj.pop("pose", None)
@@ -251,7 +306,11 @@ def transform(probe, condition):
         # Which way a conflict points, since the two directions answer
         # different questions and only one of them separates grounding
         # from blanket caution.
-        "direction": (None if condition != "conflict"
+        # Both conflict conditions, not just the one. conflict_face lies
+        # about the same face in the same two directions; only the number
+        # is withheld, and the direction is a property of the TRUE opening,
+        # which is unaffected by withholding anything.
+        "direction": (None if condition not in ("conflict", "conflict_face")
                       else ("permissive" if permissive else "restrictive")),
         "true_grasp_m": facts[true_pose]["grasp_m"],
         "declared_grasp_m": (None if declared is None

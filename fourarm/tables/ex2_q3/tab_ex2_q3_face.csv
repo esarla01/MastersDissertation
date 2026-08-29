@@ -1,0 +1,4 @@
+condition,model,rung,n_trials,n_named,n_correct,correct_pct,wilson_lo,wilson_hi,n_face_right_opening_wrong
+dims,claude_md,N-D,64,64,32,50.0,38.1,61.9,9
+dims,gemini,N-D,64,64,64,100.0,94.3,100.0,0
+dims,gpt_hi,N-D,64,64,42,65.6,53.4,76.1,14

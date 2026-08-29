@@ -183,6 +183,55 @@ except ValueError as e:
     check("an unknown condition raises rather than defaulting",
           "congruant" in str(e), str(e)[:70])
 
+# ---------------------------------------------------------------------------
+# conflict_face at the STATE level, added 2026-08-28.
+# ---------------------------------------------------------------------------
+for _tp, _prim in (("upright", "ycb_mustard_upright"), ("lying", "ycb_mustard_lying")):
+    _probe = build_probe(_prim)
+    _st, _m = T.transform(_probe, "conflict_face")
+    _o = flip_obj(_st)
+    check(f"[{_tp}] conflict_face declares the OTHER face",
+          _m["declared_pose"] != _m["true_pose"] and _m["declared_pose"] is not None)
+    check(f"[{_tp}] conflict_face keeps the pose in the state",
+          "pose" in _o, "the false face is the cue under test")
+    check(f"[{_tp}] conflict_face drops the opening from the state",
+          "grasp_m" not in _o,
+          "with the number present R3 names it and following the text is "
+          "rule-compliance rather than a preference")
+    check(f"[{_tp}] conflict_face still carries declared_grasp_m in meta",
+          _m["declared_grasp_m"] == T.POSE_FACTS[_m["declared_pose"]]["grasp_m"],
+          "legal_declared, width_belief and every outcome label are computed "
+          "from it, so withholding the field must not disturb grading")
+    check(f"[{_tp}] conflict_face records a direction",
+          _m["direction"] in ("permissive", "restrictive"),
+          "the direction is a property of the TRUE opening and is unaffected "
+          "by withholding anything")
+    check(f"[{_tp}] conflict_face and conflict agree on the declared face",
+          _m["declared_pose"] == T.transform(_probe, "conflict")[1]["declared_pose"],
+          "the two conditions differ in what is RENDERED, not in what is "
+          "declared, so their contrasts are comparable")
+
+for _tp, _prim in (("upright", "ycb_mustard_upright"), ("lying", "ycb_mustard_lying")):
+    _probe = build_probe(_prim)
+    _st, _m = T.transform(_probe, "congruent_face")
+    _o = flip_obj(_st)
+    check(f"[{_tp}] congruent_face states the TRUE face",
+          _m["declared_pose"] == _m["true_pose"],
+          "it is the matched ceiling for conflict_face: same rendering, "
+          "same withholding, differing only in whether the face is true")
+    check(f"[{_tp}] congruent_face withholds the opening",
+          "grasp_m" not in _o and "pose" in _o)
+    check(f"[{_tp}] congruent_face declares no conflict direction",
+          _m["direction"] is None, "nothing is in conflict")
+    check(f"[{_tp}] congruent_face and conflict_face withhold the same field",
+          ("grasp_m" in flip_obj(T.transform(_probe, "conflict_face")[0]))
+          == ("grasp_m" in _o),
+          "a difference in what is rendered would confound the pair")
+
+check("conflict_face is opt-in: not in the default sweep",
+      "conflict_face" in T.CONDITIONS and "conflict_face" not in T.CORE_CONDITIONS)
+
+
 print("\nRESULT: " + ("ALL PASS" if not fails
                       else f"{len(fails)} FAILURE(S): {fails}"))
 sys.exit(1 if fails else 0)

@@ -99,8 +99,9 @@ check("legality comes from the shared run module",
       C.legal_arms is R.legal_arms and C.flip_task_id is R.flip_task_id,
       "a private copy would drift from the rest of EX2")
 check("the grader is the shared one", C.G.grade is G.grade)
-check("the conditions are the shared ones",
-      set(C.CONDITIONS) == set(T.CONDITIONS))
+check("the conditions are the ones the cue probe shares with run.py",
+      set(C.CONDITIONS) == set(T.CORE_CONDITIONS),
+      "conflict_face is opt-in and the cue probe does not sweep it")
 
 # 2, 3. the declared legal set, per condition.
 rows = C.run(CAP, out_path=os.path.join(TMP, "a.jsonl"), models=("fake",),

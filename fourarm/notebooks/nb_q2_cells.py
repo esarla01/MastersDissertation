@@ -74,6 +74,15 @@ for pos in USABLE:
         st, meta = T.transform({"state": s["state"],
                                 "positions_exact": s["positions_exact"]},
                                "conflict")
+        # conflict_face declares the SAME face; it only withholds the
+        # number. Checked here so the two cannot drift apart, because the
+        # whole point of the pair is that their contrasts are comparable.
+        _, meta_f = T.transform({"state": s["state"],
+                                 "positions_exact": s["positions_exact"]},
+                                "conflict_face")
+        if meta_f["declared_pose"] != meta["declared_pose"]:
+            q2_problems.append("%s_%s: conflict and conflict_face declare "
+                               "different faces" % (pos, face))
         tid = R.flip_task_id(s["state"], meta["flip_prim"])
         lt = set(R.legal_arms(s, meta["flip_prim"], tid))
         ld = set(R.legal_arms(s, L.pose_prim(meta["flip_label"],
@@ -271,6 +280,8 @@ DIMS_OUT      = RUNS / "ex2_q1_dims_N0.jsonl"
 
 ROWS, SKIPPED_MODELS = [], collections.Counter()
 for path, cond in ((CONGRUENT_OUT, "congruent"), (CONFLICT_OUT, "conflict"),
+                   (CONFLICT_FACE_OUT, "conflict_face"),
+                   (CONGRUENT_FACE_OUT, "congruent_face"),
                    (DIMS_OUT, "dims")):
     _r, _s = load_run(path, cond, MODELS)
     ROWS += _r
@@ -398,6 +409,7 @@ somewhere specific and wrong, so a text-follower goes negative."""
 
 C9 = r'''# --- Cell 9. Paired contrasts. No model calls. ------------------------------
 CONTRASTS = (("small_minus_large", "small_face", "large_face"),)
+GATE_ZERO = 5.0        # below this a dims contrast is reported as none
 
 bypos_rows, contrast_rows, ratios = [], [], {}
 for cond in CONDITIONS:
@@ -415,10 +427,29 @@ for cond in CONDITIONS:
             kb, nb = share_counts([r for r in base if r["face"] == b])
             nlo, nhi = newcombe(ka, na, kb, nb)
             k_flip, n_flip = full_flip_count(diffs)
-            sign = ("NA" if mean != mean else
-                    "tracks the scene" if plo > 0 else
-                    "TRACKS THE TEXT" if phi < 0 else
-                    "tracks neither")
+            # THE SIGN IS ONLY DIAGNOSTIC IN CONFLICT. In congruent the
+            # text and the scene agree, so +100 is consistent with reading
+            # either one and says nothing about which governed; in dims
+            # there is no text to compete with. Labelling congruent
+            # "tracks the scene" is the same error grade.classify_width's
+            # "tie" label exists to prevent -- calling agreement grounding
+            # inflates it -- so it is not labelled at all.
+            if mean != mean:
+                sign = "NA"
+            elif cond in ("congruent", "congruent_face"):
+                sign = "not diagnostic: sources agree"
+            elif cond == "dims":
+                sign = ("uses the scene" if plo > 0
+                        else "no contrast" if phi < GATE_ZERO else "neither")
+            elif cond == "conflict":
+                # Caveated: R3 names opening_needed_m and the state supplies
+                # it, so following the text here is rule-compliant and the
+                # sign cannot separate preference from compliance.
+                sign = ("scene, over a compliant reading" if plo > 0 else
+                        "text (or R3 compliance)" if phi < 0 else "neither")
+            else:                                   # conflict_face
+                sign = ("TRACKS THE SCENE" if plo > 0 else
+                        "TRACKS THE TEXT" if phi < 0 else "tracks neither")
             contrast_rows.append([cond, model, name, npos, fmt(mean),
                                   fmt(nlo), fmt(nhi), fmt(plo), fmt(phi),
                                   spans_zero(plo, phi), sign,
@@ -472,6 +503,16 @@ for model in MODELS:
     elif r[10] == "TRACKS THE TEXT":
         print("           -> the TEXT governs. The model names the arm the")
         print("              declared face implies, against the scene.")
+        print("              READ THIS WITH THE LIMITATION. R3 names")
+        print("              \"opening_needed_m\" and the state supplies it,")
+        print("              so following the text is RULE-COMPLIANT here;")
+        print("              no rule mentions resting_face at all. This")
+        print("              result shows the models do not audit a supplied")
+        print("              capability field against the scene. It cannot")
+        print("              separate that from a preference for text over")
+        print("              vision, because the prompt never asks them to")
+        print("              prefer the scene. A face-only conflict, which")
+        print("              withholds the number, is what would.")
     elif r[10] == "tracks the scene":
         print("           -> the SCENE governs, against a text that says")
         print("              otherwise. The strongest form of grounding this")
@@ -655,3 +696,170 @@ text did, near zero means neither. Negative is the expected result and is the
 finding.
 
 Cells 1 to 3 and 7 to 13 are free. Only cell 6 spends."""
+
+
+MD6B = r"""## Cell 6b. Conflict-face at N0
+
+**Makes model calls.** The same false face as cell 6, with `opening_needed_m`
+**withheld**.
+
+**Why this cell exists.** In `conflict` the state supplies `opening_needed_m`
+and R3 names that field verbatim: *"the arm is capable only when its
+`opening_max_m` is at least the object's `opening_needed_m`."* A model that
+reads the stated number and applies R3 has broken no rule. So a text-following
+result there cannot be told apart from **rule-compliance** — and no rule
+mentions `resting_face` at all, so the false face in `conflict` is inert:
+nothing asks the model to consult it, so nothing has to be overcome.
+
+Withholding the number puts R3 into the form that names no field and says the
+opening is not stated. The model must then derive an opening from a face, the
+false face in the text competes with the true face in the image, and **neither
+source is privileged by a rule**. Only here does the sign of the contrast mean
+what `conflict`'s sign was taken to mean.
+
+One repeat first. `conflict` came back saturated at -100.0 on 32 of 32
+positions, so if this behaves the same way one repeat settles it; if it lands
+somewhere intermediate, top up to three."""
+
+C6B = r'''# --- Cell 6b. Conflict-face, N0. MAKES MODEL CALLS. -------------------------
+CONFLICT_FACE_OUT = RUNS / "ex2_q2_conflict_face_N0.jsonl"
+FACE_REPEATS = 1        # bound here, not REPEATS: see the markdown above
+
+n_calls = len(CALL_SCENES) * len(MODELS) * FACE_REPEATS
+print("COST: %d scenes x %d models x %d repeat = %d calls"
+      % (len(CALL_SCENES), len(MODELS), FACE_REPEATS, n_calls))
+print("      Same false face as cell 6, with opening_needed_m withheld, so")
+print("      R3 names no field and following the text is not compliance.")
+
+CONFIRM_SPEND = None            # <-- set to the number in the COST line
+
+if spend_gate(n_calls, CONFIRM_SPEND, CONFLICT_FACE_OUT,
+              factors=(("scenes", len(CALL_SCENES)), ("models", len(MODELS)),
+                       ("repeats", FACE_REPEATS))):
+    S.run(str(CAPTURES), out_path=str(CONFLICT_FACE_OUT), models=MODELS,
+          conditions=("conflict_face",), preferences=(PREFERENCE,),
+          rungs=(RUNG,), modalities=("V",), kind="pair", repeats=FACE_REPEATS)
+    print("answered now:", answered(CONFLICT_FACE_OUT))'''
+
+
+MD6C = r"""## Cell 6c. Congruent-face at N0, the matched ceiling
+
+**Makes model calls.** The **true** face stated, `opening_needed_m` withheld.
+Byte-identical prompt to cell 6b, differing only in whether the stated face is
+true.
+
+Without this cell, `conflict_face` would have to be read against `congruent`,
+which differs from it in **two** ways at once — the face is false *and* the
+number is gone — so its contrast would confound *the text lied* with *the model
+had to derive*. This removes the second difference. The pair isolates
+precedence."""
+
+C6C = r'''# --- Cell 6c. Congruent-face, N0. MAKES MODEL CALLS. ------------------------
+# Q1's notebook writes this same file. If it has already been run there,
+# spend_gate reports it complete and this cell costs nothing: one condition,
+# one file, whichever notebook reaches it first.
+CONGRUENT_FACE_OUT = RUNS / "ex2_q1_congruent_face_N0.jsonl"
+
+n_calls = len(CALL_SCENES) * len(MODELS) * FACE_REPEATS
+print("COST: %d scenes x %d models x %d repeat = %d calls"
+      % (len(CALL_SCENES), len(MODELS), FACE_REPEATS, n_calls))
+print("      True face, opening withheld: the matched ceiling for cell 6b.")
+
+CONFIRM_SPEND = None            # <-- set to the number in the COST line
+
+if spend_gate(n_calls, CONFIRM_SPEND, CONGRUENT_FACE_OUT,
+              factors=(("scenes", len(CALL_SCENES)), ("models", len(MODELS)),
+                       ("repeats", FACE_REPEATS))):
+    S.run(str(CAPTURES), out_path=str(CONGRUENT_FACE_OUT), models=MODELS,
+          conditions=("congruent_face",), preferences=(PREFERENCE,),
+          rungs=(RUNG,), modalities=("V",), kind="pair", repeats=FACE_REPEATS)
+    print("answered now:", answered(CONGRUENT_FACE_OUT))'''
+
+
+MD6A = r"""## Cell 6a. Prompt inspection: the withheld-number row
+
+No model calls. The prompt cells 6b and 6c actually send, printed in full
+before either of them spends.
+
+Cell 5 inspected the row where the number is supplied. This is the other row of
+the 2x2, and the two rows differ in the one way that matters: with
+`opening_needed_m` withheld, R3 renders in the form that **names no field** and
+says the opening is not stated. So a model cannot satisfy R3 by reading a
+number, and following the text stops being rule-compliance.
+
+`congruent_face` and `conflict_face` must render **byte-identical** prompts, or
+they are not a matched pair and the contrast between them would confound the
+false face with something in the wording."""
+
+C6A = r'''# --- Cell 6a. The withheld-number prompt. No model calls. -------------------
+face_probe = by_pos[USABLE[0]]["large_face"]
+face_rendered = {c: S.render(face_probe, c, PREFERENCE, RUNG, "V")
+                 for c in ("congruent", "conflict",
+                           "congruent_face", "conflict_face")}
+
+def object_row(msgs):
+    body = msgs[1]["content"][-1]["text"]
+    body = body.split("Cell state:\n")[1].rsplit("\nIdle arms", 1)[0]
+    return [o for o in json.loads(body)["objects"]
+            if o["name"] == LABEL][0]
+
+# 1. The matched pair must be byte-identical, and must differ from the row
+#    where the number is supplied.
+sys_cf = face_rendered["conflict_face"][0][0]["content"]
+sys_gf = face_rendered["congruent_face"][0][0]["content"]
+if sys_cf != sys_gf:
+    raise AssertionError(
+        "congruent_face and conflict_face render different instructions, so "
+        "a contrast between them could come from the wording rather than "
+        "from whether the stated face is true.")
+if sys_cf == face_rendered["conflict"][0][0]["content"]:
+    raise AssertionError(
+        "the withheld-number row renders the same prompt as the supplied "
+        "row; R3 has not changed form and the whole point is lost.")
+print("PASS  congruent_face and conflict_face send byte-identical")
+print("      instructions (%d characters), and both differ from the" % len(sys_cf))
+print("      supplied-number row. The pair isolates the false face.")
+print()
+
+# 2. The 2x2, as the model receives it.
+print("=" * 70)
+print("WHAT THE STATE SAYS ABOUT THE BLOCK, in each condition")
+print("=" * 70)
+print("the capture truly rests on %s, which needs %.3f m"
+      % (face_rendered["congruent"][1]["true_pose"],
+         face_rendered["congruent"][1]["true_grasp_m"]))
+grid = []
+for cond in ("congruent", "conflict", "congruent_face", "conflict_face"):
+    o = object_row(face_rendered[cond][0])
+    meta = face_rendered[cond][1]
+    stated = o.get(P.FIELD_ALIASES.get("pose", "resting_face"))
+    grid.append([cond,
+                 "-" if stated is None else
+                 ("%s (true)" % stated if stated == meta["true_pose"]
+                  else "%s (FALSE)" % stated),
+                 "%.3f" % o["opening_needed_m"]
+                 if "opening_needed_m" in o else "withheld",
+                 "yes" if '"opening_needed_m"' in
+                 face_rendered[cond][0][0]["content"][
+                     face_rendered[cond][0][0]["content"].index("R3  Gripper"):
+                     face_rendered[cond][0][0]["content"].index("R4  Load")]
+                 else "no"])
+show(["condition", "resting_face in the text", "opening in the text",
+      "R3 names a field"], grid)
+print()
+print("Read the last two columns together. Where R3 names a field and the")
+print("state supplies it, a model that reads the number and applies the rule")
+print("has broken nothing: following the text is COMPLIANCE. Where the")
+print("number is withheld, R3 names nothing, and the only route to an")
+print("opening is a face -- one asserted by the text, one visible in the")
+print("image. That is the only place the sign of the contrast means the")
+print("text won.")
+print()
+print("=" * 70)
+print("THE FULL PROMPT cells 6b and 6c SEND (rung %s)" % RUNG)
+print("=" * 70)
+print(sys_cf)
+print()
+print("--- user message: image (1024x1024 PNG), then this text ---")
+print()
+print(face_rendered["conflict_face"][0][1]["content"][-1]["text"])'''

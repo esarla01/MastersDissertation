@@ -1,8 +1,8 @@
-"""Build ex2_q2_precedence.ipynb from the cell sources beside it.
+"""Build ex2_q3_remediation.ipynb from the cell sources beside it.
 
-    python3 notebooks/build_q2_nb.py notebooks/ex2_q2_precedence.ipynb
+    python3 notebooks/build_q3_nb.py notebooks/ex2_q3_remediation.ipynb
 
-Q2 SHARES CELLS WITH Q1 RATHER THAN COPYING THEM. The key paste, the block
+Q3 SHARES CELLS WITH Q1 RATHER THAN COPYING THEM. The key paste, the block
 geometry check and the capture inventory are Q1's own strings, used here
 verbatim, so a fix to the inventory reaches both notebooks and cannot reach
 one of them only.
@@ -19,22 +19,23 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import nb_cells_a as A
 import nb_cells_b as B
-import nb_q2_cells as Q
+import nb_q3_cells as Q
 
 SUBS_C1 = [
-    # Q2 writes to its own directories.
     ('TABLES   = ROOT / "tables" / "ex2_q1"',
-     'TABLES   = ROOT / "tables" / "ex2_q2"'),
+     'TABLES   = ROOT / "tables" / "ex2_q3"'),
     ('FIGURES  = ROOT / "figures" / "ex2_q1"',
-     'FIGURES  = ROOT / "figures" / "ex2_q2"'),
-    # The third condition. transforms.CONDITIONS has carried it all along;
-    # Q1 simply did not run it.
+     'FIGURES  = ROOT / "figures" / "ex2_q3"'),
+    # Q3 runs the ladder in both conditions that have an N0 baseline.
     ('CONDITIONS  = ("congruent", "congruent_face", "dims")',
-     'CONDITIONS  = ("congruent", "congruent_face", "conflict",'
-     ' "conflict_face", "dims")'),
+     'CONDITIONS  = ("dims", "conflict_face")'),
+    # ONE repeat per rung. Five rungs across two conditions at three repeats
+    # would be six thousand calls; the cost of one is that the second-order
+    # contrasts are noisier, which cell 11 and cell 13 both say out loud.
+    ('REPEATS     = 3', 'REPEATS     = 1'),
     ('RUNG        = "N0"                       # Q1 is read here and nowhere else',
-     'RUNG        = "N0"                       # Q2 is read here too: the'
-     '\n                                         # ladder is Q3'),
+     'RUNG        = "N0"                       # the BASELINE rung. The ladder'
+     '\n                                         # is cell 4, from prompts.RUNGS'),
 ]
 
 # Q1's cells 2 and 3 write their own tables, and reusing them verbatim put
@@ -44,17 +45,15 @@ SUBS_C1 = [
 # rather than "design", because Q2's own cell 4 writes tab_ex2_q2_design.csv
 # for the conflict design and the two must not collide.
 SUBS_C2 = [('write_csv("tab_ex2_q1_design.csv"',
-            'write_csv("tab_ex2_q2_geometry.csv"')]
+            'write_csv("tab_ex2_q3_geometry.csv"')]
 SUBS_C3 = [('write_csv("tab_ex2_q1_inventory.csv"',
-            'write_csv("tab_ex2_q2_inventory.csv"')]
+            'write_csv("tab_ex2_q3_inventory.csv"')]
 
-# The figure is Q1's, pointed at Q2's filenames. It loops over CONDITIONS and
-# MODELS and reads share_rows, all of which Q2 builds in Q1's column order
-# precisely so that this stays a substitution rather than a second copy.
-SUBS_FIG = [("ex2_q1", "ex2_q2"), ("Q1.", "Q2."),
-            # It is cell 13 in Q1 and cell 12 here, and Q2 already has
-            # a cell 13.
-            ("Cell 13. Figure", "Cell 12. Figure")]
+# NO FIGURE CELL. Q3's endpoint is a table of second-order contrasts whose
+# intervals are about thirty points wide by construction. Drawn as bars with
+# error bars they would read as a precision the design does not have, and the
+# honest presentation is the table with its resolution stated above it.
+SUBS_FIG = []
 
 
 def apply(src, subs, what):
@@ -71,27 +70,25 @@ def apply(src, subs, what):
 C1 = apply(A.C1, SUBS_C1, "cell 1")
 C2 = apply(A.C2, SUBS_C2, "cell 2")
 C3 = apply(A.C3, SUBS_C3, "cell 3")
-C12 = apply(B.C13, SUBS_FIG, "figure")
-MD12 = apply(B.MD13, SUBS_FIG, "figure markdown")
 
 CELLS = [
     ("md", A.MD0),  ("code", A.C0),      # keys, Q1's, verbatim
-    ("md", Q.MD1),  ("code", C1),        # setup, Q1's, three substitutions
+    ("md", Q.MD1),  ("code", C1),        # setup, Q1's, five substitutions
     ("md", A.MD2),  ("code", C2),        # block geometry, Q1's, renamed
     ("md", A.MD3),  ("code", C3),        # capture inventory, Q1's, renamed
-    ("md", Q.MD4),  ("code", Q.C4),      # conflict design check
-    ("md", Q.MD5),  ("code", Q.C5),      # prompt inspection
-    ("md", Q.MD6),  ("code", Q.C6),      # PAID: conflict at N0
-    ("md", Q.MD6A), ("code", Q.C6A),     # the withheld-number prompt
-    ("md", Q.MD6B), ("code", Q.C6B),     # PAID: conflict_face at N0
-    ("md", Q.MD6C), ("code", Q.C6C),     # PAID: congruent_face, its ceiling
-    ("md", Q.MD7),  ("code", Q.C7),      # load, validate, coupling
-    ("md", Q.MD8),  ("code", Q.C8),      # franka share
-    ("md", Q.MD9),  ("code", Q.C9),      # paired contrasts, the endpoint
-    ("md", Q.MD10), ("code", Q.C10),     # which source the opening came from
-    ("md", Q.MD11), ("code", Q.C11),     # declines by direction
-    ("md", MD12),   ("code", C12),       # figure, Q1's, repointed
-    ("md", Q.MD13), ("code", Q.C13),     # provenance
+    ("md", Q.MD4),  ("code", Q.C4),      # the rung design
+    ("md", Q.MD5),  ("code", Q.C5),      # what each rung adds
+    ("md", Q.MD6),  ("code", Q.C6),      # PAID: the gate, N-D in dims
+    ("md", Q.MD7),  ("code", Q.C7),      # gate read-out
+    ("md", Q.MD8),  ("code", Q.C8),      # PAID: the no-image control
+    ("md", Q.MD9),  ("code", Q.C9),      # PAID: the rest of the dims ladder
+    ("md", Q.MD10), ("code", Q.C10),     # PAID: the conflict_face ladder
+    ("md", Q.MD11), ("code", Q.C11),     # what is on disk
+    ("md", Q.MD12), ("code", Q.C12),     # each rung against N0
+    ("md", Q.MD13), ("code", Q.C13),     # attribution
+    ("md", Q.MD14), ("code", Q.C14),     # reported opening by rung
+    ("md", Q.MD15), ("code", Q.C15),     # the face the model names
+    ("md", Q.MD16), ("code", Q.C16),     # provenance
 ]
 
 
