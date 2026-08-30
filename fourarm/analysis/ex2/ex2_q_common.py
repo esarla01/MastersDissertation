@@ -111,10 +111,23 @@ def answered(path):
 
     Handles both reply shapes so the same guard works in every spending
     cell: the perception probes carry "answer", the allocation runners
-    carry "outcome"."""
+    carry "outcome".
+
+    DISTINCT trials, not rows. A run file legitimately holds more than one
+    row per trial: the runners re-ask an unparseable reply and append the
+    retry, and a cell re-run at a higher repeat count appends alongside
+    what was already there. Counting rows then compares a row total
+    against a trial total, and the gate calls a cell complete while trials
+    are still missing. That is not hypothetical -- it is how
+    ex2_q1_congruent_face_N0.jsonl came to report 677 of 612 and stop,
+    holding 455 of the 612 trials, with claude_md never getting repeats 2
+    and 3 at all. A row with neither id is counted on its own, because the
+    older probe shapes carry no id and one row is one observation
+    there."""
     if not pathlib.Path(path).exists():
         return 0
     n = 0
+    seen = set()
     for line in open(path):
         if not line.strip():
             continue
@@ -123,6 +136,13 @@ def answered(path):
             continue
         if r.get("answer") is None and r.get("outcome") in (None, "unparseable"):
             continue
+        key = r.get("trial_id") or r.get("check_id")
+        if key is None:
+            n += 1
+            continue
+        if key in seen:
+            continue
+        seen.add(key)
         n += 1
     return n
 

@@ -637,7 +637,9 @@ prov = []
 today = datetime.date.today().isoformat()
 for role, path in (("captures", CAPTURES / "consults.jsonl"),
                    ("congruent", CONGRUENT_OUT),
+                   ("congruent_face", CONGRUENT_FACE_OUT),
                    ("conflict", CONFLICT_OUT),
+                   ("conflict_face", CONFLICT_FACE_OUT),
                    ("dims", DIMS_OUT)):
     prov.append(provenance_row(role, path, OUT, today=today,
                                default_version=P.EX2_PROMPT_VERSION))

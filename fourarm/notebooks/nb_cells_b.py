@@ -310,35 +310,56 @@ for cond in CONDITIONS:
             ka, na = share_counts([r for r in base if r["face"] == a])
             kb, nb = share_counts([r for r in base if r["face"] == b])
             nlo, nhi = newcombe(ka, na, kb, nb)
+
+            # A cell where every position gives the same difference has zero
+            # variance, so its t interval collapses to zero width and reads
+            # as a precision no sample of 32 supports. The honest quantity is
+            # the count of positions that flipped completely, with a Wilson
+            # interval on it. Carried in the FILE, not marked by inspection
+            # in the chapter, so a reader can trace which cells are saturated
+            # and every table that quotes them agrees.
+            fk, fn = full_flip_count(diffs)
+            flo, fhi = wilson(fk, fn)
             contrast_rows.append([cond, model, name, npos,
                                   "%.1f" % mean if mean == mean else "NA",
                                   "%.1f" % nlo if nlo == nlo else "NA",
                                   "%.1f" % nhi if nhi == nhi else "NA",
                                   "%.1f" % plo if plo == plo else "NA",
                                   "%.1f" % phi if phi == phi else "NA",
-                                  spans_zero(plo, phi), "NA"])
+                                  spans_zero(plo, phi), "NA",
+                                  bool(fn) and fk == fn, fk,
+                                  "%.1f" % flo if flo == flo else "NA",
+                                  "%.1f" % fhi if fhi == fhi else "NA"])
             ratios[(cond, model, name)] = mean
 
-# dims / congruent, for the one remaining contrast.
+# condition / congruent, for the one remaining contrast. congruent is the
+# baseline and has no ratio to itself; every OTHER condition gets one. It was
+# restricted to dims until 2026-08-29, which left congruent_face empty -- and
+# congruent_face is the condition sections 2 and 5 both quote a ratio for, so
+# the number was being read off arithmetic in the text rather than off a file.
+BASELINE = "congruent"
 for row in contrast_rows:
     cond, model, name = row[0], row[1], row[2]
-    if cond == "dims" and name == "small_minus_large":
-        num = ratios.get(("dims", model, name))
-        den = ratios.get(("congruent", model, name))
+    if cond != BASELINE and name == "small_minus_large":
+        num = ratios.get((cond, model, name))
+        den = ratios.get((BASELINE, model, name))
         # index 10 is the ratio column; 9 is spans_zero. Counted, not guessed:
         # condition, model, contrast, npos, mean, newc_lo, newc_hi,
-        # paired_lo, paired_hi, spans_zero, ratio_to_congruent.
+        # paired_lo, paired_hi, spans_zero, ratio_to_congruent, saturated,
+        # flip_n, flip_wilson_lo, flip_wilson_hi.
         row[10] = ("%.2f" % (num / den)) if (den is not None and den == den
                                              and abs(den) > 1e-9
                                              and num is not None and num == num
                                              ) else "NA"
 
 show(["condition", "model", "contrast", "npos", "mean", "newc_lo", "newc_hi",
-      "paired_lo", "paired_hi", "spans0", "ratio"], contrast_rows)
+      "paired_lo", "paired_hi", "spans0", "ratio", "sat", "flips", "flip_lo",
+      "flip_hi"], contrast_rows)
 write_csv("tab_ex2_q1_contrasts.csv",
           ["condition", "model", "contrast", "n_positions", "mean_diff_pts",
            "newcombe_lo", "newcombe_hi", "paired_lo", "paired_hi",
-           "spans_zero", "ratio_to_congruent"], contrast_rows)
+           "spans_zero", "ratio_to_congruent", "saturated", "flip_n",
+           "flip_wilson_lo", "flip_wilson_hi"], contrast_rows)
 write_csv("tab_ex2_q1_contrasts_bypos.csv",
           ["condition", "model", "position_id", "contrast", "diff_pts"],
           bypos_rows)
@@ -386,17 +407,14 @@ for model in MODELS:
     # A cell where every position gives the same difference has zero
     # variance, so its t interval collapses to zero width and reads as a
     # precision no sample of 32 supports. Say how many positions flipped
-    # instead; that is the quantity with an honest interval on it.
-    if npos:
-        _d = [d for _, d in paired_diffs(
-            [r for r in ANALYSED if r["condition"] == "dims"
-             and r["model"] == model], USABLE, "small_face", "large_face")]
-        _k, _n = full_flip_count(_d)
-        if _k == _n and _n:
-            _lo, _hi = wilson(_k, _n)
-            print("           saturated: %d of %d positions flipped "
-                  "completely, Wilson [%.1f, %.1f]. Quote that, not the "
-                  "zero-width t interval." % (_k, _n, _lo, _hi))
+    # instead; that is the quantity with an honest interval on it. Read off
+    # the ROW rather than recomputed here, so this line and the file cannot
+    # disagree about which cells are saturated.
+    _row = [r for r in row if r[2] == "small_minus_large"][0]
+    if _row[11]:
+        print("           saturated: %d of %d positions flipped completely, "
+              "Wilson [%s, %s]. Quote that, not the zero-width t interval."
+              % (_row[12], npos, _row[13], _row[14]))
     print("           -> %s" % v)
     if not sm_zero:
         print("              CANNOT BE DISTINGUISHED from a model that reads")
@@ -674,7 +692,9 @@ today = datetime.date.today().isoformat()
 
 for role, path in (("captures", CAPTURES / "consults.jsonl"),
                    ("congruent", CONGRUENT_OUT),
-                   ("dims", DIMS_OUT)):
+                   ("congruent_face", CONGRUENT_FACE_OUT),
+                   ("dims", DIMS_OUT),
+                   ("dims_noimage", NOIMAGE_OUT)):
     if not pathlib.Path(path).exists():
         prov.append([role, rel(path), 0, "MISSING", "", "", today])
         continue
@@ -965,8 +985,14 @@ byte-identical prompts and differ only in whether the stated face is true."""
 
 C6B = r'''# --- Cell 6b. Congruent-face, N0. MAKES MODEL CALLS. ------------------------
 CONGRUENT_FACE_OUT = RUNS / "ex2_q1_congruent_face_N0.jsonl"
-FACE_REPEATS = 1        # bound here, not REPEATS: one repeat settles a
-                        # saturated cell, and this one is expected to saturate
+FACE_REPEATS = 3        # bound here, not REPEATS. It was 1 while this cell
+                        # was expected to saturate, and gpt_hi and gemini do
+                        # saturate. claude_md does not: it sits at chance on
+                        # both faces, so its contrast carries real variance
+                        # and one repeat cannot bound it. This cell is also
+                        # the matched ceiling Q2 reads conflict_face against,
+                        # and a ceiling measured at a third of the repeats of
+                        # the thing it bounds invites the obvious objection.
 
 n_calls = len(CALL_SCENES) * len(MODELS) * FACE_REPEATS
 print("COST: %d scenes x %d models x %d repeat = %d calls"

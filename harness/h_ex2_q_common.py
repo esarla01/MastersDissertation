@@ -113,6 +113,24 @@ check("answered on a missing file is 0, not an exception",
       "a spend gate has to run before the first call")
 os.unlink(p)
 
+# A retry and a re-run at a higher repeat count both append a second row for
+# a trial that is already answered. Counting rows there compares a row total
+# against a trial total, and the gate calls a cell complete while trials are
+# still missing: ex2_q1_congruent_face_N0.jsonl reported 677 of 612 while
+# holding 455 of the 612, and claude_md never got repeats 2 and 3.
+p = jsonl([{"trial_id": "s1|c|m|franka|N0|V|r1", "outcome": "unparseable",
+            "error": None},
+           {"trial_id": "s1|c|m|franka|N0|V|r1", "outcome": "follows_image",
+            "error": None},
+           {"trial_id": "s1|c|m|franka|N0|V|r1", "outcome": "follows_state",
+            "error": None},
+           {"trial_id": "s2|c|m|franka|N0|V|r1", "outcome": "uninformative",
+            "error": None}])
+check("answered counts DISTINCT trials, not rows", answered(p) == 2,
+      "4 lines over 2 trial ids, one of them answered three times. Counting "
+      "rows would say 3 and a spend gate would stop short of the sample.")
+os.unlink(p)
+
 
 # ---------------------------------------------------------------------------
 # 2. load_run

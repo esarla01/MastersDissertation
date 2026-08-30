@@ -51,7 +51,10 @@ SUBS_C3 = [('write_csv("tab_ex2_q1_inventory.csv"',
 # The figure is Q1's, pointed at Q2's filenames. It loops over CONDITIONS and
 # MODELS and reads share_rows, all of which Q2 builds in Q1's column order
 # precisely so that this stays a substitution rather than a second copy.
-SUBS_FIG = [("ex2_q1", "ex2_q2"), ("Q1.", "Q2."),
+SUBS_FIG = [# Before the generic ex2_q1 -> ex2_q2 rule, which would other-
+            # wise leave the header naming a notebook that does not exist.
+            ("ex2_q1_derivation.ipynb", "ex2_q2_precedence.ipynb"),
+            ("ex2_q1", "ex2_q2"), ("Q1.", "Q2."),
             # It is cell 13 in Q1 and cell 12 here, and Q2 already has
             # a cell 13.
             ("Cell 13. Figure", "Cell 12. Figure")]
