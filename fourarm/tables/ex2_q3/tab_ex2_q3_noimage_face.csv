@@ -1,0 +1,7 @@
+model,arm,n_trials,n_named,n_correct,correct_pct,wilson_lo,wilson_hi,n_face_right_opening_wrong
+gpt_hi,N-D noimage,192,192,96,50.0,43.0,57.0,30
+gpt_hi,N-D image,128,128,77,60.2,51.5,68.2,27
+gemini,N-D noimage,192,192,96,50.0,43.0,57.0,0
+gemini,N-D image,128,128,128,100.0,97.1,100.0,0
+claude_md,N-D noimage,192,192,97,50.5,43.5,57.5,19
+claude_md,N-D image,127,127,64,50.4,41.8,58.9,23

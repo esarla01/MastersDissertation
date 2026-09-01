@@ -142,6 +142,19 @@ check("the fourth condition is opt-in, not in the default sweep",
       "conflict_face" in T.CONDITIONS
       and "conflict_face" not in T.CORE_CONDITIONS,
       "adding a condition must not widen a driver's default sweep")
+# The same rule, one axis over. P.RUNGS holds the off-ladder precedence
+# directives; run.py's default sweep must stay the ladder, or adding a
+# variant grows this driver's cost -- and a directive is vacuous in dims,
+# which this sweep includes, so it would raise mid-run as well.
+check("the precedence directives are opt-in, not in the default sweep",
+      bool(P.DIRECTIVE_RUNGS)
+      and not (set(P.DIRECTIVE_RUNGS) & set(R.RUNGS)),
+      "adding a rung must not widen a driver's default sweep")
+check("the default sweep is exactly the pre-registered ladder",
+      set(R.RUNGS) == set(P.LADDER_RUNGS))
+check("--rung can still ask for a directive",
+      set(R.ALL_RUNGS) == set(P.RUNGS),
+      "opt-in means not swept by default, not unreachable")
 check("nulls get congruent ONLY",
       by_kind["null"] == {"congruent"},
       "a null with a falsified state is not measuring answer stability")

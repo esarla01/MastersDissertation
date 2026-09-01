@@ -1,0 +1,4 @@
+model,n0,n_a,directive,npos,delta_vs_n0,lo,hi,delta_vs_n_a,verdict
+gpt_hi,-89.6,-80.2,-1.6,32,88.0,72.3,103.8,78.6,MOVED
+gemini,-100.0,-96.9,100.0,32,200.0,200.0,200.0,196.9,MOVED
+claude_md,7.3,-4.2,-15.6,32,-22.9,-46.5,0.7,-11.5,NOT MOVED

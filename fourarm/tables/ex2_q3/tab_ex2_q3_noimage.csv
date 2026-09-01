@@ -1,0 +1,4 @@
+model,n_positions,contrast_N0_pts,contrast_ND_image_pts,contrast_ND_noimage_pts,noimage_lo,noimage_hi,n_positions_delta_N0,delta_vs_N0_pts,delta_N0_lo,delta_N0_hi,n_positions_delta_image,delta_vs_image_pts,delta_image_lo,delta_image_hi
+gpt_hi,32,2.1,6.2,-5.2,-19.0,8.6,32,-7.3,-21.6,7.0,32,-11.5,-32.8,9.9
+gemini,32,46.9,100.0,0.0,-14.7,14.7,32,-46.9,-63.9,-29.8,32,-100.0,-114.7,-85.3
+claude_md,32,-10.4,1.6,5.2,-7.6,18.0,32,15.6,-4.3,35.5,32,3.6,-18.4,25.7

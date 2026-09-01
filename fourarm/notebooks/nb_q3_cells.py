@@ -40,9 +40,30 @@ C4 = r'''# --- Cell 4. The rung design. No model calls. ------------------------
 # READ from the prompt module, never redefined. A rung list typed here would
 # be a second source of truth for the thing the experiment manipulates.
 LADDER = ("N0", "N-A", "N-C", "N-order", "N-D", "N-CD")
-if set(LADDER) != set(P.RUNGS):
-    raise SystemExit("the prompt module defines %s; this notebook names %s"
-                     % (sorted(P.RUNGS), sorted(LADDER)))
+if set(LADDER) != set(P.LADDER_RUNGS):
+    raise SystemExit("the prompt module's ladder is %s; this notebook names %s"
+                     % (sorted(P.LADDER_RUNGS), sorted(LADDER)))
+
+# The off-ladder precedence directives, read from the module and never
+# typed here. The second guard is what stops a variant being added to
+# prompts.RUNGS and quietly reaching neither list: it would then be swept
+# by nothing and checked by nothing, which is how a rung goes missing.
+DIRECTIVES = tuple(P.DIRECTIVE_RUNGS)
+if set(LADDER) | set(DIRECTIVES) != set(P.RUNGS):
+    raise SystemExit("prompts.RUNGS holds %s, which is neither the ladder "
+                     "nor a declared directive"
+                     % sorted(set(P.RUNGS) - set(LADDER) - set(DIRECTIVES)))
+
+# WHICH DIRECTIVE CELL IS BOUGHT, IN STAGES, following the same discipline
+# as GATE_RUNG below: a cheaper cell decides whether the rest is worth
+# buying. Stage 2 exists only to INTERPRET stage 1 -- one control for "any
+# extra sentence would have done it", one for "it merely heard the word
+# image" -- so if stage 1 does not move there is nothing to control for and
+# neither is bought.
+DIRECTIVE_STAGE1 = (("conflict_face", "X-image"),)
+DIRECTIVE_STAGE2 = (("congruent_face", "X-image"),
+                    ("conflict_face", "X-state"))
+DIRECTIVE_CELLS = DIRECTIVE_STAGE1 + DIRECTIVE_STAGE2
 
 # THE GATE RUNG. N-D rather than N-CD, which is what the design document
 # proposed. The pilot files from 2026-08-27 already show gemini going from
@@ -90,15 +111,90 @@ print("PASS  every rung is N0 plus its own block at the same anchor, the")
 print("      schema variants are as declared, and no rung leaks another's")
 print("      wording. Checked in %s." % " and ".join(CONDITIONS))
 print()
+print("The table above is the LADDER only. The directives are off it and")
+print("are cell 4b: putting them in a table whose column says \"factor\"")
+print("would present them as a fifth and sixth factor of a design that")
+print("pre-registered four.")
+print()
 print("PRE-REGISTERED PREDICTIONS, from prompts.PREDICTIONS:")
 for k, v in sorted(P.PREDICTIONS.items()):
-    print("  %-12s %s" % (k, v))
+    print("  %-16s %s" % (k, v))
 print()
 print("N-order exists because N-D moves the report ahead of the arm AND asks")
 print("for the face, and a model generates left to right. Without the order")
 print("control an N-D effect could not be attributed to either.")
 print("N-CD is a sufficiency cell against N0. It is never an interaction")
 print("test: this design is not powered for one and does not claim to be.")'''
+
+
+MD4B = r"""## Cell 4b. The precedence directives, off the ladder
+
+No model calls. The ladder scaffolds the derivation while staying silent about
+provenance. A **directive** does the opposite: it names the stated resting face
+and says the image can contradict it, which the boundary rule forbids `A`, `C`
+and `D`. So it is not a seventh rung. It measures whether a model has an
+arbitration step at all that a direct instruction can reach, and it is the
+ceiling on instructed arbitration in the way `congruent_face` is the ceiling on
+derivation.
+
+This cell prints the exact wording so the chapter quotes the prompt rather than
+a paraphrase, and shows that the cell which cannot be interpreted cannot be
+rendered either."""
+
+C4B = r'''# --- Cell 4b. The precedence directives. No model calls. --------------------
+dir_rows = []
+for rung in DIRECTIVES:
+    spec = P.RUNGS[rung]
+    added = spec["text"][len(P.A_ATTEND):].strip()
+    dir_rows.append([rung, ";".join(spec["factors"]), spec["schema"], added])
+show(["directive", "factors", "schema", "sentence added to N-A"], dir_rows)
+write_csv("tab_ex2_q3_directives.csv",
+          ["directive", "factors", "schema", "full_wording",
+           "sentence_added_to_N_A"],
+          [[r[0], r[1], r[2], P.RUNGS[r[0]]["text"].strip(), r[3]]
+           for r in dir_rows])
+
+print()
+print("EACH IS N-A PLUS ONE SENTENCE. That is the whole attribution: N-A is")
+print("already on disk in conflict_face at %d repeats, so X minus N-A is the"
+      % REPEATS)
+print("precedence sentence and nothing else, bought for nothing.")
+print()
+print("BOTH SENTENCES NAME THE IMAGE and differ in one word. X-state is what")
+print("separates reading the instruction from reacting to image-talk: if the")
+print("model moves toward the picture under BOTH, it is not arbitrating.")
+print()
+print("THE WORDING IS CONDITIONAL, never assertive. \"The image disagrees with")
+print("the text\" would be a FALSE sentence in congruent_face, and")
+print("congruent_face is the control that makes the result readable: the same")
+print("prompt, the same sentence, an antecedent that is never satisfied.")
+print()
+print("THE SCHEMA STAYS base. A directive that also reordered the answer would")
+print("confound precedence with the report order, which is what N-order is")
+print("there to separate. It also means the arm is committed BEFORE the")
+print("opening is written, so a failure to move cannot be told apart from")
+print("obedience arriving too late in the generation. That is a limitation of")
+print("this cell and belongs in the chapter, not a defect to patch by giving")
+print("the directive the face-first schema.")
+print()
+print("WHERE A DIRECTIVE IS REFUSED, from prompts.RUNG_VACUOUS_IN:")
+for rung in DIRECTIVES:
+    print("  %-8s vacuous in %s" % (rung, ", ".join(P.RUNG_VACUOUS_IN[rung])))
+for cond in sorted(set(CONDITIONS) | {c for c, _ in DIRECTIVE_CELLS}):
+    offered = [r for r in DIRECTIVES if r in P.rungs_for(cond)]
+    print("  %-15s offers %s" % (cond, ", ".join(offered) or "(none)"))
+try:
+    P.system_prompt("X-image", "dims")
+    raise AssertionError("dims rendered a directive; it states no face")
+except ValueError as exc:
+    print()
+    print("PASS  rendering X-image in dims raises rather than buying it:")
+    print("      %s" % " ".join(str(exc).split())[:66])
+print()
+print("dims pops resting_face from the state and its glossary says so, so a")
+print("sentence about \"the stated resting face\" would name a field the prompt")
+print("has just withdrawn. That is a comprehension puzzle, not the question")
+print("under test, so the cell is unrenderable rather than merely discouraged.")'''
 
 
 MD5 = r"""## Cell 5. What each rung actually adds
@@ -115,8 +211,10 @@ for cond in CONDITIONS:
     print("=" * 70)
     texts = P.rung_diff(cond)
     base = texts["N0"].splitlines()
-    for rung in LADDER:
-        if rung == "N0":
+    # rung_diff returns only the rungs coherent in this condition, so a
+    # directive is simply absent where it is refused.
+    for rung in LADDER + DIRECTIVES:
+        if rung == "N0" or rung not in texts:
             continue
         added = [l[1:] for l in difflib.unified_diff(base,
                                                      texts[rung].splitlines(),
@@ -141,7 +239,7 @@ print("=" * 70)
 print("THE ANSWER SCHEMA, per variant")
 print("=" * 70)
 for name in ("base", "report_first", "face_first"):
-    used = [r for r in LADDER if P.RUNGS[r]["schema"] == name]
+    used = [r for r in LADDER + DIRECTIVES if P.RUNGS[r]["schema"] == name]
     print()
     print("%-13s used by %s" % (name, ", ".join(used)))
     for line in P.schema_text(name).strip().splitlines():
@@ -485,6 +583,159 @@ else:
         print("\nconflict_face ladder complete")'''
 
 
+MD10B = r"""## Cell 10b. Stage 1: the precedence directive in `conflict_face`
+
+**Makes model calls.** The run this notebook exists to add: does telling a model
+*where the image and the stated resting face disagree, go by the image* move it
+off the false stated face?
+
+Read against two files already on disk. `N0` is the baseline. `N-A` is the more
+informative one: it says "look at the image" without naming the face or admitting
+a conflict, and `X-image` is literally that text plus one sentence, so
+`X-image - N-A` is the precedence sentence and nothing else."""
+
+C10B = r'''# --- Cell 10b. STAGE 1: X-image in conflict_face. MAKES MODEL CALLS. --------
+DIRECTIVE_COND, DIRECTIVE = DIRECTIVE_STAGE1[0]
+DIRECTIVE_OUT = rung_file(DIRECTIVE_COND, DIRECTIVE)
+
+if not pathlib.Path(N0_FILE[DIRECTIVE_COND]).exists():
+    print("Q2's %s N0 file is not on disk:" % DIRECTIVE_COND)
+    print("  %s" % rel(N0_FILE[DIRECTIVE_COND]))
+    print("The headline contrast is against it, so this cannot be read until")
+    print("Q2 has been run. Nothing bought.")
+else:
+    n_calls = len(CALL_SCENES) * len(MODELS) * REPEATS
+    print("COST: %d scenes x %d models x %d repeats = %d calls"
+          % (len(CALL_SCENES), len(MODELS), REPEATS, n_calls))
+    print("      %s in %s, one cell." % (DIRECTIVE, DIRECTIVE_COND))
+    print("      %3d of %d already answered"
+          % (answered(DIRECTIVE_OUT), n_calls))
+    print()
+    print("      READ AGAINST, already on disk and costing nothing:")
+    for _r in ("N0", "N-A"):
+        _f = N0_FILE[DIRECTIVE_COND] if _r == "N0" else rung_file(
+            DIRECTIVE_COND, _r)
+        print("        %-4s %-46s %3d answered"
+              % (_r, rel(_f), answered(_f) if pathlib.Path(_f).exists() else 0))
+    print()
+    print("      dims is NOT here and cannot be: it states no resting face,")
+    print("      so the directive is vacuous there and solo refuses to render")
+    print("      it before a single call is made.")
+
+    CONFIRM_SPEND = None        # <-- set to the number in the COST line
+
+    if spend_gate(n_calls, CONFIRM_SPEND, DIRECTIVE_OUT,
+                  factors=(("scenes", len(CALL_SCENES)),
+                           ("models", len(MODELS)), ("repeats", REPEATS))):
+        S.run(str(CAPTURES), out_path=str(DIRECTIVE_OUT), models=MODELS,
+              conditions=(DIRECTIVE_COND,), preferences=(PREFERENCE,),
+              rungs=(DIRECTIVE,), modalities=("V",), kind="pair",
+              repeats=REPEATS)
+        print("answered now:", answered(DIRECTIVE_OUT))'''
+
+
+MD10C = r"""## Cell 10c. Stage 1 read-out, and the gate on stage 2
+
+No model calls. Three outcomes per model, as in cell 7: **moved**, **not
+moved**, **unresolved**. The two controls in cell 10d exist only to interpret a
+model that moved, so a model that did not move buys nothing further."""
+
+C10C = r'''# --- Cell 10c. Directive read-out. No model calls. --------------------------
+DIRECTIVE_VERDICT = {}
+dir_read = []
+for model in MODELS:
+    a = contrast_pairs(DIRECTIVE_COND, DIRECTIVE, model)
+    b = contrast_pairs(DIRECTIVE_COND, "N0", model)
+    c = contrast_pairs(DIRECTIVE_COND, "N-A", model)
+    m_0, _, _, _ = paired_mean_ci([d for _, d in b])
+    m_a, _, _, _ = paired_mean_ci([d for _, d in c])
+    m_x, _, _, _ = paired_mean_ci([d for _, d in a])
+    mean, lo, hi, npos = paired_mean_ci([d for _, d in paired_delta(a, b)])
+    _sent = paired_mean_ci([d for _, d in paired_delta(a, c)])
+    if not npos:
+        v = "NOT RUN"
+    elif lo > 0:
+        v = "MOVED"
+    elif hi < 0:
+        v = "MOVED BACKWARDS"
+    elif hi < GATE_MIN:
+        v = "NOT MOVED"
+    else:
+        v = "UNRESOLVED"
+    DIRECTIVE_VERDICT[model] = v
+    dir_read.append([model, fmt(m_0), fmt(m_a), fmt(m_x), npos, fmt(mean),
+                     fmt(lo), fmt(hi), fmt(_sent[0]), v])
+
+show(["model", "N0", "N-A", DIRECTIVE, "npos", "vs N0", "lo", "hi",
+      "vs N-A", "verdict"], dir_read)
+write_csv("tab_ex2_q3_directive_gate.csv",
+          ["model", "n0", "n_a", "directive", "npos", "delta_vs_n0",
+           "lo", "hi", "delta_vs_n_a", "verdict"], dir_read)
+print()
+print("\"vs N0\" is the total movement a direct instruction buys. \"vs N-A\"")
+print("subtracts being told to look at the image, leaving the precedence")
+print("sentence alone. Both are paired within position at each level.")
+print()
+print("A model reads UNRESOLVED when the interval still admits an effect of")
+print("%.0f points or more. That is not a null." % GATE_MIN)
+print()
+DIRECTIVE_PROCEED = [m for m in MODELS
+                     if DIRECTIVE_VERDICT[m] in ("MOVED", "MOVED BACKWARDS",
+                                                 "UNRESOLVED")]
+for model in MODELS:
+    print("  %-9s %s" % (model, DIRECTIVE_VERDICT[model]))
+if DIRECTIVE_PROCEED:
+    print()
+    print("STAGE 2 IS WORTH BUYING. %s did not come back a flat null, and a"
+          % ", ".join(DIRECTIVE_PROCEED))
+    print("number that moved is exactly the number the two controls are")
+    print("needed to interpret:")
+    print("  congruent_face @ X-image  rules out that ANY extra sentence")
+    print("                            would have done it")
+    print("  conflict_face  @ X-state  rules out that the model merely heard")
+    print("                            the word \"image\"")
+else:
+    print()
+    print("STAGE 2 BUYS NOTHING. No model moved, so there is no effect for")
+    print("either control to explain away. Report the null and stop; cell 10d")
+    print("will refuse on its own gate.")'''
+
+
+MD10D = r"""## Cell 10d. Stage 2: the two controls
+
+**Makes model calls.** Bought only if cell 10c says a model moved. Each control
+rules out one competing explanation for that movement, and neither is worth
+buying against a flat null."""
+
+C10D = r'''# --- Cell 10d. STAGE 2: the directive controls. MAKES MODEL CALLS. ----------
+if not DIRECTIVE_PROCEED:
+    print("Cell 10c reports no movement in any model, so neither control has")
+    print("anything to control for. Nothing bought.")
+else:
+    n_calls = len(CALL_SCENES) * len(MODELS) * REPEATS * len(DIRECTIVE_STAGE2)
+    print("COST: %d scenes x %d models x %d repeats x %d cells = %d calls"
+          % (len(CALL_SCENES), len(MODELS), REPEATS, len(DIRECTIVE_STAGE2),
+             n_calls))
+    for _c, _r in DIRECTIVE_STAGE2:
+        print("      %-15s %-8s %3d of %d answered"
+              % (_c, _r, answered(rung_file(_c, _r)),
+                 len(CALL_SCENES) * len(MODELS) * REPEATS))
+
+    CONFIRM_SPEND = None        # <-- set to the number in the COST line
+
+    if spend_gate(n_calls, CONFIRM_SPEND,
+                  factors=(("scenes", len(CALL_SCENES)),
+                           ("models", len(MODELS)), ("repeats", REPEATS),
+                           ("cells", len(DIRECTIVE_STAGE2)))):
+        for _c, _r in DIRECTIVE_STAGE2:
+            out = rung_file(_c, _r)
+            print("\n--- %s %s ---" % (_c, _r))
+            S.run(str(CAPTURES), out_path=str(out), models=MODELS,
+                  conditions=(_c,), preferences=(PREFERENCE,), rungs=(_r,),
+                  modalities=("V",), kind="pair", repeats=REPEATS)
+        print("\ndirective controls complete")'''
+
+
 MD11 = r"""## Cell 11. What is on disk
 
 No model calls. One row per condition and rung, with the row count, the models
@@ -497,8 +748,14 @@ show up as a rung that mysteriously did nothing."""
 C11 = r'''# --- Cell 11. Rung inventory. No model calls. -------------------------------
 inv, problems = [], []
 AVAILABLE = []
+# The directive cells go in as their own (condition, rung) entries rather
+# than being folded into LADDER: conflict_face then appears twice, once for
+# the ladder and once for its directives, and congruent_face gains a rung
+# without becoming a ladder condition. Everything downstream reads
+# AVAILABLE, so cells 12 and 14 pick them up for free.
 _plan = ([(c, LADDER) for c in CONDITIONS]
-         + [(c, ("N0",)) for c in BASELINES])
+         + [(c, ("N0",)) for c in BASELINES]
+         + [(c, (r,)) for c, r in DIRECTIVE_CELLS])
 for cond, _rungs in _plan:
     for rung in _rungs:
         path = N0_FILE[cond] if rung == "N0" else rung_file(cond, rung)
@@ -532,12 +789,13 @@ print("here because a rung effect is only readable against the ceiling for")
 print("its own condition. congruent_face is the ceiling for conflict_face,")
 print("and both are the ceiling for anything the ladder does to dims.")
 print()
-print("The N0 rows come from Q1 and Q2, at 3 repeats for the number")
-print("conditions and 1 for the face ones.")
-print("Every rung file here is at %d. A rung's per-position share is" % REPEATS)
-print("therefore 0 or 100 while the baseline's is one of four values, so the")
-print("second-order contrasts below are noisier than Q1's and Q2's. Say so")
-print("beside any number quoted from them.")'''
+print("The N0 rows come from Q1 and Q2. Every file here, baseline and rung")
+print("alike, holds 612 distinct trials at %d repeats, so the second-order"
+      % REPEATS)
+print("contrasts below are read at the same resolution as Q1's and Q2's.")
+print()
+print("The X- rows are the off-ladder precedence directives, not rungs. They")
+print("are read in cell 12b, against N0 and against N-A.")'''
 
 
 MD12 = r"""## Cell 12. Each rung against N0
@@ -574,6 +832,80 @@ print("contrast is the same small_minus_large Q1 and Q2 report, at that rung.")
 print("delta_vs_N0 is how far the rung moved it, paired within position at")
 print("both levels. A saturated rung has no useful interval on the contrast")
 print("itself; read the delta.")'''
+
+
+MD12B = r"""## Cell 12b. The precedence directives, read
+
+No model calls. The headline and its two controls in one table, with the
+`congruent_face` `N0` ceiling beside them so the movement is read against how
+far there was to move.
+
+Each row is a paired within-position difference of the small-face against
+large-face contrast, then differenced again against the comparison level."""
+
+C12B = r'''# --- Cell 12b. The directive read-out. No model calls. ----------------------
+DIRECTIVE_READS = (
+    ("headline", "conflict_face", "X-image", "N0",
+     "does the instruction move the model off the false stated face"),
+    ("sentence only", "conflict_face", "X-image", "N-A",
+     "subtracts being told to look; leaves the precedence sentence alone"),
+    ("control: wording", "congruent_face", "X-image", "N0",
+     "same prompt, antecedent never satisfied; movement here is not obedience"),
+    ("control: symmetry", "conflict_face", "X-state", "N0",
+     "one word different, still names the image; movement toward the picture "
+     "here means the model is not reading which source was named"),
+)
+
+dir_rows = []
+for label, cond, rung, against, why in DIRECTIVE_READS:
+    for model in MODELS:
+        a = contrast_pairs(cond, rung, model)
+        b = contrast_pairs(cond, against, model)
+        if not a or not b:
+            dir_rows.append([label, cond, rung, against, model, 0, "-", "-",
+                             "-", "not run"])
+            continue
+        mean, lo, hi, npos = paired_mean_ci([d for _, d in paired_delta(a, b)])
+        # Keyed on npos first. An empty cell yields nan bounds, and
+        # spans_zero counts nan as spanning, so a cell that was never run
+        # would otherwise be reported as an interval consistent with no
+        # effect -- a null read out of a file that does not exist.
+        if not npos:
+            interval = "not run"
+        else:
+            interval = "spans zero" if spans_zero(lo, hi) else "excludes zero"
+        dir_rows.append([label, cond, rung, against, model, npos, fmt(mean),
+                         fmt(lo), fmt(hi), interval])
+
+show(["read", "condition", "rung", "vs", "model", "npos", "delta", "lo", "hi",
+      "interval"], dir_rows)
+write_csv("tab_ex2_q3_directive.csv",
+          ["read", "condition", "rung", "against", "model", "npos", "delta",
+           "lo", "hi", "interval"], dir_rows)
+
+print()
+print("THE CEILING, for scale. congruent_face at N0 is how far there was to")
+print("move: the same prompt with a TRUE stated face, where no arbitration is")
+print("required of the model at all.")
+for model in MODELS:
+    _c = contrast_pairs("congruent_face", "N0", model)
+    m, lo, hi, n = paired_mean_ci([d for _, d in _c])
+    print("  %-9s %s  [%s, %s]  over %d positions"
+          % (model, fmt(m), fmt(lo), fmt(hi), n))
+print()
+for label, cond, rung, against, why in DIRECTIVE_READS:
+    print("%-18s %s" % (label + ":", why))
+print()
+print("HOW TO READ THIS. The headline is only obedience if BOTH controls are")
+print("flat. A wording control that moves says the model responded to having")
+print("an extra sentence. A symmetry control that moves the same way says it")
+print("responded to the word \"image\" rather than to which source was named.")
+print()
+print("LIMITATION, stated wherever this table is quoted. X uses the base")
+print("schema, so the arm is committed before the opening is written. A model")
+print("that did not move cannot be told apart from one that obeyed too late")
+print("in the generation. Giving the directive the face-first schema would")
+print("fix that and confound precedence with factor D, so it is not done.")'''
 
 
 MD13 = r"""## Cell 13. Attribution
@@ -748,6 +1080,12 @@ for cond in CONDITIONS:
             prov.append(provenance_row("%s_%s" % (cond, rung), path, OUT,
                                        today=today,
                                        default_version=P.EX2_PROMPT_VERSION))
+for cond, rung in DIRECTIVE_CELLS:
+    path = rung_file(cond, rung)
+    if pathlib.Path(path).exists():
+        prov.append(provenance_row("%s_%s" % (cond, rung), path, OUT,
+                                   today=today,
+                                   default_version=P.EX2_PROMPT_VERSION))
 if pathlib.Path(CONTROL_OUT).exists():
     prov.append(provenance_row("dims_%s_noimage" % GATE_RUNG, CONTROL_OUT,
                                OUT, today=today,
@@ -769,10 +1107,16 @@ print("   with the face named correctly on every trial, and gpt not moving,")
 print("   so elicitation is the rung the evidence implicates. N-CD is a")
 print("   sufficiency cell for a model N-D does not move, never an")
 print("   interaction test: this design is not powered for one.")
-print("2. Rungs run at %d repeat against N0 baselines at 3. The second-order"
+print("2. Rungs and baselines alike run at %d repeats over 612 trials, so an"
       % REPEATS)
-print("   contrasts are correspondingly noisier and an interval spanning")
-print("   zero is the design's resolution, not evidence of no effect.")
+print("   interval spanning zero is the design's resolution, not evidence")
+print("   of no effect.")
+print("3. X-image and X-state are NOT rungs. They break the boundary rule the")
+print("   four factors are held to -- they name the stated resting face and")
+print("   say the image can contradict it -- so they are off the ladder, they")
+print("   are refused in dims, and they answer a different question: whether")
+print("   a model has an arbitration step an instruction can reach at all.")
+print("   Cell 4b prints their wording; cell 12b reads them.")
 print("3. Contrasts are computed WITHIN condition and never pooled across")
 print("   them: C supplies a missing fact in dims and overrides a supplied")
 print("   one in conflict, so it is two manipulations under one name.")

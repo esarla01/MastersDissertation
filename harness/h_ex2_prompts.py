@@ -128,6 +128,8 @@ state_x, meta_x = prepared("conflict")
 state_d, meta_d = prepared("dims")
 
 RUNGS = tuple(P.RUNGS)
+LADDER = tuple(P.LADDER_RUNGS)
+DIRECTIVES = tuple(P.DIRECTIVE_RUNGS)
 sys_texts = {r: P.system_prompt(r, "congruent") for r in RUNGS}
 
 
@@ -212,6 +214,82 @@ check("D never states the relation",
       not any(w in _d for w in ("smaller of", "horizontal extent",
                                 "depends on")),
       "a model without C must supply the relation itself")
+
+
+# --- 4b. the precedence directives, against their OWN rule ----------------
+# X breaks the boundary rule A, C and D are held to: it names the stated
+# resting face and says the image can contradict it. That is why it is off
+# the ladder and checked here against a rule of its own, rather than being
+# exempted from the one it cannot satisfy.
+check("the ladder is exactly the six pre-registered rungs",
+      set(LADDER) == {"N0", "N-A", "N-C", "N-order", "N-D", "N-CD"},
+      "a literal on purpose: the ladder IS the pre-registration, and a "
+      "silent widening of it is what this catches")
+check("every directive is off the ladder",
+      bool(DIRECTIVES) and not (set(DIRECTIVES) & set(LADDER)))
+check("the ladder plus the directives is every rung",
+      set(LADDER) | set(DIRECTIVES) == set(RUNGS),
+      "a variant in neither is checked by neither")
+
+for _r in DIRECTIVES:
+    _x = " ".join(P.RUNGS[_r]["text"].split()).lower()
+    check("%s names both sources and which one wins" % _r,
+          "image" in _x and "resting face" in _x and "disagree" in _x,
+          _x[:80])
+    check("%s states no relation and names no opening" % _r,
+          not any(w in _x for w in ("smaller of", "horizontal extent",
+                                    "depends on", "opening", "extent")),
+          "precedence is which source to believe about the FACE; naming the "
+          "opening would hand over the measured quantity")
+    check("%s is conditional, never assertive" % _r,
+          "where the image and the stated resting face disagree" in _x
+          and "the image disagrees" not in _x,
+          "an assertive form is a FALSE sentence in congruent_face, which is "
+          "the control that makes the cell readable")
+    _lines = lambda t: [l for l in t.strip().splitlines() if l.strip()]
+    check("%s is N-A plus exactly one sentence" % _r,
+          P.RUNGS[_r]["text"].startswith(P.A_ATTEND)
+          and len(_lines(P.RUNGS[_r]["text"]))
+          == len(_lines(P.A_ATTEND)) + 1,
+          "X minus N-A is then the precedence sentence and nothing else, and "
+          "N-A is already on disk in conflict_face at three repeats")
+    check("%s keeps the base schema" % _r, P.RUNGS[_r]["schema"] == "base",
+          "a directive that also reordered the answer would confound "
+          "precedence with the report order")
+
+check("the two directives differ by exactly one word",
+      len([1 for a, b in zip(P.X_PREFER_IMAGE.split(),
+                             P.X_PREFER_STATE.split()) if a != b]) == 1
+      and len(P.X_PREFER_IMAGE.split()) == len(P.X_PREFER_STATE.split()),
+      "both name the image, so X-state is what separates reading the "
+      "instruction from merely reacting to image-talk")
+
+# Vacuity. dims withdraws resting_face, so a sentence about "the stated
+# resting face" would name a field the prompt has just taken away.
+check("a directive is refused in dims",
+      "X-image" not in P.rungs_for("dims")
+      and "X-state" not in P.rungs_for("dims"))
+check("a directive is offered where a face IS stated",
+      "X-image" in P.rungs_for("conflict_face")
+      and "X-image" in P.rungs_for("congruent_face"))
+try:
+    P.system_prompt("X-image", "dims")
+    check("rendering a vacuous cell raises", False, "it rendered")
+except ValueError as e:                                # noqa: BLE001
+    check("rendering a vacuous cell raises", "vacuous" in str(e), str(e)[:70])
+check("rung_diff in dims returns the ladder and nothing else",
+      set(P.rung_diff("dims")) == set(LADDER),
+      "the eyeball tool must not offer a cell that cannot be bought")
+
+# The isolation assertion must now ACCOUNT for every rendered rung. Before
+# 2026-08-31 it walked literal names, so a new rung passed while being
+# checked by nothing.
+for _cond in P.CONDITIONS:
+    try:
+        check("rungs are isolated in %s" % _cond,
+              P.assert_rungs_isolated(_cond))
+    except ValueError as e:                            # noqa: BLE001
+        check("rungs are isolated in %s" % _cond, False, str(e)[:110])
 
 
 # --- 5. no rung hands over the answer -------------------------------------
@@ -410,25 +488,32 @@ for rung in RUNGS:
           '"why"' not in t and '"reason"' not in t,
           "a prose field puts an extractor back between reply and number")
 
-check("only the D rungs ask for the resting face",
-      [r for r in RUNGS if '"resting_face": "<' in sys_texts[r]]
-      == ["N-D", "N-CD"],
+_asks_face = [r for r in RUNGS if '"resting_face": "<' in sys_texts[r]]
+check("only the face-first rungs ask for the resting face",
+      _asks_face == [r for r in RUNGS
+                     if P.RUNGS[r]["schema"] == "face_first"],
       "asking for it elsewhere would tell the model the face matters")
+check("the face-first set is still exactly the D rungs",
+      set(_asks_face) == {"N-D", "N-CD"},
+      "a literal on purpose: a new variant quietly joining the face-first "
+      "schema would change what N-D minus N0 measures")
 
 # Measured inside the ANSWER section only. The glossary and R3 both name
 # "opening_needed_m" forty lines earlier, so searching the whole prompt
 # found those and reported every base rung as reordered.
 schema_of = lambda r: sys_texts[r][sys_texts[r].index(anchor):]
-for rung in ("N0", "N-A", "N-C"):
+# Driven off the declared schema, not a literal rung list. The literal
+# form left any rung added after it was written unchecked for field order.
+for rung in RUNGS:
     t = schema_of(rung)
-    check("%s commits the arm BEFORE the opening" % rung,
-          t.index('"arm"') < t.index('"opening_needed_m"'))
-for rung in ("N-order", "N-D", "N-CD"):
-    t = schema_of(rung)
-    check("%s reports the opening BEFORE the arm" % rung,
-          t.index('"opening_needed_m"') < t.index('"arm"'),
-          "a model generates left to right, so the schema must agree with "
-          "the instruction or the instruction cannot bite")
+    if P.RUNGS[rung]["schema"] == "base":
+        check("%s commits the arm BEFORE the opening" % rung,
+              t.index('"arm"') < t.index('"opening_needed_m"'))
+    else:
+        check("%s reports the opening BEFORE the arm" % rung,
+              t.index('"opening_needed_m"') < t.index('"arm"'),
+              "a model generates left to right, so the schema must agree "
+              "with the instruction or the instruction cannot bite")
 
 check("a wait may carry a null opening",
       "null if you cannot" in sys_texts["N0"],

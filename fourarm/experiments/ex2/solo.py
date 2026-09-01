@@ -372,6 +372,14 @@ def run(capture_dir, out_path=None, models=DEFAULT_MODELS,
     if limit:
         plan = plan[:limit]
 
+    # RENDER-LEGALITY, up front and inside --dry-run. A directive is vacuous
+    # where no resting face is stated and system_prompt refuses it, but the
+    # refusal would otherwise arrive inside the loop, after the earlier
+    # cells of the same sweep had already been paid for.
+    for _rung in rungs:
+        for _cond in conditions:
+            P.system_prompt(_rung, _cond)
+
     if dry_run:
         for scene, cond in plan:
             _, meta = render(scene, cond)
@@ -485,7 +493,10 @@ def main(argv=None):
                          "the resting face and the opening BEFORE the arm, "
                          "and get a schema in that order so the "
                          "instruction can bite; N-order is the control "
-                         "that reorders the schema and adds no wording.")
+                         "that reorders the schema and adds no wording. "
+                         "X-image and X-state are the off-ladder precedence "
+                         "directives and are refused in dims, which states "
+                         "no resting face for them to speak about.")
     ap.add_argument("--modality", action="append", dest="modalities",
                     default=None, choices=MODALITIES,
                     help="V sends the image, A does not. A is the text-only "

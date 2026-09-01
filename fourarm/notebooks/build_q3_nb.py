@@ -29,10 +29,13 @@ SUBS_C1 = [
     # Q3 runs the ladder in both conditions that have an N0 baseline.
     ('CONDITIONS  = ("congruent", "congruent_face", "dims")',
      'CONDITIONS  = ("dims", "conflict_face")'),
-    # ONE repeat per rung. Five rungs across two conditions at three repeats
-    # would be six thousand calls; the cost of one is that the second-order
-    # contrasts are noisier, which cell 11 and cell 13 both say out loud.
-    ('REPEATS     = 3', 'REPEATS     = 1'),
+    # THREE repeats, matching Q1 and Q2 rather than contradicting them.
+    # This substitution said 1 until 2026-08-31, and by then every file in
+    # runs/ held 612 distinct trials across repeats 1, 2 and 3 -- the ladder
+    # had been re-run and the build script never caught up. A source that
+    # rebuilds the notebook with a REPEATS the data does not have makes
+    # every cost line and every gate arithmetic wrong.
+    ('REPEATS     = 3', 'REPEATS     = 3'),
     ('RUNG        = "N0"                       # Q1 is read here and nowhere else',
      'RUNG        = "N0"                       # the BASELINE rung. The ladder'
      '\n                                         # is cell 4, from prompts.RUNGS'),
@@ -73,18 +76,23 @@ C3 = apply(A.C3, SUBS_C3, "cell 3")
 
 CELLS = [
     ("md", A.MD0),  ("code", A.C0),      # keys, Q1's, verbatim
-    ("md", Q.MD1),  ("code", C1),        # setup, Q1's, five substitutions
+    ("md", Q.MD1),  ("code", C1),        # setup, Q1's, per SUBS_C1
     ("md", A.MD2),  ("code", C2),        # block geometry, Q1's, renamed
     ("md", A.MD3),  ("code", C3),        # capture inventory, Q1's, renamed
     ("md", Q.MD4),  ("code", Q.C4),      # the rung design
+    ("md", Q.MD4B), ("code", Q.C4B),     # the off-ladder directives
     ("md", Q.MD5),  ("code", Q.C5),      # what each rung adds
     ("md", Q.MD6),  ("code", Q.C6),      # PAID: the gate, N-D in dims
     ("md", Q.MD7),  ("code", Q.C7),      # gate read-out
     ("md", Q.MD8),  ("code", Q.C8),      # PAID: the no-image control
     ("md", Q.MD9),  ("code", Q.C9),      # PAID: the rest of the dims ladder
     ("md", Q.MD10), ("code", Q.C10),     # PAID: the conflict_face ladder
+    ("md", Q.MD10B), ("code", Q.C10B),   # PAID: stage 1, X-image
+    ("md", Q.MD10C), ("code", Q.C10C),   # stage 1 read-out, gates stage 2
+    ("md", Q.MD10D), ("code", Q.C10D),   # PAID: stage 2, the two controls
     ("md", Q.MD11), ("code", Q.C11),     # what is on disk
     ("md", Q.MD12), ("code", Q.C12),     # each rung against N0
+    ("md", Q.MD12B), ("code", Q.C12B),   # the directives, read
     ("md", Q.MD13), ("code", Q.C13),     # attribution
     ("md", Q.MD14), ("code", Q.C14),     # reported opening by rung
     ("md", Q.MD15), ("code", Q.C15),     # the face the model names

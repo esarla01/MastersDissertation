@@ -1,0 +1,13 @@
+model,arm,resting_face,n_trials,n_stated,n_correct,correct_pct,wilson_lo,wilson_hi
+gpt_hi,N-D noimage,small_face,96,96,66,68.8,58.9,77.1
+gpt_hi,N-D noimage,large_face,96,96,26,27.1,19.2,36.7
+gpt_hi,N-D image,small_face,64,64,39,60.9,48.7,71.9
+gpt_hi,N-D image,large_face,64,64,26,40.6,29.5,52.9
+gemini,N-D noimage,small_face,96,96,46,47.9,38.2,57.8
+gemini,N-D noimage,large_face,96,96,50,52.1,42.2,61.8
+gemini,N-D image,small_face,64,64,64,100.0,94.3,100.0
+gemini,N-D image,large_face,64,64,64,100.0,94.3,100.0
+claude_md,N-D noimage,small_face,96,96,77,80.2,71.1,86.9
+claude_md,N-D noimage,large_face,96,96,24,25.0,17.4,34.5
+claude_md,N-D image,small_face,64,64,41,64.1,51.8,74.7
+claude_md,N-D image,large_face,63,63,23,36.5,25.7,48.9

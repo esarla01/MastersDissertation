@@ -1,4 +1,5 @@
-"""EX2 prompts: the base prompt, the three factors, and the six rungs.
+"""EX2 prompts: the base prompt, the three factors, the six rungs, and
+the off-ladder precedence directives.
 
 THE OBJECT. A plain block, 0.130 x 0.100 x 0.050 m, with no recognisable
 identity. It rests on one of two faces, and the opening a gripper needs
@@ -91,9 +92,14 @@ THE BOUNDARY RULE, checked mechanically by assert_rungs_isolated:
       say where to look, and may NOT require anything to be reported.
     D may require a report and fix its position in the answer. It may NOT
       state the relation.
+    X may name the image, the stated resting face, and the fact that the
+      two can disagree. It may NOT name a face VALUE, an orientation,
+      either measured opening, an arm, the face-to-opening relation, or
+      require a report.
 
-No rung names an arm's opening, either measured value, or which face the
-object is on.
+No LADDER rung names an arm's opening, either measured value, or which
+face the object is on. X is the exception and has to be, which is why it
+is off the ladder and carries its own rule rather than an exemption.
 
 THE RUNGS.
 
@@ -108,6 +114,25 @@ N-order is the control for D. D moves the report ahead of the arm choice
 AND requires the resting face, and a model generates left to right, so
 without N-order an effect of D cannot be attributed to either. N-CD is a
 sufficiency cell against N0, never a test of whether C and D interact.
+
+THE DIRECTIVES, off the ladder (2026-08-31).
+
+    X-image   base + A + "where they disagree, go by the image"
+    X-state   base + A + "where they disagree, go by the state"
+
+These are NOT a seventh and eighth rung. Every ladder rung scaffolds the
+derivation while staying silent about provenance; a directive names the
+stated resting face AND announces that the image can contradict it, both
+of which the boundary rule forbids A, C and D. So it measures a different
+thing: not which source the model privileges when nothing tells it, which
+is Q2, but whether it has an arbitration step at all that an instruction
+can reach. It is the ceiling on instructed arbitration, and it stands to
+Q2 as congruent_face stands to conflict_face.
+
+They live in RUNGS so one code path renders, validates, ids and runs every
+variant, and outside LADDER_RUNGS so no default sweep and no table whose
+column says "factor" absorbs them. That is the shape CORE_CONDITIONS
+already has in transforms.py.
 
 Usage:
     messages = build_ex2_prompt(state, rung="N-C", condition="dims",
@@ -464,6 +489,34 @@ Give "resting_face" and "opening_needed_m" BEFORE naming an arm, and choose
 the arm to fit the opening you gave.
 """
 
+# THE PRECEDENCE DIRECTIVE. Off the ladder, and it has to be, because it
+# breaks the boundary rule on purpose: it names the stated resting face AND
+# it says the image can contradict it. A, C and D are forbidden both.
+#
+# THE WORDING IS CONDITIONAL, "where they disagree", never assertive. "The
+# image disagrees with the text" would be a FALSE sentence in
+# congruent_face, and congruent_face is the control that makes the cell
+# readable: the same prompt, the same sentence, an antecedent that is never
+# satisfied. An assertive form could only run in conflict_face, and there
+# would then be no way to tell obedience from the extra sentence simply
+# making the model look harder.
+#
+# IT NAMES NO OPENING. Saying which source to believe about the resting FACE
+# is precedence. Saying which to believe about the opening would hand over
+# the measured quantity.
+X_PREFER_IMAGE = """
+Where the image and the stated resting face disagree, go by the image.
+"""
+
+# The symmetry control, and the reason X-image's number means anything. The
+# two sentences differ in ONE word, and BOTH name the image. So if X-image
+# moves the model toward the picture and X-state does too, the model is
+# responding to image-talk rather than to which source was named, and
+# neither number is about precedence.
+X_PREFER_STATE = """
+Where the image and the stated resting face disagree, go by the state.
+"""
+
 RUNGS = {
     "N0":      {"text": "", "schema": "base", "factors": ()},
     "N-A":     {"text": A_ATTEND, "schema": "base",
@@ -476,7 +529,42 @@ RUNGS = {
                 "factors": ("elicitation", "order")},
     "N-CD":    {"text": C_DERIVE + D_ELICIT, "schema": "face_first",
                 "factors": ("derivation", "elicitation", "order")},
+
+    # OFF THE LADDER. See LADDER_RUNGS below and the module docstring.
+    #
+    # The text is A_ATTEND plus one sentence, exactly as N-CD is C plus D.
+    # That is what makes the reading cheap: N-A is already on disk in
+    # conflict_face at three repeats, so X-image minus N-A is the precedence
+    # sentence and nothing else, bought for nothing.
+    #
+    # The schema stays "base". A directive that also reordered the answer
+    # would confound precedence with the report order, which is exactly what
+    # N-order exists to separate, and "base" is what N-A uses, so the
+    # headline comparison is like for like.
+    "X-image": {"text": A_ATTEND + X_PREFER_IMAGE, "schema": "base",
+                "factors": ("attention", "precedence_image")},
+    "X-state": {"text": A_ATTEND + X_PREFER_STATE, "schema": "base",
+                "factors": ("attention", "precedence_state")},
 }
+
+# THE LADDER, pinned. RUNGS holds every variant that exists; this holds the
+# six the pre-registered ladder IS, and it is what every default sweep and
+# every table with a "factor" column reads. Pinned for the reason
+# CORE_CONDITIONS is pinned in transforms.py: adding a variant must not
+# silently widen an existing driver's cost, and a directive must never
+# appear in a table that presents it as one of the four factors.
+LADDER_RUNGS = ("N0", "N-A", "N-C", "N-order", "N-D", "N-CD")
+
+# Derived, never typed twice.
+DIRECTIVE_RUNGS = tuple(r for r in RUNGS if r not in LADDER_RUNGS)
+
+# WHERE A DIRECTIVE IS VACUOUS. dims pops resting_face from the state and
+# the glossary says "No opening and no resting face are given", so a
+# sentence about "the stated resting face" would name a field the prompt
+# has just withdrawn. That is the comprehension puzzle _R3_DIMS exists to
+# avoid. REFUSED rather than left to discipline: the cell cannot be
+# rendered, so it cannot be bought.
+RUNG_VACUOUS_IN = {"X-image": ("dims",), "X-state": ("dims",)}
 
 # Recorded before the first call so the factor structure cannot be fitted to
 # the outcome, following experiments/ex1/mislabel.py.
@@ -485,7 +573,22 @@ PREDICTIONS = {
     "derivation": "moves in conflict",
     "elicitation": "moves in both, more than derivation alone",
     "order": "inert",
+    "precedence_image": "moves in conflict_face toward the image, short of "
+                        "the congruent_face ceiling; inert in congruent_face",
+    # Predicted inert BECAUSE of a floor effect, and saying so in advance is
+    # what stops a null here being read as "the model ignores instructions".
+    "precedence_state": "inert in conflict_face: text-following is already "
+                        "at floor there, so there is nothing for it to add",
 }
+
+
+def rungs_for(condition):
+    """The rungs that render a coherent prompt in this condition."""
+    if condition not in CONDITIONS:
+        raise ValueError(f"unknown condition {condition!r}; expected one of "
+                         f"{sorted(CONDITIONS)}")
+    return tuple(r for r in RUNGS
+                 if condition not in RUNG_VACUOUS_IN.get(r, ()))
 
 
 # ---------------------------------------------------------------------------
@@ -714,6 +817,13 @@ def system_prompt(rung, condition, has_image=True, preference="franka",
     if preference not in PREFERENCE_TEXT:
         raise ValueError(f"unknown preference {preference!r}; expected one "
                          f"of {sorted(PREFERENCE_TEXT)}")
+    if condition in RUNG_VACUOUS_IN.get(rung, ()):
+        raise ValueError(
+            f"{rung!r} is vacuous in {condition!r}: it speaks about the "
+            f"stated resting face and this condition states none. A prompt "
+            f"naming a withdrawn field makes the model solve a comprehension "
+            f"puzzle rather than the question under test, so the cell is "
+            f"refused rather than rendered.")
 
     spec = RUNGS[rung]
     return BASE_PROMPT.format(
@@ -783,8 +893,13 @@ _ANCHOR = "\nYOUR ANSWER"
 
 
 def rung_diff(condition="congruent", **kw):
-    """Each rung's system prompt, for eyeballing before any spend."""
-    return {r: system_prompt(r, condition, **kw) for r in RUNGS}
+    """Each rung's system prompt, for eyeballing before any spend.
+
+    Only the rungs coherent in this condition: a directive is vacuous where
+    no resting face is stated, and system_prompt refuses to render it.
+    """
+    return {r: system_prompt(r, condition, **kw)
+            for r in rungs_for(condition)}
 
 
 def assert_glossary_matches_state(condition):
@@ -861,6 +976,12 @@ def assert_rungs_isolated(condition="congruent", **kw):
     A wording factor inserts one block at the anchor. The order factor
     changes the schema and adds no words. Factor D does both, so it is
     checked against N0's head plus its block, and separately on its schema.
+    A directive is structurally a wording factor and is held to its own
+    content rule.
+
+    Every rendered rung must fall to one of the branches: the `unchecked`
+    tally is what stops a new variant being isolated by nothing while this
+    assertion still reports a pass.
     """
     p = rung_diff(condition, **kw)
     base = p["N0"]
@@ -870,11 +991,16 @@ def assert_rungs_isolated(condition="congruent", **kw):
 
     head = lambda t: t[:t.index(_ANCHOR)]
 
+    # Every rendered rung must be accounted for by one of the branches
+    # below, and the tally is asserted rather than trusted.
+    checked = {"N0"}
+
     for rung in ("N-A", "N-C"):
         if p[rung] != base.replace(_ANCHOR, RUNGS[rung]["text"] + _ANCHOR, 1):
             raise ValueError(
                 f"{rung} does not equal N0 with its factor block inserted, "
                 f"so its contrast against N0 carries more than one change.")
+        checked.add(rung)
 
     if head(p["N-order"]) != head(base):
         raise ValueError(
@@ -884,6 +1010,7 @@ def assert_rungs_isolated(condition="congruent", **kw):
         raise ValueError(
             "N-order is identical to N0. The reordered schema was not "
             "applied, so the control measures nothing.")
+    checked.add("N-order")
 
     for rung in ("N-D", "N-CD"):
         if head(p[rung]) != head(base) + RUNGS[rung]["text"]:
@@ -892,14 +1019,65 @@ def assert_rungs_isolated(condition="congruent", **kw):
                 f"effect cannot be separated from the report order.")
         if RUNGS[rung]["schema"] != "face_first":
             raise ValueError(f"{rung} must use the face-first schema.")
+        checked.add(rung)
 
-    # The boundary rule, mechanically. N-CD is exempt: it is a declared
-    # combination rather than a single factor.
+    # THE DIRECTIVES. Structurally N0 plus a block at the anchor, like N-A
+    # and N-C, and they keep the base schema so the arm is still committed
+    # before the opening and the comparison against N-A is like for like.
+    # What differs is the CONTENT rule, below.
+    for rung in DIRECTIVE_RUNGS:
+        if rung not in p:
+            continue                      # vacuous here, and refused
+        if RUNGS[rung]["schema"] != "base":
+            raise ValueError(
+                f"{rung} does not use the base schema. A directive that also "
+                f"reordered the answer would confound precedence with the "
+                f"report order, which is what N-order exists to separate.")
+        if p[rung] != base.replace(_ANCHOR, RUNGS[rung]["text"] + _ANCHOR, 1):
+            raise ValueError(
+                f"{rung} does not equal N0 with its block inserted, so its "
+                f"contrast against N0 carries more than one change.")
+        if not RUNGS[rung]["text"].startswith(A_ATTEND):
+            raise ValueError(
+                f"{rung} does not open with A_ATTEND. Its whole attribution "
+                f"is that it is N-A plus one sentence, so that {rung} minus "
+                f"N-A is the precedence sentence and nothing else.")
+        checked.add(rung)
+
+    unchecked = set(p) - checked
+    if unchecked:
+        raise ValueError(
+            f"{sorted(unchecked)} rendered but was checked by no rule. Until "
+            f"2026-08-31 this function walked literal rung names, so a rung "
+            f"added to RUNGS was isolated by nothing while the assertion "
+            f"passed. A silent gap in an auditable structure is worse than "
+            f"no assertion.")
+
+    # The boundary rule, mechanically. Per rung, never blanket: "face" is
+    # forbidden to A and REQUIRED of X, so a shared list could not express
+    # both and the new variant would have to be exempted instead of checked.
     forbidden = {
         "N-A": ("resting_face", "face", "orientation", "opening", "extent"),
         "N-C": ("look", "image", "give", "report"),
         "N-D": ("smaller of", "horizontal extent", "depends on"),
+        "X-image": ("small_face", "large_face", "orientation", "opening",
+                    "extent", "smaller of", "depends on", "franka", "ur_",
+                    "report"),
+        "X-state": ("small_face", "large_face", "orientation", "opening",
+                    "extent", "smaller of", "depends on", "franka", "ur_",
+                    "report"),
     }
+    # Exempting a rung is a DECISION and must be written where it can be
+    # read, not reached by falling off the end of a dict. N0 and N-order add
+    # no wording; N-CD is a declared combination rather than one factor.
+    exempt = {"N0", "N-order", "N-CD"}
+    unruled = set(RUNGS) - set(forbidden) - exempt
+    if unruled:
+        raise ValueError(
+            f"{sorted(unruled)} has no boundary rule and is not declared "
+            f"exempt. Add a rule or add it to `exempt` with a reason; "
+            f"silence is not a third option.")
+
     for rung, words in forbidden.items():
         block = RUNGS[rung]["text"].lower()
         for w in words:
@@ -908,4 +1086,21 @@ def assert_rungs_isolated(condition="congruent", **kw):
                     f"{rung} names {w!r}, which belongs to another factor. "
                     f"The boundary rule in the module docstring is what "
                     f"makes the factor structure auditable.")
+
+    # POSITIVE rules, for the directives only. A directive that lost its
+    # "disagree" clause passes every negative test above and quietly stops
+    # being a directive, which is the one failure the forbidden map cannot
+    # see.
+    required = {
+        "X-image": ("image", "resting face", "disagree", "go by the image"),
+        "X-state": ("image", "resting face", "disagree", "go by the state"),
+    }
+    for rung, words in required.items():
+        block = " ".join(RUNGS[rung]["text"].split()).lower()
+        for w in words:
+            if w not in block:
+                raise ValueError(
+                    f"{rung} does not say {w!r}. A directive is defined by "
+                    f"naming both sources and which one wins; without that "
+                    f"it is not the thing the cell is buying.")
     return True

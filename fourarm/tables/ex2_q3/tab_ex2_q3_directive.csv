@@ -1,0 +1,13 @@
+read,condition,rung,against,model,npos,delta,lo,hi,interval
+headline,conflict_face,X-image,N0,gpt_hi,0,NA,NA,NA,not run
+headline,conflict_face,X-image,N0,gemini,0,NA,NA,NA,not run
+headline,conflict_face,X-image,N0,claude_md,0,NA,NA,NA,not run
+sentence only,conflict_face,X-image,N-A,gpt_hi,0,NA,NA,NA,not run
+sentence only,conflict_face,X-image,N-A,gemini,0,NA,NA,NA,not run
+sentence only,conflict_face,X-image,N-A,claude_md,0,NA,NA,NA,not run
+control: wording,congruent_face,X-image,N0,gpt_hi,0,NA,NA,NA,not run
+control: wording,congruent_face,X-image,N0,gemini,0,NA,NA,NA,not run
+control: wording,congruent_face,X-image,N0,claude_md,0,NA,NA,NA,not run
+control: symmetry,conflict_face,X-state,N0,gpt_hi,0,NA,NA,NA,not run
+control: symmetry,conflict_face,X-state,N0,gemini,0,NA,NA,NA,not run
+control: symmetry,conflict_face,X-state,N0,claude_md,0,NA,NA,NA,not run

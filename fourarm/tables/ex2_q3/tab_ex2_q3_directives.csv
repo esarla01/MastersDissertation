@@ -1,0 +1,9 @@
+directive,factors,schema,full_wording,sentence_added_to_N_A
+X-image,attention;precedence_image,base,"The image shows the table as it is now. Look at the object in the image
+before you choose.
+
+Where the image and the stated resting face disagree, go by the image.","Where the image and the stated resting face disagree, go by the image."
+X-state,attention;precedence_state,base,"The image shows the table as it is now. Look at the object in the image
+before you choose.
+
+Where the image and the stated resting face disagree, go by the state.","Where the image and the stated resting face disagree, go by the state."

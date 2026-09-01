@@ -66,7 +66,18 @@ VIEWS = ("ex2_cam", "table_cam")
 # the rungs never reorder themselves when the dict is rebuilt. P.RUNGS is a
 # dict now, and iterating it directly would put the schema spec where a
 # rung name belongs.
-RUNGS = tuple(P.RUNGS)
+#
+# THE LADDER, not every rung. P.RUNGS also holds the off-ladder precedence
+# directives, and this is trials()' DEFAULT, swept over CORE_CONDITIONS.
+# Taking every rung would grow this driver's default cost each time a
+# variant was added -- the failure CORE_CONDITIONS is pinned to prevent --
+# and worse here: a directive is vacuous in dims, which that sweep
+# includes, so the widened default would not merely cost more, it would
+# raise mid-run.
+RUNGS = tuple(P.LADDER_RUNGS)
+
+# --rung may still ASK for a directive; it just is not swept by default.
+ALL_RUNGS = tuple(P.RUNGS)
 
 PREFERENCES = tuple(P.PREFERENCE_TEXT)
 
@@ -583,7 +594,7 @@ def main(argv=None):
     ap.add_argument("--dry-run", action="store_true",
                     help="render prompts, send nothing, spend nothing")
     ap.add_argument("--view", default=None, choices=VIEWS)
-    ap.add_argument("--rung", default=None, choices=RUNGS)
+    ap.add_argument("--rung", default=None, choices=ALL_RUNGS)
     ap.add_argument("--condition", default=None, choices=T.CONDITIONS)
     ap.add_argument("--preference", default="franka", choices=PREFERENCES,
                     help="arm type G1 prefers. A UR is legal on every "
