@@ -770,91 +770,195 @@ correctness.
 
 ### 9.5 Q3, remediation
 
-All rung cells are one repeat against `N0` baselines at three, so the
-second-order intervals are wide by construction. `tab_ex2_q3_contrasts.csv`.
+**Rewritten 2026-09-01 from the three-repeat run set at commit `dd5fa96`.** The
+previous text on this section described the one-repeat pilot and every number
+in it was superseded when repeat 3 landed (`dd34691`, "running repeat 3 for
+rungs"). Ladder cells are now 96 trials each, 32 positions x 3 repeats, read
+against `N0` baselines also at three. Every trial in every ladder cell produced
+a proposal, so no cell contains a wait. Source: `tab_ex2_q3_contrasts.csv`.
 
-**In `dims`**, where the rung has to supply a missing fact:
+Second-order intervals are still wide by construction. At 32 positions an
+interval of roughly 30 points is expected whatever the data, so a movement
+whose interval spans zero is unresolved rather than null.
 
-| Model | N0 | N-A | N-C | N-order | N-D | N-CD |
-|---|---|---|---|---|---|---|
-| `gpt_hi` contrast | 2.1 | -3.1 | 0.0 | 3.1 | 15.6 | **18.8** [5.0, 32.5] |
-| `gpt_hi` delta | | -5.2 | -2.1 | 1.0 | 13.5 | 16.7 [-1.2, 34.5] |
-| `gemini` contrast | 46.9 | **96.9** | **100.0** | 40.6 | **100.0** | **100.0** |
-| `gemini` delta | | **+50.0** [36.6, 63.4] | **+53.1** [40.7, 65.5] | -6.2 [-23.0, 10.5] | **+53.1** [40.7, 65.5] | **+53.1** [40.7, 65.5] |
-| `claude_md` contrast | -10.4 | -9.4 | 0.0 | 12.5 | 9.4 | 0.0 |
-| `claude_md` delta | | 1.0 | 10.4 | 22.9 | 19.8 | 10.4 |
-
-**In `conflict_face`**, where the rung has to override a false supplied face:
+**In `dims`**, where the configuration has to supply a missing fact:
 
 | Model | N0 | N-A | N-C | N-order | N-D | N-CD |
 |---|---|---|---|---|---|---|
-| `gpt_hi` contrast | -89.6 | -84.4 | -87.5 | -90.6 | **-50.0** [-67.6, -32.4] | -90.6 |
-| `gpt_hi` delta | | 5.2 | 2.1 | -1.0 | **+39.6** [21.2, 58.0] | -1.0 |
-| `gemini` contrast | -100.0 | -100.0 | -100.0 | -100.0 | -100.0 | -100.0 |
-| `gemini` delta | | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 |
-| `claude_md` contrast | 7.3 | 6.2 | **-71.9** | -6.2 | -18.8 | **-50.0** |
-| `claude_md` delta | | -1.0 | **-79.2** [-99.6, -58.7] | -13.5 | **-26.0** [-49.6, -2.4] | **-57.3** [-81.2, -33.4] |
+| `gpt_hi` contrast | 2.1 | 2.1 | 0.0 | 1.0 | 3.1 | **32.3** [23.3, 41.3] |
+| `gpt_hi` delta | | 0.0 | -2.1 | -1.0 | 1.0 | **+30.2** [17.3, 43.1] |
+| `gemini` contrast | 46.9 | **96.9** | **99.0** | 45.8 | **100.0** | **100.0** |
+| `gemini` delta | | **+50.0** [37.6, 62.4] | **+52.1** [39.0, 65.2] | -1.0 [-15.6, 13.5] | **+53.1** [40.7, 65.5] | **+53.1** [40.7, 65.5] |
+| `claude_md` contrast | -10.4 | -14.6 | 0.0 | 6.3 | 0.0 | 0.0 |
+| `claude_md` delta | | -4.2 | 10.4 | 16.7 | 10.4 | 10.4 |
 
-Five results here are resolvable, and four of them are new.
+**In `conflict_face`**, where the configuration has to override a false
+supplied face:
 
-1. **Gemini in `dims` moves under attention, derivation and elicitation alike**,
-   all three landing at or near a complete flip, and **not under order**
-   (-6.2, spanning zero). The order control does exactly its job.
-2. **Elicitation partially remediates GPT's precedence failure.** `N-D` in
-   `conflict_face` moves it +39.6 points [21.2, 58.0], from -89.6 to -50.0.
-   Making the model report the face and the opening before naming an arm pulls
-   it roughly halfway back from the text towards the scene.
-3. **Adding the derivation rule cancels that.** `N-CD` returns GPT to -90.6,
-   delta -1.0. C plus D is not the sum of C and D, and the sufficiency cell
-   fails where D alone succeeded.
-4. **Derivation drives Claude towards the text, hard.** `N-C` in
-   `conflict_face` moves it -79.2 points [-99.6, -58.7], from a null +7.3 to
-   -71.9. Telling a model that cannot derive how to derive does not teach it to
-   look. It hands it a procedure to run on the text it was given.
-5. **Gemini in `conflict_face` is immovable.** Every rung sits at exactly
-   -100.0, delta 0.0 with zero width. No instruction tested moves it.
+| Model | N0 | N-A | N-C | N-order | N-D | N-CD |
+|---|---|---|---|---|---|---|
+| `gpt_hi` contrast | -89.6 | -80.2 | -88.5 | -86.5 | **-65.6** [-74.7, -56.6] | -84.4 |
+| `gpt_hi` delta | | 9.4 [-0.01, 18.8] | 1.0 | 3.1 | **+24.0** [13.3, 34.6] | 5.2 |
+| `gemini` contrast | -100.0 | -96.9 | -100.0 | -100.0 | -100.0 | -100.0 |
+| `gemini` delta | | 3.1 [-0.3, 6.5] | 0.0 | 0.0 | 0.0 | 0.0 |
+| `claude_md` contrast | 7.3 | -4.2 | **-66.7** | 1.0 | **-16.7** | **-53.1** |
+| `claude_md` delta | | -11.5 | **-74.0** [-89.7, -58.2] | -6.2 | **-24.0** [-42.3, -5.6] | **-60.4** [-78.4, -42.5] |
+
+What the three repeats changed against the pilot. GPT's `dims` `N-CD` result
+grew from 18.8 to 32.3 and its movement now clearly resolves. GPT's
+`conflict_face` `N-D` gain shrank from +39.6 to +24.0 and still resolves.
+Gemini's `N-C` in `dims` is 99.0 rather than a flat 100.0, at 31 of 32
+positions. Claude's `N-C` collapse in `conflict_face` is -74.0 rather than
+-79.2. The shape of every finding survived; the magnitudes moved.
+
+What is resolvable:
+
+1. **Order is inert.** `N-order` spans zero for every model in both
+   conditions. The one wide value, Claude in `dims` at 16.7 [-4.9, 38.2], is
+   unresolved rather than null. Everything read off `N-D` is therefore
+   attributable to the wording rather than to the schema.
+2. **Gemini in `dims` moves under attention, derivation and elicitation
+   alike**, and not under order. Attention alone takes it from 46.9 to 96.9.
+3. **GPT in `dims` moves only under the combination.** A, C and D each do
+   nothing alone (0.0, -2.1, 1.0). `N-CD` gives +30.2. No single position
+   flips completely, so this is a shift spread across repeats.
+4. **Elicitation partially remediates GPT's precedence failure.** `N-D` in
+   `conflict_face` moves it +24.0, from -89.6 to -65.6, and positions that
+   reverse completely towards the text fall from 22 to 9.
+5. **Adding the derivation rule cancels that.** `N-CD` returns GPT to -84.4,
+   delta +5.2 spanning zero. C plus D is not the sum of C and D.
+6. **Derivation drives Claude towards the text, hard.** `N-C` in
+   `conflict_face` moves it -74.0, from a null +7.3 to -66.7. Telling a model
+   that cannot derive how to derive hands it a procedure to run on the text it
+   was given.
+7. **Gemini in `conflict_face` is immovable.** Every ladder configuration sits
+   at or beside -100.0. Section 9.6 shows that this is not an absence of an
+   arbitration step.
 
 **Attribution**, `tab_ex2_q3_attribution.csv`:
 
 | Condition | Model | `N-D` minus `N-C` | `N-D` minus `N-order` |
 |---|---|---|---|
-| dims | `gemini` | 0.0 | **+59.4 [42.1, 76.7]** |
-| dims | `gpt_hi` | 15.6, spans zero | 12.5, spans zero |
-| dims | `claude_md` | 9.4, spans zero | not resolvable |
-| conflict_face | `gpt_hi` | **+37.5 [20.5, 54.5]** | **+40.6 [17.6, 63.7]** |
+| dims | `gemini` | 1.0, spans zero | **+54.2 [42.2, 66.2]** |
+| dims | `gpt_hi` | 3.1, spans zero | 2.1, spans zero |
+| dims | `claude_md` | 0.0, spans zero | -6.2, spans zero |
+| conflict_face | `gpt_hi` | **+22.9 [12.2, 33.7]** | **+20.8 [12.2, 29.5]** |
 | conflict_face | `gemini` | 0.0 | 0.0 |
-| conflict_face | `claude_md` | **+53.1 [26.7, 79.5]** | not resolvable |
+| conflict_face | `claude_md` | **+50.0 [35.6, 64.4]** | -17.7, spans zero |
 
 `N-D` minus `N-order` is the one that matters: it says GPT's `conflict_face`
-gain is the **instruction**, not the field order the schema also changes.
+gain and Gemini's `dims` gain are the **instruction**, not the field order the
+schema also changes.
+
+**The reported opening**, `tab_ex2_q3_reported.csv`. Across every `dims` cell
+the Franka share on `large_face` sits close to the complement of the opening
+accuracy on that face, so the arm follows the opening the model itself
+reported. GPT at `N-CD` is exact: 32.3% correct openings on `large_face` and a
+UR named on exactly those 32.3%.
+
+The sharpest single row is `N-C`. In `dims`, GPT and Claude report the correct
+opening on 100% of `small_face` replies and **0% of `large_face` replies**.
+They are saying 0.050 everywhere, which is the smallest dimension of the
+cuboid rather than the smaller of its two horizontal extents in the pose it is
+in. Both applied the stated rule to the object instead of to the scene, and
+one number on every trial removes the contrast, which is why both sit at 0.0
+saturated. Gemini under the same instruction reports 100% and 99.0%.
 
 **The face the model names**, `tab_ex2_q3_face.csv`, asked only at `N-D` and
-`N-CD`:
+`N-CD`, 192 replies per cell:
 
 | Condition | Model | Rung | Correct | Face right, opening wrong |
 |---|---|---|---|---|
 | dims | `gemini` | N-D, N-CD | 100.0 both | 0 |
-| dims | `gpt_hi` | N-D | 65.6 [53.4, 76.1] | 14 |
-| dims | `gpt_hi` | N-CD | 59.4 [47.1, 70.5] | 0 |
-| dims | `claude_md` | N-D | 50.0 [38.1, 61.9] | 9 |
-| dims | `claude_md` | N-CD | 53.1 [41.1, 64.8] | 2 |
-| conflict_face | all three | N-D, N-CD | **0.0 [0.0, 5.7]** | 0 |
+| dims | `gpt_hi` | N-D | 56.8 [49.7, 63.6] | 38 |
+| dims | `gpt_hi` | N-CD | 66.1 [59.2, 72.5] | 0 |
+| dims | `claude_md` | N-D | 50.5 [43.5, 57.5] | 31 |
+| dims | `claude_md` | N-CD | 50.5 [43.5, 57.5] | 5 |
+| conflict_face | all three | N-D, N-CD | **0.0 [0.0, 2.0]** | 0 |
 
-**In `conflict_face` not one model named the true face on a single trial of 64,
-at either rung, including Gemini which is at 100% in `dims`.** That is not a
-perception limit. It is the text being reported back.
+This is what GPT's `N-CD` result consists of. At `N-D` it fails partly at
+reading the pose and partly at converting a pose it read (38 replies). Adding
+C removes the second failure entirely and lifts face accuracy to 66.1.
 
-The `face right, opening wrong` column localises the failure elsewhere: a model
-there saw the orientation and still could not turn it into an opening, which is
-a derivation failure, while a low correct percentage is a perception failure,
-and the two want different remedies.
+**In `conflict_face` not one model named the captured face on a single trial
+of 192, at either rung, including Gemini which is at 100% in `dims`.** That is
+not a perception limit. It is the text being reported back.
 
-**The no-image control.** `N-D` in `dims` with the picture withheld, to show
-that the rung moves a model *towards the scene* rather than towards a better
-guess from the text. Q1's ablation answers this at `N0` but cannot answer it at
-`N-D`, because a schema effect only shows under the schema. **Collected for
-Gemini only.** The control for GPT and Claude is unbought, which matters most
-for GPT, whose `conflict_face` `N-D` gain is the headline remediation result.
+**The no-image control**, `tab_ex2_q3_noimage.csv`. `N-D` in `dims` with the
+picture withheld, to show that the configuration moves a model *towards the
+scene* rather than towards a better guess from the text. **Now collected for
+all three models at three repeats**, 576 trials; the earlier note that only
+Gemini was bought is superseded.
+
+| Model | `N-D` no image | `N-D` with image | Paired difference |
+|---|---|---|---|
+| `gpt_hi` | -5.2 [-19.0, 8.6] | 3.1 | -8.3 [-27.1, 10.5] |
+| `gemini` | 0.0 [-14.7, 14.7] | 100.0 | **-100.0 [-114.7, -85.3]** |
+| `claude_md` | 5.2 [-7.6, 18.0] | 0.0 | 5.2 [-14.7, 25.1] |
+
+Without the image Gemini reports the correct opening on 47.9% and 52.1% of the
+two faces and names the correct face on 50.0% of replies, which is chance.
+Its remediated result is obtained from the image.
+
+---
+
+### 9.6 The precedence directive, off the ladder
+
+`X-image` is `A_ATTEND` plus one sentence, *where the image and the stated
+resting face disagree, go by the image*, on the base schema, so `X-image`
+minus `N-A` is that sentence and nothing else. **These cells are two repeats,
+64 trials, against `N0` and `N-A` baselines at three.** They are the least
+precise numbers in the chapter and are reported apart from the ladder.
+`tab_ex2_q3_directive_gate.csv` holds the stage-1 read;
+`tab_ex2_q3_directive.csv` still says "not run" for every row because cell 12b
+has not been re-executed since the runs landed, and is stale.
+
+| Cell | Model | small | large | contrast | delta vs `N0` | delta vs `N-A` |
+|---|---|---|---|---|---|---|
+| `conflict_face` @ `X-image` | `gpt_hi` | 40.6 | 42.2 | -1.6 | **+88.0 [72.3, 103.8]** | **+78.6 [60.0, 97.3]** |
+| | `gemini` | 100.0 | 0.0 | **+100.0** | **+200.0 sat.** | **+196.9 [193.5, 200.3]** |
+| | `claude_md` | 40.6 | 56.2 | -15.6 | -22.9 [-46.5, 0.7] | -11.5 [-35.3, 12.3] |
+| `congruent_face` @ `X-image` | `gpt_hi` | 68.8 | 1.6 | 67.2 | **-22.4 [-37.1, -7.7]** | |
+| | `gemini` | 100.0 | 0.0 | 100.0 | 0.0 sat. | |
+| | `claude_md` | 60.9 | 59.4 | 1.6 | 6.8 [-21.0, 34.6] | |
+| `conflict_face` @ `X-state` | `gpt_hi` | 1.6 | 71.9 | -70.3 | 19.3 [4.9, 33.7] | 9.9 [-5.1, 24.8] |
+| | `gemini` | 0.0 | 100.0 | -100.0 | 0.0 sat. | -3.1 [-6.5, 0.3] |
+| | `claude_md` | 40.4 | 65.9 | -29.7 | -37.0 [-63.9, -10.0] | -25.5 [-47.7, -3.3] |
+
+1. **Gemini reverses completely.** -100.0 to +100.0 at all 32 positions, and
+   it reports the scene-implied opening on all 128 replies. The model no
+   ladder configuration moved by a single point follows the image immediately
+   when told which source wins. An arbitration step exists and an instruction
+   reaches it.
+2. **GPT abandons the text without substituting the scene.** +88.0 against
+   `N0`, but it lands at -1.6, which is no contrast in either direction. Its
+   reported opening matches the scene on 40.6% and 50.0% of replies.
+3. **Claude does not move.** -11.5 against `N-A`, spanning zero.
+4. **The symmetry control holds.** `X-state` moves neither GPT (9.9, spans
+   zero) nor Gemini (-3.1, spans zero) against `N-A`. Both sentences name the
+   image and differ in one word, so `X-image` is a response to which source
+   was named.
+5. **The wording control mostly holds, with one cost.** In `congruent_face`,
+   where the stated face is true, Gemini is unchanged at 100.0 and Claude
+   unchanged. GPT loses 22.4 points, which is a real cost of the extra
+   sentence and about a quarter of the 88.0 it buys under conflict.
+
+**Incomplete cell.** `claude_md` at `conflict_face` `X-state` landed 47 of 64
+`small_face` and 44 of 64 `large_face` trials. All 32 positions are
+represented so the paired contrast computes, but it is the weakest row here.
+
+**Predictions against outcomes**, from `prompts.PREDICTIONS`, recorded before
+the first call. Order: predicted inert, is inert. Attention: predicted inert,
+inert in `conflict_face` but moves Gemini 50.0 points in `dims`. Derivation:
+predicted to move in conflict, does, for Claude, in the direction opposite to
+remediation. Elicitation: predicted to move in both and by more than
+derivation alone, holds for GPT in `conflict_face`, fails in `dims` where GPT
+needs both. `precedence_image`: predicted to move toward the image short of
+the `congruent_face` ceiling and to be inert in `congruent_face`; Gemini
+exceeded it by reaching the ceiling, GPT fell short in an unanticipated way by
+landing at no contrast, and it was not inert in `congruent_face` for GPT.
+`precedence_state`: predicted inert in `conflict_face`, inert for GPT and
+Gemini.
 
 ---
 
@@ -967,6 +1071,10 @@ the final data. Use the right-hand column.
 | Q2 notebook, saved output before 2026-08-29 | `conflict_face` at n=32 | n=96 | Same cause |
 | Q1 and Q2 provenance tables before 2026-08-29 | 12 and 4 rows | 14 and 6 rows | Three roles were missing; see below |
 | Anything written before the `congruent_face` top-up | `claude_md` `congruent_face` **+6.2** [-20.1, 32.6] | **-5.2** [-21.6, 11.2] | That figure was one repeat. At three it is still a null, and a tighter one |
+| §9.5 of this document before 2026-09-01 | Q3 ladder at one repeat: GPT `dims` `N-CD` **18.8**, GPT `conflict_face` `N-D` **+39.6**, Claude `N-C` **-79.2** | **32.3**, **+24.0**, **-74.0**; §9.5 is rewritten in full | Repeat 3 of every ladder cell landed at `dd34691`. Every finding held its shape and the magnitudes moved |
+| §9.5 of this document before 2026-09-01 | No-image control "collected for Gemini only" | All three models, three repeats, 576 trials | The GPT and Claude cells were bought afterwards |
+| `tab_ex2_q3_directive.csv` | Every row "not run" | The directive runs are on disk; use `tab_ex2_q3_directive_gate.csv` and §9.6 | Cell 12b has not been re-executed since the `X-image` and `X-state` runs landed. Re-run it before quoting that file |
+| Q3 notebook markdown, cell 1 | "One repeat per rung" | Three repeats per ladder rung, two per directive cell | Written for the staged pilot and never updated |
 
 ### Three defects found and fixed, 2026-08-29
 
