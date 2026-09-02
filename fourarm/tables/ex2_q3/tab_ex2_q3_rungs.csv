@@ -12,3 +12,11 @@ so it depends on which face the object is resting on.
 
 Give ""resting_face"" and ""opening_needed_m"" BEFORE naming an arm, and choose
 the arm to fit the opening you gave."
+N-ACD,attention;derivation;elicitation;order,face_first,8,"The image shows the table as it is now. Look at the object in the image
+before you choose.
+
+The opening an object needs is the smaller of its two horizontal extents,
+so it depends on which face the object is resting on.
+
+Give ""resting_face"" and ""opening_needed_m"" BEFORE naming an arm, and choose
+the arm to fit the opening you gave."

@@ -40,19 +40,30 @@ C4 = r'''# --- Cell 4. The rung design. No model calls. ------------------------
 # READ from the prompt module, never redefined. A rung list typed here would
 # be a second source of truth for the thing the experiment manipulates.
 LADDER = ("N0", "N-A", "N-C", "N-order", "N-D", "N-CD")
-if set(LADDER) != set(P.LADDER_RUNGS):
-    raise SystemExit("the prompt module's ladder is %s; this notebook names %s"
-                     % (sorted(P.LADDER_RUNGS), sorted(LADDER)))
+if set(LADDER) != set(P.PRE_REGISTERED_LADDER):
+    raise SystemExit("the prompt module's pre-registered ladder is %s; this "
+                     "notebook names %s"
+                     % (sorted(P.PRE_REGISTERED_LADDER), sorted(LADDER)))
+
+# THE CEILING, on the ladder but NOT pre-registered, and read from the module
+# rather than typed: whatever LADDER_RUNGS holds beyond the six. It is kept
+# out of LADDER on purpose. Cell 9d buys it and cell 9e reads it, so folding
+# it in would widen cell 9's cost line and would put a rung added after the
+# ladder was run into every table whose column says "factor". Naming it here
+# is what stops it falling off the end of both lists and being swept by
+# nothing, which the guard below then checks.
+CEILING = tuple(r for r in P.LADDER_RUNGS if r not in LADDER)
 
 # The off-ladder precedence directives, read from the module and never
 # typed here. The second guard is what stops a variant being added to
 # prompts.RUNGS and quietly reaching neither list: it would then be swept
 # by nothing and checked by nothing, which is how a rung goes missing.
 DIRECTIVES = tuple(P.DIRECTIVE_RUNGS)
-if set(LADDER) | set(DIRECTIVES) != set(P.RUNGS):
-    raise SystemExit("prompts.RUNGS holds %s, which is neither the ladder "
-                     "nor a declared directive"
-                     % sorted(set(P.RUNGS) - set(LADDER) - set(DIRECTIVES)))
+if set(LADDER) | set(CEILING) | set(DIRECTIVES) != set(P.RUNGS):
+    raise SystemExit("prompts.RUNGS holds %s, which is neither the ladder, "
+                     "the ceiling, nor a declared directive"
+                     % sorted(set(P.RUNGS) - set(LADDER) - set(CEILING)
+                              - set(DIRECTIVES)))
 
 # WHICH DIRECTIVE CELL IS BOUGHT, IN STAGES, following the same discipline
 # as GATE_RUNG below: a cheaper cell decides whether the rest is worth
@@ -80,7 +91,7 @@ GATE_RUNG = "N-D"
 GATE_MIN = 30.0
 
 rung_rows = []
-for rung in LADDER:
+for rung in LADDER + CEILING:
     spec = P.RUNGS[rung]
     rung_rows.append([rung, ";".join(spec["factors"]) or "none",
                       spec["schema"],
@@ -111,10 +122,17 @@ print("PASS  every rung is N0 plus its own block at the same anchor, the")
 print("      schema variants are as declared, and no rung leaks another's")
 print("      wording. Checked in %s." % " and ".join(CONDITIONS))
 print()
-print("The table above is the LADDER only. The directives are off it and")
-print("are cell 4b: putting them in a table whose column says \"factor\"")
-print("would present them as a fifth and sixth factor of a design that")
-print("pre-registered four.")
+print("The table above is the LADDER and the CEILING. The directives are")
+print("off it and are cell 4b: putting them in a table whose column says")
+print("\"factor\" would present them as a fifth and sixth factor of a design")
+print("that pre-registered four.")
+if CEILING:
+    print()
+    print("NOT PRE-REGISTERED, and shown last: %s. It was added after the"
+          % ", ".join(CEILING))
+    print("ladder had been run, is bought by cell 9d and read by cell 9e, and")
+    print("is deliberately not in LADDER: every cost line, every sweep and")
+    print("every factor table here is the pre-registered six.")
 print()
 print("PRE-REGISTERED PREDICTIONS, from prompts.PREDICTIONS:")
 for k, v in sorted(P.PREDICTIONS.items()):
@@ -528,6 +546,634 @@ if spend_gate(n_calls, CONFIRM_SPEND,
               conditions=("dims",), preferences=(PREFERENCE,), rungs=(rung,),
               modalities=("V",), kind="pair", repeats=REPEATS)
     print("\ndims ladder complete")'''
+
+
+
+MD9B = r"""## Cell 9b. The frame control: `dims` under `extents`
+
+**Makes model calls.** The `dims` glossary states the extents "measured
+**standing on its smallest face**". The block is 0.130 x 0.100 x 0.050, so its
+smallest face is 0.100 x 0.050, and *standing on its smallest face* is the
+`small_face` condition word for word.
+
+That leaves two failures indistinguishable under the `named` frame: a model that
+cannot read the pose from the image, and a model that read the orientation the
+glossary stated and never treated it as a convention. Both predict `small_face`
+on every trial. The frame is the only thing that separates them, because the
+first predicts the wording makes no difference and the second predicts the
+answer follows it.
+
+`extents`, already in `prompts.DIMS_FRAMES`, renders the same three numbers as
+"three extents largest first" and names no orientation. It **removes** step 1
+rather than scaffolding it, which is what a control should do.
+
+**Three rungs, not one.** `N0` is the baseline: what the frame is worth with no
+instruction at all. `N-CD` is where the named ladder first moves. `N-ACD` is the
+ceiling. Together they give the frame effect at three points on the instruction
+axis, which is what the confound calls into question. `N-A`, `N-C`, `N-order`
+and `N-D` are the factor-attribution cells and are not needed to show the
+frame effect exists; cell 9b2 buys them under the same frame once cell 9c
+says there is one.
+
+**Matched repeats.** The named ladder is on disk at three repeats. A frame arm at
+one repeat would widen every interval by about 1.6x and leave the clean arm
+noisier than the confounded one it replaces, so the repeat count is read from
+disk and asserted rather than taken from `REPEATS`."""
+
+C9B = r'''# --- Cell 9b. FRAME CONTROL: dims under extents. MAKES MODEL CALLS. ---------
+FRAME_ALT = "extents"
+FRAME_RUNGS = ("N0", "N-CD", "N-ACD")     # baseline, partial, complete
+FRAME_OUT = {g: RUNS / ("ex2_q3_dims_%s_%s.jsonl" % (g, FRAME_ALT))
+             for g in FRAME_RUNGS}
+FRAME_BASE = {g: (N0_FILE["dims"] if g == "N0" else rung_file("dims", g))
+              for g in FRAME_RUNGS}
+
+# The alternative frame is prompts' own, never a string invented here. If it
+# is renamed this must fail rather than quietly re-buy the DEFAULT frame and
+# report it as a control: a file compared with itself reads as a clean null
+# and is the most expensive way to be wrong in this notebook.
+if FRAME_ALT not in P.DIMS_FRAMES:
+    raise AssertionError(
+        "%r is not in prompts.DIMS_FRAMES (%s)."
+        % (FRAME_ALT, ", ".join(P.DIMS_FRAMES)))
+
+# WHAT THE FRAME ACTUALLY CHANGES, printed rather than described. The
+# manipulation is only interpretable if it touches the glossary line and
+# nothing else, and if it makes the SAME edit at every rung -- a frame that
+# changed more under one instruction than another would confound the two.
+import difflib
+print("=" * 70)
+print("THE FRAME EDIT: %s minus named, at every rung this cell buys" % FRAME_ALT)
+print("=" * 70)
+_edit = None
+for g in FRAME_RUNGS:
+    _a = P.system_prompt(g, "dims", dims_frame="named").splitlines()
+    _b = P.system_prompt(g, "dims", dims_frame=FRAME_ALT).splitlines()
+    _d = list(difflib.unified_diff(_a, _b, lineterm="", n=0))
+    add = [l[1:] for l in _d if l.startswith("+") and not l.startswith("+++")]
+    rem = [l[1:] for l in _d if l.startswith("-") and not l.startswith("---")]
+    print()
+    print("%-7s  -%d lines  +%d lines" % (g, len(rem), len(add)))
+    for l in rem:
+        if l.strip():
+            print("   - " + l)
+    for l in add:
+        if l.strip():
+            print("   + " + l)
+    if _edit is None:
+        _edit = (tuple(add), tuple(rem))
+    elif (tuple(add), tuple(rem)) != _edit:
+        raise AssertionError(
+            "the %s edit differs between %s and %s. The frame contrast has "
+            "to be the same manipulation at every rung, or the frame and the "
+            "instruction cannot be told apart."
+            % (FRAME_ALT, FRAME_RUNGS[0], g))
+print()
+print("PASS  the frame makes the same edit at all %d rungs, so a difference"
+      % len(FRAME_RUNGS))
+print("      between them is the instruction and not the wording.")
+print()
+print("The phrase that goes away is \"standing on its smallest face\". The")
+print("block's smallest face IS the small_face condition, so under the named")
+print("frame the glossary names one of the two answers.")
+print()
+print("=" * 70)
+print("THE FULL PROMPT SENT, dims N0 under %s" % FRAME_ALT)
+print("=" * 70)
+print(P.system_prompt("N0", "dims", dims_frame=FRAME_ALT))
+print("=" * 70)
+
+# REPEATS IS READ FROM DISK, not from the cell-1 constant. Q3 declares one
+# repeat; the dims ladder on disk carries three. Hard-coding either would let
+# the frame arm drift out of match with the arm it is read against, and an
+# unmatched control is worth less than no control.
+def repeats_on_disk(path, rung):
+    if not pathlib.Path(path).exists():
+        return 0
+    rows, _ = load_run(path, "dims", MODELS)
+    return len({r.get("repeat") for r in rows if r.get("rung") == rung})
+
+_named = {g: repeats_on_disk(FRAME_BASE[g], g) for g in FRAME_RUNGS}
+if 0 in _named.values():
+    print("The named-frame rungs this is read against are not all on disk:")
+    for g in FRAME_RUNGS:
+        print("  %-6s %-46s %s" % (g, rel(FRAME_BASE[g]),
+                                   "%d repeats" % _named[g] if _named[g]
+                                   else "MISSING"))
+    print("Cells 9 and 9d buy them. Nothing to control against, nothing bought.")
+elif len(set(_named.values())) != 1:
+    raise AssertionError(
+        "the named rungs carry different repeat counts (%s). The frame arm "
+        "can only match one of them, and a control matched to some cells and "
+        "not others cannot be read as one contrast." % _named)
+else:
+    FRAME_REPEATS = next(iter(_named.values()))
+    n_calls = (len(CALL_SCENES) * len(MODELS) * FRAME_REPEATS
+               * len(FRAME_RUNGS))
+    print("COST: %d scenes x %d models x %d repeats x %d rungs = %d calls"
+          % (len(CALL_SCENES), len(MODELS), FRAME_REPEATS, len(FRAME_RUNGS),
+             n_calls))
+    print("      repeats read from disk, matched to the named ladder.")
+    print()
+    _per = len(CALL_SCENES) * len(MODELS) * FRAME_REPEATS
+    for g in FRAME_RUNGS:
+        print("      %-6s %-40s %4d of %d answered"
+              % (g, rel(FRAME_OUT[g]), answered(FRAME_OUT[g]), _per))
+    print()
+    print("      solo appends the frame to the trial_id when it is not the")
+    print("      default, so these ids cannot collide with the named runs'")
+    print("      even though scene, model, rung and repeat are identical.")
+    print("      A part-run cell resumes: only the missing repeats are bought,")
+    print("      and an unparseable reply is retried rather than skipped.")
+    print()
+    print("      EVERY MODEL, including gemini. Gemini reads the pose at 100%%")
+    print("      under the named frame, so a frame effect in another model")
+    print("      means nothing unless gemini stays put in the same run.")
+
+    CONFIRM_SPEND = None        # <-- set to the number in the COST line
+
+    if spend_gate(n_calls, CONFIRM_SPEND,
+                  factors=(("scenes", len(CALL_SCENES)),
+                           ("models", len(MODELS)),
+                           ("repeats", FRAME_REPEATS),
+                           ("rungs", len(FRAME_RUNGS)))):
+        for g in FRAME_RUNGS:
+            print("\n--- dims %s, %s frame ---" % (g, FRAME_ALT))
+            S.run(str(CAPTURES), out_path=str(FRAME_OUT[g]), models=MODELS,
+                  conditions=("dims",), preferences=(PREFERENCE,),
+                  rungs=(g,), modalities=("V",), kind="pair",
+                  repeats=FRAME_REPEATS, dims_frames=(FRAME_ALT,))
+        print("\nframe control complete")'''
+
+
+MD9B2 = r"""## Cell 9b2. The rest of the ladder under `extents`
+
+**Makes model calls.** Cell 9b buys the frame at three points on the instruction
+axis: no instruction, the pair, the complete procedure. This buys the four rungs
+it left out -- `N-A`, `N-C`, `N-order` and `N-D` -- so the frame contrast exists
+at **every** rung of the ladder.
+
+**Why the four are worth buying.** They are the single-factor cells, and they are
+what cells 12 and 13 read to say *which* instruction moved the model. Under the
+`named` frame every one of those attributions carries the same confound the frame
+control exists to test: a factor that "moves the model" may be moving it off a
+glossary that already named the answer. Bought here, each attribution can be read
+again under a glossary that names no orientation, and a factor that survives both
+frames is a factor about grounding rather than about wording.
+
+**Read cell 9c before buying this.** It is the expensive cell -- four rungs at the
+matched three repeats, a third more calls than 9b -- and 9b plus 9c is what says
+whether it is worth anything. If the anchor does not move at `N0`, `N-CD` and
+`N-ACD`, the named ladder is not being read off the wording and this cell re-buys
+a null four more times. If it does move, the ladder's own attribution is in
+question and these four are how it gets settled.
+
+**Nothing about the control is restated here.** The frame name, the file naming
+and the repeat rule are cell 9b's, used as it left them, so the eight files are
+one arm rather than two arms that happen to share a suffix. The cell asserts the
+`extents` edit is the same at all seven rungs before it spends, and reads the
+repeat count off the named ladder exactly as 9b does.
+
+**It widens `FRAME_RUNGS`**, so cell 9c's table and `tab_ex2_q3_frame.csv` cover
+the whole ladder instead of the three. Re-running 9b narrows it back to its own
+three; re-run this cell afterwards if that happens."""
+
+
+C9B2 = r'''# --- Cell 9b2. FRAME CONTROL, THE REST OF THE LADDER. MAKES MODEL CALLS. ----
+# The four rungs cell 9b left on the named frame: the single-factor cells.
+# They are what cells 12 and 13 read to attribute the movement to a factor,
+# so leaving them on the named frame leaves every attribution resting on a
+# glossary that names one of the two answers. This buys them under the same
+# frame 9b bought, at the same repeats, so the eight files are one arm.
+#
+# READ CELL 9c FIRST. If the anchor does not move at N0, N-CD and N-ACD then
+# the ladder is not being read off the wording, and this cell buys the same
+# null four more times.
+
+# CELL 9b DEFINES THE ARM; this only widens it. The frame name, the output
+# naming and the repeat rule are stated once, in 9b, so that this cell
+# cannot buy a differently-defined control and file it beside the first --
+# two arms under one name is worse than one arm and a gap.
+for _n in ("FRAME_ALT", "FRAME_RUNGS", "FRAME_OUT", "FRAME_BASE",
+           "repeats_on_disk"):
+    if _n not in globals():
+        raise AssertionError(
+            "%s is not defined, so cell 9b has not been run in this kernel. "
+            "This cell extends 9b's arm rather than restating it." % _n)
+
+# WHICH RUNGS ARE 9b's, remembered the first time this cell runs. FRAME_RUNGS
+# is widened below so that cell 9c reads the whole ladder, which means it can
+# no longer be the thing that answers "which rungs did 9b buy". Re-running
+# this cell is meant to be harmless -- solo.run resumes -- and it stays
+# harmless because FRAME_CORE is not recomputed once it exists.
+FRAME_CORE = globals().get("FRAME_CORE") or tuple(FRAME_RUNGS)
+FRAME_REST = tuple(g for g in P.LADDER_RUNGS if g not in FRAME_CORE)
+if not FRAME_REST:
+    raise AssertionError(
+        "cell 9b already names every ladder rung (%s), so there is no rest "
+        "of the ladder for this cell to buy." % ", ".join(FRAME_CORE))
+if set(FRAME_CORE) - set(P.LADDER_RUNGS):
+    raise AssertionError(
+        "cell 9b names %s, which is not on the ladder. The frame arm is a "
+        "control ON the ladder, and cell 9c reads its rungs into one table."
+        % ", ".join(sorted(set(FRAME_CORE) - set(P.LADDER_RUNGS))))
+
+# The same naming 9b uses, so the resume logic and cell 9c find these files
+# without being told about them a second time.
+FRAME_OUT.update({g: RUNS / ("ex2_q3_dims_%s_%s.jsonl" % (g, FRAME_ALT))
+                  for g in FRAME_REST})
+FRAME_BASE.update({g: rung_file("dims", g) for g in FRAME_REST})
+
+# WIDENED FOR CELL 9c, whether or not this cell ends up spending. 9c loops
+# over FRAME_RUNGS and skips a rung whose file is not on disk, so the
+# read-out covers exactly what has been bought. Unconditional because a
+# widening that depended on the spend gate would make the read-out's shape
+# depend on the order the cells were run in.
+FRAME_RUNGS = tuple(g for g in P.LADDER_RUNGS if g in FRAME_OUT)
+
+# THE EDIT IS CHECKED AT EVERY RUNG, not only the four bought here. The four
+# are read against 9b's three in one table, so the manipulation has to be
+# the same at all seven or the frame and the instruction cannot be told
+# apart -- which is the whole claim the control makes.
+import difflib
+print("=" * 70)
+print("THE FRAME EDIT: %s minus named, at every rung of the ladder" % FRAME_ALT)
+print("=" * 70)
+_edits = {}
+for g in P.LADDER_RUNGS:
+    _a = P.system_prompt(g, "dims", dims_frame="named").splitlines()
+    _b = P.system_prompt(g, "dims", dims_frame=FRAME_ALT).splitlines()
+    _d = list(difflib.unified_diff(_a, _b, lineterm="", n=0))
+    _edits[g] = (
+        tuple(l[1:] for l in _d
+              if l.startswith("+") and not l.startswith("+++")),
+        tuple(l[1:] for l in _d
+              if l.startswith("-") and not l.startswith("---")))
+if len(set(_edits.values())) != 1:
+    raise AssertionError(
+        "the %s edit is not the same at every rung (%s differ). The frame "
+        "contrast has to be one manipulation everywhere, or a difference "
+        "between rungs is the wording and not the instruction."
+        % (FRAME_ALT, ", ".join(sorted(g for g in P.LADDER_RUNGS
+                                       if _edits[g] != _edits["N0"]))))
+_add, _rem = _edits[FRAME_REST[0]]
+for l in _rem:
+    if l.strip():
+        print("   - " + l)
+for l in _add:
+    if l.strip():
+        print("   + " + l)
+print()
+print("PASS  one edit, identical at all %d rungs, so the %d bought here are"
+      % (len(P.LADDER_RUNGS), len(FRAME_REST)))
+print("      the same control cell 9b ran and belong in its table.")
+
+# THE PROMPT SENT, at the gate rung. 9b prints N0's; this prints the rung
+# the gate implicated, which is the one whose frame arm the chapter will be
+# asked about first.
+_show = GATE_RUNG if GATE_RUNG in FRAME_REST else FRAME_REST[0]
+print()
+print("=" * 70)
+print("THE FULL PROMPT SENT, dims %s under %s" % (_show, FRAME_ALT))
+print("=" * 70)
+print(P.system_prompt(_show, "dims", dims_frame=FRAME_ALT))
+print("=" * 70)
+
+# ONE REPEAT COUNT FOR THE WHOLE ARM, read from disk exactly as 9b reads it.
+# Checked across 9b's rungs as well as these four: if the four came in at a
+# different count, the frame column in cell 9c would be three rungs at one
+# precision and four at another and the delta column would not be one
+# contrast.
+_named = {g: repeats_on_disk(FRAME_BASE[g], g) for g in FRAME_RUNGS}
+if 0 in _named.values():
+    print()
+    print("The named-frame rungs this is read against are not all on disk:")
+    for g in FRAME_RUNGS:
+        print("  %-8s %-44s %s" % (g, rel(FRAME_BASE[g]),
+                                   "%d repeats" % _named[g] if _named[g]
+                                   else "MISSING"))
+    print("Cells 9 and 9d buy them. Nothing to control against, nothing bought.")
+elif len(set(_named.values())) != 1:
+    raise AssertionError(
+        "the named rungs carry different repeat counts (%s). The frame arm "
+        "can only match one of them, and a control matched to some rungs and "
+        "not others cannot be read as one contrast." % _named)
+else:
+    FRAME_REPEATS = next(iter(_named.values()))
+    n_calls = (len(CALL_SCENES) * len(MODELS) * FRAME_REPEATS
+               * len(FRAME_REST))
+    print()
+    print("COST: %d scenes x %d models x %d repeats x %d rungs = %d calls"
+          % (len(CALL_SCENES), len(MODELS), FRAME_REPEATS, len(FRAME_REST),
+             n_calls))
+    print("      rungs: %s" % ", ".join(FRAME_REST))
+    print("      repeats read from disk, matched to the named ladder and to")
+    print("      the three rungs cell 9b bought.")
+    print()
+    _per = len(CALL_SCENES) * len(MODELS) * FRAME_REPEATS
+    for g in FRAME_REST:
+        print("      %-8s %-40s %4d of %d answered"
+              % (g, rel(FRAME_OUT[g]), answered(FRAME_OUT[g]), _per))
+    print()
+    print("      CELL 9b's, on disk already and costing nothing here:")
+    for g in FRAME_CORE:
+        print("      %-8s %-40s %4d of %d answered"
+              % (g, rel(FRAME_OUT[g]), answered(FRAME_OUT[g]), _per))
+    print()
+    print("      solo appends the frame to the trial_id when it is not the")
+    print("      default, so these ids cannot collide with the named runs'.")
+    print("      A part-run cell resumes: only the missing repeats are")
+    print("      bought, and an unparseable reply is retried rather than")
+    print("      skipped.")
+    print()
+    print("      EVERY MODEL, for the reason 9b gives: gemini reads the pose")
+    print("      at ceiling under the named frame, so a frame effect in")
+    print("      another model means nothing unless gemini is in the same")
+    print("      run and stays put.")
+
+    CONFIRM_SPEND = None        # <-- set to the number in the COST line
+
+    if spend_gate(n_calls, CONFIRM_SPEND,
+                  factors=(("scenes", len(CALL_SCENES)),
+                           ("models", len(MODELS)),
+                           ("repeats", FRAME_REPEATS),
+                           ("rungs", len(FRAME_REST)))):
+        for g in FRAME_REST:
+            print("\n--- dims %s, %s frame ---" % (g, FRAME_ALT))
+            S.run(str(CAPTURES), out_path=str(FRAME_OUT[g]), models=MODELS,
+                  conditions=("dims",), preferences=(PREFERENCE,),
+                  rungs=(g,), modalities=("V",), kind="pair",
+                  repeats=FRAME_REPEATS, dims_frames=(FRAME_ALT,))
+        print("\nthe %s arm now covers every rung of the ladder" % FRAME_ALT)'''
+
+
+MD9C = r"""## Cell 9c. Frame read-out
+
+No model calls. The contrast says where each model lands. The **anchor** says
+where its answer sat: how often it named `small_face`, and how often it reported
+the 0.050 m opening that follows from standing on the smallest face.
+
+Read the anchor, not the accuracy. The two faces are balanced, so a model that
+always answers `small_face` scores 50% correct and reads as a coin flip. What
+separates seeing the pose from reading the wording is whether the anchor **moves
+when the frame moves**.
+
+`N0` uses the base schema and does not report `resting_face`, so its anchor is
+the reported opening alone."""
+
+C9C = r'''# --- Cell 9c. Frame read-out. No model calls. -------------------------------
+TOL = 0.006                # grade.classify_width's tolerance, not a new one
+SMALL_OPENING = 0.050      # the opening for a block on its SMALLEST face,
+                           # which is the orientation the named frame states
+
+def frame_rows(path, rung, model):
+    if not pathlib.Path(path).exists():
+        return []
+    rows, _ = load_run(path, "dims", MODELS)
+    rows = [r for r in rows if r.get("rung") == rung]
+    return [r for r in keep_analysable(rows, USABLE) if r["model"] == model]
+
+_have = [g for g in FRAME_RUNGS if pathlib.Path(FRAME_OUT[g]).exists()]
+if not _have:
+    print("Cell 9b has not been run, so there is no %s arm to read." % FRAME_ALT)
+    print("Nothing here is a null; there is simply no control yet.")
+else:
+    contrast_out, anchor_out = [], []
+    for g in _have:
+        for model in MODELS:
+            a = paired_diffs(frame_rows(FRAME_OUT[g], g, model), USABLE,
+                             "small_face", "large_face")
+            b = paired_diffs(frame_rows(FRAME_BASE[g], g, model), USABLE,
+                             "small_face", "large_face")
+            m_a, _, _, n_a = paired_mean_ci([d for _, d in a])
+            m_b, _, _, n_b = paired_mean_ci([d for _, d in b])
+            mean, lo, hi, npos = paired_mean_ci(
+                [d for _, d in paired_delta(a, b)])
+            if not npos:
+                v = "NOT RUN"
+            elif lo > 0 or hi < 0:
+                v = "FRAME EFFECT"
+            elif hi < GATE_MIN and lo > -GATE_MIN:
+                v = "no frame effect"
+            else:
+                v = "UNRESOLVED"
+            contrast_out.append([g, model, n_b, fmt(m_b), n_a, fmt(m_a),
+                                 fmt(mean), fmt(lo), fmt(hi), v])
+
+            for label, path in (("named", FRAME_BASE[g]),
+                                (FRAME_ALT, FRAME_OUT[g])):
+                rs = frame_rows(path, g, model)
+                named = [r for r in rs if r.get("resting_face")]
+                opened = [r for r in rs
+                          if r.get("opening_needed_m") is not None]
+                anchor_out.append([
+                    g, model, label, len(rs),
+                    fmt(pct(sum(1 for r in opened
+                                if abs(r["opening_needed_m"] - SMALL_OPENING)
+                                < TOL), len(opened))),
+                    fmt(pct(sum(1 for r in named
+                                if r["resting_face"] == "small_face"),
+                            len(named))) if named else "not asked",
+                    fmt(pct(sum(1 for r in named
+                                if r["resting_face"] == r.get("true_pose")),
+                            len(named))) if named else "not asked"])
+
+    show(["rung", "model", "n", "named", "n", FRAME_ALT,
+          "delta", "lo", "hi", "verdict"], contrast_out)
+    print()
+    print("delta is %s minus named, paired within position at both frames."
+          % FRAME_ALT)
+    print()
+    show(["rung", "model", "frame", "n", "reports 0.050", "says small_face",
+          "face correct"], anchor_out)
+    write_csv("tab_ex2_q3_frame.csv",
+              ["rung", "model", "frame", "n_trials",
+               "reports_small_opening_pct", "says_small_face_pct",
+               "face_correct_pct"], anchor_out)
+    print()
+    print("=" * 70)
+    print("WHAT THE TWO OUTCOMES MEAN, stated before the numbers are read")
+    print("=" * 70)
+    print("  anchor STAYS PUT   step 1 was never the problem. The model")
+    print("                     already treated the stated size as a")
+    print("                     convention, and the dims ladder measured")
+    print("                     what it claims to measure.")
+    print()
+    print("  anchor FOLLOWS     the answer tracked the wording rather than")
+    print("  the frame          the picture, and every dims number for that")
+    print("                     model is about the glossary, not grounding.")
+    print()
+    print("GEMINI IS THE INTERNAL CONTROL. It reads the pose at 100% under")
+    print("named. If its anchor moves too, the frame changed something other")
+    print("than step 1 and neither column is about grounding for any model.")
+    print()
+    print("READ N0 FIRST. If a model already scores well there under %s," % FRAME_ALT)
+    print("the instruction ladder was compensating for the glossary rather")
+    print("than for a failure to ground, and cell 12's contrasts are about")
+    print("the prompt's own wording.")'''
+
+
+MD9D = r"""## Cell 9d. The ceiling: the complete procedure in `dims`
+
+**Makes model calls.** The ladder tests each factor alone and one pair. It never
+tests the whole procedure. `N-ACD` is `A + C + D` together: look at the image,
+here is how the opening follows from the resting face, and state the face and
+the opening before you name an arm.
+
+**Why it is needed.** Without it a model that stops short at `N-CD` cannot be
+told apart from one that was never asked for every step. *Cannot derive* and
+*was not instructed to derive* predict the same number. `N-ACD` bounds what
+instruction can achieve, which is what EX1's `givenset` does for that
+experiment's spine.
+
+**It is not pre-registered.** The first six rungs are; this was added on
+2026-09-01 after they had been run, and `prompts.PRE_REGISTERED_LADDER` is what
+any table presenting the ladder as a pre-registered design must read.
+
+`A_ATTEND` is used unchanged, so `N-ACD` minus `N-CD` is the attention sentence
+and nothing else. A stronger sentence naming the resting face as visible would
+be a new factor with no single-factor cell of its own, and it would cross into
+telling the model where the answer is, which is the directives' job."""
+
+C9D = r'''# --- Cell 9d. CEILING: dims N-ACD. MAKES MODEL CALLS. -----------------------
+CEIL_RUNG = "N-ACD"
+CEIL_OUT = rung_file("dims", CEIL_RUNG)
+CEIL_BASE = rung_file("dims", "N-CD")       # the rung it is read against
+
+# The ceiling is only interpretable as A on top of C and D. If the rung ever
+# stops being exactly that, the contrast stops being the attention sentence
+# and the cell measures something it does not claim to.
+if P.RUNGS[CEIL_RUNG]["text"] != P.A_ATTEND + P.C_DERIVE + P.D_ELICIT:
+    raise AssertionError(
+        "%s is not A_ATTEND + C_DERIVE + D_ELICIT. Its whole attribution is "
+        "that it is N-CD plus the attention sentence, so %s minus N-CD is "
+        "that sentence and nothing else." % (CEIL_RUNG, CEIL_RUNG))
+if CEIL_RUNG in P.DIRECTIVE_RUNGS:
+    raise AssertionError(
+        "%s is classified as a directive. Every table that splits the ladder "
+        "from the directives would file the ceiling with X-image, which "
+        "presents a scaffolding rung as a provenance instruction."
+        % CEIL_RUNG)
+if CEIL_RUNG in P.PRE_REGISTERED_LADDER:
+    raise AssertionError(
+        "%s is inside PRE_REGISTERED_LADDER. It was added after the ladder "
+        "was run and must not be presented as pre-registered." % CEIL_RUNG)
+
+if not pathlib.Path(CEIL_BASE).exists():
+    print("N-CD in dims is not on disk:")
+    print("  %s" % rel(CEIL_BASE))
+    print("Cell 9 buys it. The ceiling is read against it, so nothing bought.")
+else:
+    n_calls = len(CALL_SCENES) * len(MODELS) * REPEATS
+    print("COST: %d scenes x %d models x %d repeat = %d calls"
+          % (len(CALL_SCENES), len(MODELS), REPEATS, n_calls))
+    print("      dims %s, one cell." % CEIL_RUNG)
+    print("      %3d of %d already answered" % (answered(CEIL_OUT), n_calls))
+    print()
+    print("      READ AGAINST, already on disk and costing nothing:")
+    for _r in ("N0", "N-CD"):
+        _f = N0_FILE["dims"] if _r == "N0" else rung_file("dims", _r)
+        print("        %-5s %-44s %3d answered"
+              % (_r, rel(_f), answered(_f) if pathlib.Path(_f).exists() else 0))
+    print()
+    print("      dims ONLY. In conflict_face the same rung would confound the")
+    print("      procedure with precedence, which is what X-image measures.")
+    print("      Keeping them in separate questions keeps both attributable.")
+
+    CONFIRM_SPEND = None        # <-- set to the number in the COST line
+
+    if spend_gate(n_calls, CONFIRM_SPEND, CEIL_OUT,
+                  factors=(("scenes", len(CALL_SCENES)),
+                           ("models", len(MODELS)), ("repeats", REPEATS))):
+        S.run(str(CAPTURES), out_path=str(CEIL_OUT), models=MODELS,
+              conditions=("dims",), preferences=(PREFERENCE,),
+              rungs=(CEIL_RUNG,), modalities=("V",), kind="pair",
+              repeats=REPEATS)
+        print("answered now:", answered(CEIL_OUT))'''
+
+
+MD9E = r"""## Cell 9e. Ceiling read-out
+
+No model calls. Three readings, and the third is the one the cell exists for.
+
+The **contrast** is where instruction tops out. The **delta against `N-CD`** is
+what the attention sentence adds once derivation and elicitation are already in
+place. The **face accuracy** says whether a model that still fails is failing to
+see the pose or failing to act on the pose it named, which the arm contrast on
+its own cannot distinguish."""
+
+C9E = r'''# --- Cell 9e. Ceiling read-out. No model calls. -----------------------------
+def ceil_rows(path, rung, model):
+    if not pathlib.Path(path).exists():
+        return []
+    rows, _ = load_run(path, "dims", MODELS)
+    rows = [r for r in rows if r.get("rung") == rung]
+    return [r for r in keep_analysable(rows, USABLE) if r["model"] == model]
+
+if not pathlib.Path(CEIL_OUT).exists():
+    print("Cell 9d has not been run, so there is no ceiling to read.")
+    print("This is not a null. There is simply no bound yet on what")
+    print("instruction can achieve, and N-CD remains the highest rung.")
+else:
+    ceil_out, face_out = [], []
+    for model in MODELS:
+        a = paired_diffs(ceil_rows(CEIL_OUT, CEIL_RUNG, model), USABLE,
+                         "small_face", "large_face")
+        m_a, alo, ahi, n_a = paired_mean_ci([d for _, d in a])
+        row = [model, fmt(m_a), fmt(alo), fmt(ahi), n_a]
+        for base_rung, base_path in (("N-CD", CEIL_BASE),
+                                     ("N0", N0_FILE["dims"])):
+            b = paired_diffs(ceil_rows(base_path, base_rung, model), USABLE,
+                             "small_face", "large_face")
+            if not any(d is not None for _, d in b):
+                row += ["NA", "NA", "NA"]
+                continue
+            mean, lo, hi, npos = paired_mean_ci(
+                [d for _, d in paired_delta(a, b)])
+            row += [fmt(mean), fmt(lo), fmt(hi)]
+        ceil_out.append(row)
+
+        # Did it name the face, and did it name it right? Only asked under
+        # the face-first schema, which both N-ACD and N-CD use.
+        for label, path, rung in ((CEIL_RUNG, CEIL_OUT, CEIL_RUNG),
+                                  ("N-CD", CEIL_BASE, "N-CD")):
+            rs = ceil_rows(path, rung, model)
+            named = [r for r in rs if r.get("resting_face")]
+            right = sum(1 for r in named
+                        if r["resting_face"] == r.get("true_pose"))
+            face_out.append([model, label, len(rs), len(named),
+                             fmt(pct(right, len(named)))])
+
+    show(["model", CEIL_RUNG, "lo", "hi", "npos",
+          "vs N-CD", "lo", "hi", "vs N0", "lo", "hi"], ceil_out)
+    print()
+    print("vs N-CD is the ATTENTION SENTENCE, on top of derivation and")
+    print("elicitation. vs N0 is everything instruction bought in dims.")
+    print()
+    show(["model", "rung", "n", "named", "face correct %"], face_out)
+    write_csv("tab_ex2_q3_ceiling.csv",
+              ["model", "rung", "n_trials", "n_named", "face_correct_pct"],
+              face_out)
+    print()
+    print("=" * 70)
+    print("HOW TO READ THE CEILING, stated before the numbers")
+    print("=" * 70)
+    print("A model still short of +100 here was told every step and did not")
+    print("complete them. That bounds INSTRUCTION, not the model: a rung")
+    print("cannot rule out that a differently worded procedure would do")
+    print("better, and the chapter must say so rather than reading this as")
+    print("a capability limit.")
+    print()
+    print("The face column separates the two ways of falling short:")
+    print("  face right, contrast low   -> it saw the pose and did not act")
+    print("                                on the pose it named")
+    print("  face wrong, contrast low   -> it never had the pose to act on,")
+    print("                                and no wording about DERIVING")
+    print("                                from the pose can repair that")
+    print()
+    print("At %d positions and %d repeat an interval here is about %.0f points"
+          % (len(USABLE), REPEATS, GATE_MIN))
+    print("wide whatever the data, so read a small delta as unresolved.")'''
 
 
 MD10 = r"""## Cell 10. The conflict-face ladder

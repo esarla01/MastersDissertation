@@ -1,0 +1,7 @@
+model,rung,n_trials,n_named,face_correct_pct
+gpt_hi,N-ACD,192,192,76.6
+gpt_hi,N-CD,192,192,66.1
+gemini,N-ACD,192,192,100.0
+gemini,N-CD,192,192,100.0
+claude_md,N-ACD,192,192,50.0
+claude_md,N-CD,192,192,50.5

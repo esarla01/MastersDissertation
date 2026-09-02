@@ -1,13 +1,13 @@
 read,condition,rung,against,model,npos,delta,lo,hi,interval
-headline,conflict_face,X-image,N0,gpt_hi,0,NA,NA,NA,not run
-headline,conflict_face,X-image,N0,gemini,0,NA,NA,NA,not run
-headline,conflict_face,X-image,N0,claude_md,0,NA,NA,NA,not run
-sentence only,conflict_face,X-image,N-A,gpt_hi,0,NA,NA,NA,not run
-sentence only,conflict_face,X-image,N-A,gemini,0,NA,NA,NA,not run
-sentence only,conflict_face,X-image,N-A,claude_md,0,NA,NA,NA,not run
-control: wording,congruent_face,X-image,N0,gpt_hi,0,NA,NA,NA,not run
-control: wording,congruent_face,X-image,N0,gemini,0,NA,NA,NA,not run
-control: wording,congruent_face,X-image,N0,claude_md,0,NA,NA,NA,not run
-control: symmetry,conflict_face,X-state,N0,gpt_hi,0,NA,NA,NA,not run
-control: symmetry,conflict_face,X-state,N0,gemini,0,NA,NA,NA,not run
-control: symmetry,conflict_face,X-state,N0,claude_md,0,NA,NA,NA,not run
+headline,conflict_face,X-image,N0,gpt_hi,32,88.0,72.3,103.8,excludes zero
+headline,conflict_face,X-image,N0,gemini,32,200.0,200.0,200.0,excludes zero
+headline,conflict_face,X-image,N0,claude_md,32,-22.9,-46.5,0.7,spans zero
+sentence only,conflict_face,X-image,N-A,gpt_hi,32,78.6,60.0,97.3,excludes zero
+sentence only,conflict_face,X-image,N-A,gemini,32,196.9,193.5,200.3,excludes zero
+sentence only,conflict_face,X-image,N-A,claude_md,32,-11.5,-35.3,12.3,spans zero
+control: wording,congruent_face,X-image,N0,gpt_hi,32,-22.4,-37.1,-7.7,excludes zero
+control: wording,congruent_face,X-image,N0,gemini,32,0.0,0.0,0.0,spans zero
+control: wording,congruent_face,X-image,N0,claude_md,32,6.8,-21.0,34.6,spans zero
+control: symmetry,conflict_face,X-state,N0,gpt_hi,32,19.3,4.9,33.7,excludes zero
+control: symmetry,conflict_face,X-state,N0,gemini,32,0.0,0.0,0.0,spans zero
+control: symmetry,conflict_face,X-state,N0,claude_md,32,-35.4,-58.3,-12.5,excludes zero

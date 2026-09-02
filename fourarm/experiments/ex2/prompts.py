@@ -530,6 +530,23 @@ RUNGS = {
     "N-CD":    {"text": C_DERIVE + D_ELICIT, "schema": "face_first",
                 "factors": ("derivation", "elicitation", "order")},
 
+    # THE CEILING CELL, and NOT part of the pre-registration. Added
+    # 2026-09-01, after the ladder had been run, because the ladder tests
+    # each factor alone and one pair and never the complete procedure.
+    # Without it a model that stops short at N-CD cannot be told apart from
+    # one that was never asked for every step: "cannot derive" and "was not
+    # instructed to derive" predict the same number. It is the analogue of
+    # EX1's givenset, which bounds obedience above that experiment's spine.
+    #
+    # A_ATTEND is used UNCHANGED. A stronger sentence naming the resting
+    # face as visible would be a new factor with no single-factor cell of
+    # its own, and it would cross into telling the model where the answer
+    # is, which is the directives' job and not the ladder's.
+    "N-ACD":   {"text": A_ATTEND + C_DERIVE + D_ELICIT,
+                "schema": "face_first",
+                "factors": ("attention", "derivation", "elicitation",
+                            "order")},
+
     # OFF THE LADDER. See LADDER_RUNGS below and the module docstring.
     #
     # The text is A_ATTEND plus one sentence, exactly as N-CD is C plus D.
@@ -553,7 +570,13 @@ RUNGS = {
 # CORE_CONDITIONS is pinned in transforms.py: adding a variant must not
 # silently widen an existing driver's cost, and a directive must never
 # appear in a table that presents it as one of the four factors.
-LADDER_RUNGS = ("N0", "N-A", "N-C", "N-order", "N-D", "N-CD")
+# N-ACD is LAST and is marked here rather than in a comment elsewhere: the
+# first six are the pre-registered ladder, and N-ACD was added on
+# 2026-09-01 after they had been run. Any table that presents the ladder as
+# a pre-registered design must say so, and PRE_REGISTERED_LADDER below is
+# what such a table reads.
+PRE_REGISTERED_LADDER = ("N0", "N-A", "N-C", "N-order", "N-D", "N-CD")
+LADDER_RUNGS = PRE_REGISTERED_LADDER + ("N-ACD",)
 
 # Derived, never typed twice.
 DIRECTIVE_RUNGS = tuple(r for r in RUNGS if r not in LADDER_RUNGS)
@@ -1012,7 +1035,7 @@ def assert_rungs_isolated(condition="congruent", **kw):
             "applied, so the control measures nothing.")
     checked.add("N-order")
 
-    for rung in ("N-D", "N-CD"):
+    for rung in ("N-D", "N-CD", "N-ACD"):
         if head(p[rung]) != head(base) + RUNGS[rung]["text"]:
             raise ValueError(
                 f"{rung}'s wording is not N0's plus its blocks, so its "
@@ -1070,7 +1093,7 @@ def assert_rungs_isolated(condition="congruent", **kw):
     # Exempting a rung is a DECISION and must be written where it can be
     # read, not reached by falling off the end of a dict. N0 and N-order add
     # no wording; N-CD is a declared combination rather than one factor.
-    exempt = {"N0", "N-order", "N-CD"}
+    exempt = {"N0", "N-order", "N-CD", "N-ACD"}
     unruled = set(RUNGS) - set(forbidden) - exempt
     if unruled:
         raise ValueError(

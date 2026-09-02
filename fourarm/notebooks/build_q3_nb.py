@@ -86,6 +86,11 @@ CELLS = [
     ("md", Q.MD7),  ("code", Q.C7),      # gate read-out
     ("md", Q.MD8),  ("code", Q.C8),      # PAID: the no-image control
     ("md", Q.MD9),  ("code", Q.C9),      # PAID: the rest of the dims ladder
+    ("md", Q.MD9B), ("code", Q.C9B),     # PAID: the extents frame control
+    ("md", Q.MD9B2), ("code", Q.C9B2),   # PAID: the rest of the ladder, extents
+    ("md", Q.MD9C), ("code", Q.C9C),     # frame read-out
+    ("md", Q.MD9D), ("code", Q.C9D),     # PAID: the ceiling, dims N-ACD
+    ("md", Q.MD9E), ("code", Q.C9E),     # ceiling read-out
     ("md", Q.MD10), ("code", Q.C10),     # PAID: the conflict_face ladder
     ("md", Q.MD10B), ("code", Q.C10B),   # PAID: stage 1, X-image
     ("md", Q.MD10C), ("code", Q.C10C),   # stage 1 read-out, gates stage 2
