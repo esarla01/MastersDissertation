@@ -1,0 +1,417 @@
+% =====================================================================
+% Experiment 2, Chapter 5: restructured sections.
+%
+% Replaces  5.2, 5.3.4 + 5.3.5 (merged), and the whole of 5.6.
+% Leaves    5.1, 5.3.1-5.3.3, 5.3.6, 5.3.7, 5.4, 5.5 in place.
+%
+% Every figure quoted below is recomputed from the run files as of
+% 2026-09-02. Table macros follow the booktabs pattern already used in
+% the chapter; adjust column specs to match your existing tables.
+% =====================================================================
+
+
+% ---------------------------------------------------------------- 5.2
+\section{Objective}
+
+The chapter asks two questions of the same capability value, and each is
+followed by whether an instruction repairs what it finds.
+
+\begin{enumerate}
+  \item \textbf{Q1 Construction.} When no source states the opening, can the
+        model build it from the object's dimensions and its resting face, and
+        which instructions help it do so?
+  \item \textbf{Q2 Precedence.} When the text states a resting face and the
+        image shows a different one, which source governs the opening the model
+        derives, and can an instruction change which source wins?
+\end{enumerate}
+
+Q1 is answered under \texttt{congruent}, \texttt{congruent\_face} and
+\texttt{dims}, and its repair under the instruction configurations of
+Section~\ref{sec:ex2-steps}. Q2 is answered under \texttt{conflict} and
+\texttt{conflict\_face}, and its repair under the same configurations together
+with the two precedence directives. The two questions are reported separately
+because they concern different failures and have different repairs.
+
+
+% -------------------------------------------------------------- 5.3.4
+\subsection{The decision as a sequence of steps}
+\label{sec:ex2-steps}
+
+An allocation in this cell requires a sequence of inferences, not a single
+judgement. The conditions and the instruction configurations both index that
+sequence, from opposite ends: withholding a field \emph{adds} a step the model
+must perform, and an instruction factor \emph{scaffolds} one it would otherwise
+perform unaided.
+
+\begin{table}[h]
+\caption{The steps an allocation requires, what adds each one, and what
+scaffolds it.}
+\label{tab:ex2-steps}
+\centering
+\begin{tabular}{clll}
+\toprule
+ & The model must & Added by & Scaffolded by \\
+\midrule
+0 & recognise the stated size is a convention & the \texttt{named} frame
+  & nothing \\
+1 & read the resting face from the image & \texttt{dims} & A, attention \\
+2 & map that face and the dimensions to an opening
+  & \texttt{congruent\_face} & C, derivation \\
+3 & compare that opening with each aperture & every condition & none \\
+\midrule
+\multicolumn{2}{l}{state step 2's result before committing to step 3}
+  & & D, elicitation \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Two properties of this table matter before the conditions are given.
+
+Step~0 has no instruction factor and cannot have one. A sentence telling the
+model that the stated size is a convention would be a fact about the prompt
+rather than about the scene, and the boundary rule that separates the ladder
+from the directives forbids it. The \texttt{extents} frame therefore
+\emph{removes} step~0 rather than scaffolding it, which is why it is reported
+as a control in Section~\ref{sec:ex2-frame} and does not appear among the
+configurations below.
+
+Precedence is not a step. It is a second axis, concerning which source supplies
+step~1's input when the text and the image disagree. The conflict conditions do
+not lengthen the sequence; they contest one of its inputs.
+
+% Table 5.3 follows here, with its final column relabelled
+% "Steps left to the model": 3 / 2-3 / 1-3, and the conflict pair marked
+% "contests step 1".
+%
+% Table 5.4 follows, with N-ACD added as a seventh row.
+
+
+% ---------------------------------------------------------------- 5.6
+\section{Results}
+
+\subsection{Constructing the opening}
+
+Can the model build the required opening when no source states it? Because
+construction, unlike retrieval, can fail partway, the question is answered one
+step at a time.
+
+\subsubsection{A supplied opening is applied correctly}
+
+When \texttt{opening\_needed\_m} is supplied, all three models apply the
+constraint correctly. They select a Franka on 100\,\% of \texttt{small\_face}
+trials and 0\,\% of \texttt{large\_face} trials at all 32 positions, with no
+waits, and every reply reports the correct opening.
+
+Step~3 is therefore not the source of any failure below. Any shortfall arises
+where the opening must be produced, not where it must be used.
+
+\subsubsection{Mapping a stated face to an opening}
+
+Under \texttt{congruent\_face} the resting face is stated but the opening is
+withheld, so the model must map \texttt{small\_face} to a 0.050\,m opening and
+\texttt{large\_face} to a 0.100\,m opening before applying the capability rule.
+
+The models differ sharply in this step. Gemini performs the mapping without
+error, producing a complete face-dependent allocation at all 32 positions. GPT
+reaches an 89.6-point contrast $[84.1, 95.0]$. Claude does not recover the
+mapping at all: its contrast is $-5.2$ $[-21.6, 11.2]$.
+
+\textbf{Claude's failure therefore occurs before visual grounding.} Because it
+cannot consistently derive the opening from a stated face, its \texttt{dims}
+result cannot establish whether it can derive that quantity from the image, and
+every Claude figure below sits downstream of this.
+
+\subsubsection{Deriving the opening from the scene}
+
+Under \texttt{dims} both the face and the opening are withheld, so all three
+steps run in one decision. Gemini separates the two faces by 46.9 points
+$[34.5, 59.3]$, GPT by 2.1 $[-6.2, 10.3]$ and Claude by $-10.4$ $[-24.3, 3.5]$.
+Only Gemini's interval excludes zero.
+
+Table~\ref{tab:ex2-composition} places that figure beside the same models'
+performance on each step in isolation.
+
+\begin{table}[h]
+\caption{Each step of the derivation, alone and in combination. Values are the
+paired contrast in percentage points, except the cue-validation row, which is
+face-naming accuracy on a separate probe of 20 scene pairs.}
+\label{tab:ex2-composition}
+\centering
+\begin{tabular}{llrrr}
+\toprule
+Steps in play & Condition & gemini & gpt\_hi & claude\_md \\
+\midrule
+3 only            & \texttt{congruent}      & 100.0 & 100.0 & 100.0 \\
+2 and 3           & \texttt{congruent\_face}& 100.0 &  89.6 & $-5.2$ \\
+1 alone           & cue validation          & 100.0 &  89.2 &  79.2 \\
+\midrule
+\textbf{1, 2 and 3} & \textbf{\texttt{dims}} & \textbf{46.9} & \textbf{2.1}
+  & \textbf{$-10.4$} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{The steps are individually available and they do not compose.} GPT
+reads the pose at 89\,\%, maps a stated face at 89.6, applies a supplied
+opening at 100, and scores 2.1 when all three run in one decision. Gemini
+passes every step without error and still loses more than half its contrast.
+
+The cue-validation figure is drawn from a separate probe of 20 scene pairs
+rather than from the 32 analysed positions, so it is reported as converging
+evidence rather than as a fourth measurement on the same sample.
+
+\subsubsection{The result disappears without the image}
+
+Although Gemini's positive contrast under \texttt{dims} suggests visual
+inference, it could also have been produced by an unforeseen textual cue. To
+test this, the condition was rerun with the image withheld and every other
+input unchanged.
+
+Without the image none of the three models shows a meaningful difference
+between the two faces. Gemini's contrast falls from 46.9 to $-6.2$
+$[-14.3, 1.8]$, and all three intervals span zero. The contrast Gemini achieves
+under \texttt{dims} is therefore visual.
+
+The result does not show whether a model ignores the image or looks at it and
+fails to use the information consistently.
+
+\subsubsection{Which instruction repairs which step}
+
+Table~\ref{tab:ex2-ladder} reports the six instruction configurations of
+Table~5.4 together with \texttt{N-ACD}, which supplies attention, derivation
+and elicitation at once.
+
+\begin{table}[h]
+\caption{The \texttt{dims} instruction ladder. Contrast in percentage points at
+32 positions and three repeats. The final column is \texttt{N-ACD} minus
+\texttt{N-CD}, which isolates the attention sentence.}
+\label{tab:ex2-ladder}
+\centering
+\begin{tabular}{lrrrrrrrl}
+\toprule
+Model & N0 & N-A & N-C & N-order & N-D & N-CD & N-ACD & vs N-CD \\
+\midrule
+gemini    &  46.9 &  96.9 &  99.0 &  45.8 & 100.0 & 100.0 & 100.0
+  & $+0.0$ \\
+gpt\_hi   &   2.1 &   2.1 &   0.0 &   1.0 &   3.1 &  32.3 &  53.1
+  & $+20.8\ [7.8, 33.9]$ \\
+claude\_md& $-10.4$ & $-14.6$ & 0.0 & 6.2 & 0.0 & 0.0 & 0.0
+  & $+0.0$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Attention is inert alone and worth 20.8 points on top of derivation and
+elicitation.} At \texttt{N-A} the attention sentence buys GPT nothing, moving
+its contrast from 2.1 to 2.1. At \texttt{N-ACD} the same sentence, added to
+derivation and elicitation, produces a gain whose interval excludes zero. The
+factors therefore interact, and a ladder that reports each in isolation
+understates what instruction can achieve.
+
+\texttt{N-order} stays flat for every model, so \texttt{N-D}'s effect is
+attributable to its wording rather than to the reordering of the response
+fields it also imposes.
+
+\texttt{N-ACD} was added after the six pre-registered configurations had been
+run. It is not part of the pre-registration, and
+\texttt{prompts.PRE\_REGISTERED\_LADDER} records which six are.
+
+\subsubsection{What the frame was contributing}
+\label{sec:ex2-frame}
+
+The \texttt{dims} glossary states the object's extents as
+\texttt{size\_upright\_m}, measured standing on its smallest face. The block's
+smallest face is the 0.100\,m by 0.050\,m face, so that phrase names the
+\texttt{small\_face} condition exactly. A model reading the convention as a
+description of the current pose would answer \texttt{small\_face} on every
+trial without consulting the image, and would be indistinguishable from a model
+that cannot read the pose at all.
+
+The \texttt{extents} frame states the same three numbers as
+\texttt{extents\_m}, largest first, and names no orientation. It was run at
+three points on the instruction axis: the baseline, the strongest
+pre-registered configuration, and the complete procedure.
+
+\begin{table}[h]
+\caption{Contrast under each frame, and the paired difference between them.}
+\label{tab:ex2-frame}
+\centering
+\begin{tabular}{llrrl}
+\toprule
+Model & Rung & \texttt{named} & \texttt{extents} & Frame delta [95\,\% CI] \\
+\midrule
+gemini    & N0    &  46.9 &  94.8 & $+47.9\ [35.5, 60.3]$ \\
+gemini    & N-CD  & 100.0 & 100.0 & $+0.0$ \\
+gemini    & N-ACD & 100.0 & 100.0 & $+0.0$ \\
+gpt\_hi   & N0    &   2.1 &   7.3 & $+5.2\ [-4.6, 15.0]$ \\
+gpt\_hi   & N-CD  &  32.3 &  76.0 & $+43.8\ [31.9, 55.6]$ \\
+gpt\_hi   & N-ACD &  53.1 &  88.5 & $+35.4\ [24.5, 46.4]$ \\
+claude\_md& N0    & $-10.4$ & $-1.0$ & $+9.4\ [-5.1, 23.8]$ \\
+claude\_md& N-CD  &   0.0 & $-2.1$ & $-2.1\ [-7.9, 3.7]$ \\
+claude\_md& N-ACD &   0.0 &   2.1 & $+2.1\ [-0.8, 4.9]$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The reported opening locates the effect. Because positions are paired, the true
+rate of reporting a 0.050\,m opening is 50\,\%.
+
+\begin{table}[h]
+\caption{Where each model's answer sat under the two frames. Face accuracy is
+reported only where the schema requests \texttt{resting\_face}.}
+\label{tab:ex2-anchor}
+\centering
+\begin{tabular}{llrrrr}
+\toprule
+& & \multicolumn{2}{c}{reports 0.050\,\%}
+  & \multicolumn{2}{c}{face correct \%} \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}
+Model & Rung & named & extents & named & extents \\
+\midrule
+gemini    & N0    & 74.5 & 47.4 & --- & --- \\
+gpt\_hi   & N0    & 93.8 &  3.6 & --- & --- \\
+claude\_md& N0    & 58.9 &  0.5 & --- & --- \\
+gpt\_hi   & N-CD  & 83.9 & 44.3 & 66.1 & 95.8 \\
+gpt\_hi   & N-ACD & 73.4 & 45.3 & 76.6 & 97.4 \\
+claude\_md& N-CD  &100.0 &  4.2 & 50.5 & 50.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Neither frame is neutral.} The \texttt{named} frame anchors the answer
+to 0.050\,m and the \texttt{extents} frame anchors it just as firmly to
+0.100\,m. GPT moves from reporting 0.050 on 93.8\,\% of baseline trials to
+3.6\,\%, and Claude from 100\,\% to 4.2\,\% at \texttt{N-CD}. Both baselines
+produce a contrast near zero because both produce a constant answer, differing
+only in which constant.
+
+What separates the two frames is what each convention asserts. Standing on its
+smallest face asserts a \emph{pose}, which competes directly with what the
+image shows and continues to pull after the model is instructed: GPT reaches
+only 66.1\,\% face accuracy at \texttt{N-CD} under this frame. Three extents
+largest first asserts only an \emph{ordering}, which contradicts nothing and is
+abandoned once the model is told the opening depends on the resting face:
+95.8\,\% under the same configuration.
+
+The frame effect is not additive. It is worth 47.9 points to Gemini at the
+baseline and nothing once instructed, because Gemini saturates. It is worth
+nothing to GPT at the baseline and between 35 and 44 points once instructed,
+because a frame cannot assist a model that is not attempting the derivation.
+Claude is unmoved throughout: its answer follows whichever convention the
+prompt carries, and its face accuracy remains at chance under both.
+
+Four configurations were not run under \texttt{extents}. The interaction is
+therefore characterised at three points on the instruction axis rather than
+seven, and this section cannot identify which factor breaks the anchor.
+
+
+\subsection{Source precedence}
+
+When the text states one resting face and the image shows another, which source
+governs the opening the model derives?
+
+\subsubsection{A supplied opening is followed despite the contradiction}
+
+Under \texttt{conflict} all three models reverse the allocation completely. The
+contrast is $-100.0$ at all 32 positions for every model, against a matched
+\texttt{congruent} ceiling of $+100.0$. Every one of the 576 replies reports
+the opening supplied by the text rather than the one implied by the image.
+
+A false declared opening therefore produces an exactly inverted allocation with
+the correct scene in view, and the contradicting image produces no measurable
+change.
+
+\subsubsection{The text still governs when the opening is absent}
+
+Under \texttt{conflict\_face} the opening is withheld, so the model must derive
+it from a face, and the face described in the text is false. GPT's contrast is
+$-89.6$, matching its $+89.6$ under \texttt{congruent\_face}, and Gemini's is
+$-100.0$, matching its $+100.0$. Both therefore follow the face stated in the
+text rather than the face shown in the image.
+
+Claude's contrast is 7.3 $[-6.7, 21.3]$ and spans zero, as it does under
+\texttt{congruent\_face}. Given its failure in Section~5.6.1.2 to derive the
+opening from a stated face, there is no clear evidence of precedence for it in
+either direction.
+
+\subsubsection{Whether instruction changes which source wins}
+
+The six instruction configurations were run in \texttt{conflict\_face} as well
+as in \texttt{dims}.
+
+\begin{table}[h]
+\caption{The instruction ladder in \texttt{conflict\_face}. Contrast in
+percentage points.}
+\label{tab:ex2-cf-ladder}
+\centering
+\begin{tabular}{lrrrrrr}
+\toprule
+Model & N0 & N-A & N-C & N-order & N-D & N-CD \\
+\midrule
+gemini    & $-100.0$ & $-96.9$ & $-100.0$ & $-100.0$ & $-100.0$ & $-100.0$ \\
+gpt\_hi   &  $-89.6$ & $-80.2$ &  $-88.5$ &  $-86.5$ &  $-65.6$ &  $-84.4$ \\
+claude\_md&     7.3  &  $-4.2$ &  $-66.7$ &     1.0  &  $-16.7$ &  $-53.1$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{The ladder does not move precedence.} Gemini is unmoved at every
+configuration. GPT's best is \texttt{N-D} at $-65.6$, and adding derivation on
+top of it returns it to $-84.4$.
+
+Claude becomes worse, by a margin whose interval excludes zero. The derivation
+instruction takes it from 7.3 to $-66.7$, a change of $-74.0$
+$[-89.7, -58.2]$. Teaching a model to derive an opening from a stated face,
+when the stated face is false, converts an incoherent allocator into a reliably
+inverted one. A repair aimed at the wrong step does harm.
+
+\subsubsection{Naming the source explicitly}
+
+The two precedence directives add one sentence to \texttt{N-A}. Both name the
+image and they differ in a single word, so a movement toward the scene under
+one and not the other cannot be a response to image-talk.
+
+\begin{table}[h]
+\caption{The precedence directives, read against \texttt{N-A}. Image-following
+is the share of informative trials on which the chosen arm is legal under the
+captured face and illegal under the declared one.}
+\label{tab:ex2-directives}
+\centering
+\begin{tabular}{lrrrrl}
+\toprule
+Model & N0 & N-A & \texttt{X-image} & \texttt{X-state}
+  & Image-following \\
+\midrule
+gemini    & $-100.0$ & $-96.9$ & $+100.0$ & $-100.0$
+  & 2\,\% $\rightarrow$ 100\,\% \\
+gpt\_hi   &  $-89.6$ & $-80.2$ &   $-1.6$ &  $-70.3$
+  & 0\,\% $\rightarrow$ 49\,\% \\
+claude\_md&     7.3  &  $-4.2$ &  $-15.6$ &  $-28.1$
+  & 48\,\% $\rightarrow$ 42\,\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+One sentence repairs Gemini completely. It moves from following the text on
+every trial to following the image on every trial, and \texttt{X-state} leaves
+it unmoved, so the effect is attributable to which source was named.
+
+Two cautions follow the numbers rather than the other way round.
+
+GPT's $-1.6$ is not a repair. Its image-following rises from 0\,\% to 49\,\% of
+informative trials, which is chance. A contrast near zero here means no
+systematic bias in either direction, not correctness: the model obeyed an
+instruction it had no perception to execute. Its score improved by 88 points
+while its use of the scene did not.
+
+The directive is also not free. Applied to \texttt{congruent\_face}, where the
+text and the image agree and there is nothing to arbitrate, the same sentence
+costs GPT 22.4 points, from 89.6 to 67.2, with an interval excluding zero.
+Gemini is unaffected at 100.0. In deployment the presence of a conflict is not
+known in advance, so the directive cannot be applied selectively.
+
+The conflict conditions were not run under the \texttt{extents} frame. Where
+the resting face is stated, the field is specific and the glossary convention
+is general, and the models follow the stated face on close to every trial, so
+the frame is unlikely to bear on precedence. That is an argument rather than a
+measurement, and it is declared as such.
