@@ -355,7 +355,12 @@ def validate_decision(decision, coord, zonemap, baskets=None):
         return False, None, None, _reason("TASK_UNKNOWN", tid=tid)
     if task.done or task.failed:
         return False, None, None, _reason("TASK_FINISHED", tid=tid)
-    if task.claimed or (task.waiting_on is not None):
+    # A HELD task is one a serialised cell has not released; it is never
+    # rendered into the state, so naming one means the reply invented an
+    # id. Rejected under R1 with the rest of the unavailable tasks, because
+    # accepting it would let a model bypass the serialisation by guessing.
+    if (task.claimed or (task.waiting_on is not None)
+            or getattr(task, "held", False)):
         return False, None, None, _reason("TASK_BUSY", tid=tid)
     if arm not in coord.agents:
         return False, None, None, _reason("ARM_UNKNOWN", arm=arm)

@@ -44,6 +44,7 @@ wrong.
 ├── README.md
 ├── docs/                     how to reproduce each experiment
 │   ├── TABLE_PROVENANCE.md   Experiment 1 tables, sources, commands
+│   ├── EX1_REDESIGN.md       Experiment 1 v2, the serialised redesign
 │   └── EX2_GUIDE.md          Experiment 2 pipeline, in running order
 ├── harness/                  regression gates, one per subsystem
 ├── attic/                    superseded code, kept for provenance only
@@ -79,6 +80,7 @@ Four README files carry the map. Each sits next to what it describes.
 | `fourarm/out/README.md` | What do the Experiment 1 run filenames mean, which must never be used |
 | `fourarm/runs/README.md` | The same for Experiment 2 |
 | `docs/EX2_GUIDE.md` | How do I run the Experiment 2 pipeline end to end |
+| `docs/EX1_REDESIGN.md` | The Experiment 1 v2 redesign: what changes, what must be preserved, and the pipeline in running order |
 
 Scripts in `analysis/` are grouped by scope into `ex1/`, `ex2/`, `episode/`
 for pre-reframe episode tools used by no reported result, `cell/` for
@@ -104,6 +106,11 @@ directory does the decoding instead.
 
 Probe sets are content-addressed. Changing a state changes the hash and
 invalidates every run made against it.
+
+The Experiment 1 v2 set is not in this table because it has not been built
+yet. When it is, it is a separate file with its own hash: serialised states
+and contended states cannot be pooled, so no v2 run is comparable with any
+row above.
 
 Experiment 1 has 18 cast A run files (6,804 rows), 3 cast B files (972 rows)
 and 1 image-on file (486 rows). Experiment 2's main dataset is
@@ -135,6 +142,12 @@ python3 analysis/probe_store.py   # harvest the trail into a frozen probe set
 
 Note that `--allocator b2` wires a retired contention-aware design. The
 Hungarian matcher is `--allocator opt`.
+
+`--serialised` runs the cell ONE TASK AT A TIME: a round is offered only when
+every arm is idle, and only the first assignable task in pool order is offered.
+That is the Experiment 1 v2 harvesting mode, and it costs makespan and makes
+every contention measure vacuous, so it is never used for Experiment 3. See
+[`docs/EX1_REDESIGN.md`](docs/EX1_REDESIGN.md).
 
 ---
 

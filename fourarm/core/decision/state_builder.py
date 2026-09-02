@@ -253,7 +253,17 @@ def build_state(coord, engine, tick, baskets=None, zonemap=None,
     # tasks are hidden (they invite reasoning about already-handled work);
     # their count is summarised instead. Handover parent/child both appear
     # only while still active.
-    actionable = [t for t in coord.pool if not t.done and not t.failed]
+    #
+    # HELD tasks are hidden too. A held task belongs to a SERIALISED cell
+    # (Coordinator(serialised=True), EX1 v2): it is in the pool and has an
+    # id, and the cell has not released it yet. Rendering it would leave
+    # every queued task visible in a cell whose whole point is that one
+    # task is offered, and the model would still be choosing which task to
+    # serve. getattr, not attribute access, so a coordinator rebuilt from a
+    # frozen state by analysis/frozen_coord.py needs no new field.
+    actionable = [t for t in coord.pool
+                  if not t.done and not t.failed
+                  and not getattr(t, "held", False)]
     tasks = []
     for t in actionable:
         entry = {

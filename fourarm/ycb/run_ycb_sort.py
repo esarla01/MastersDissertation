@@ -94,6 +94,15 @@ parser.add_argument("--settle-phases", default="tight",
                     help="which arm phases count as finishing. tight is "
                          "SETTLING and PRE_TUCK (no travel); broad adds "
                          "GO_HOME and RETREAT (real return legs)")
+parser.add_argument("--serialised", action="store_true",
+                    help="EX1 v2: run the cell ONE TASK AT A TIME. A round "
+                         "is offered only when every arm is idle, and only "
+                         "the first assignable task in pool order is "
+                         "offered. Every arm is therefore available at "
+                         "every decision, and the allocator never chooses "
+                         "which task. Costs makespan and makes every "
+                         "contention measure vacuous, so it is for EX1 "
+                         "state harvesting and never for EX3")
 parser.add_argument("--eligible-arms", action="store_true",
                     help="ABLATION (vlm only): give the model a resolved "
                          "eligible_arms list per task, reach and capability "
@@ -278,7 +287,8 @@ def main():
                              audit_cameras=_audit_cams)
         coord = Coordinator(cell, zonemap, allocate=alloc, engine=engine,
                             settle_wait=args_cli.settle_wait,
-                            settle_phases=args_cli.settle_phases)
+                            settle_phases=args_cli.settle_phases,
+                            serialised=args_cli.serialised)
         holder["c"] = coord
     elif ALLOC_KIND == "bvlm":
         # BATCH VLM: one model call decides the whole round jointly (every
@@ -296,7 +306,8 @@ def main():
                                   audit_dir=f"out/{OUT_STEM}_frames")
         coord = Coordinator(cell, zonemap, allocate=alloc, engine=engine,
                             settle_wait=args_cli.settle_wait,
-                            settle_phases=args_cli.settle_phases)
+                            settle_phases=args_cli.settle_phases,
+                            serialised=args_cli.serialised)
         holder["c"] = coord
     elif ALLOC_KIND == "opt":
         from core.decision.optimal_allocator import OptimalAllocator
@@ -309,7 +320,8 @@ def main():
                                lambda_contention=args_cli.b2_contention)
         coord = Coordinator(cell, zonemap, allocate=opt, engine=engine,
                             settle_wait=args_cli.settle_wait,
-                            settle_phases=args_cli.settle_phases)
+                            settle_phases=args_cli.settle_phases,
+                            serialised=args_cli.serialised)
         holder["c"] = coord
         alloc = opt                    # logger records stats + matrix log
     elif ALLOC_KIND == "random":
@@ -344,7 +356,8 @@ def main():
         coord = Coordinator(cell, zonemap, allocate=allocate_fn,
                             engine=engine,
                             settle_wait=args_cli.settle_wait,
-                            settle_phases=args_cli.settle_phases)
+                            settle_phases=args_cli.settle_phases,
+                            serialised=args_cli.serialised)
         holder["c"] = coord
         alloc = rnd                    # logger records stats + plan log
     else:
@@ -367,12 +380,14 @@ def main():
                                                  f"{args_cli.layout}")
             coord = Coordinator(cell, zonemap, allocate=rec, engine=engine,
                                 settle_wait=args_cli.settle_wait,
-                                settle_phases=args_cli.settle_phases)
+                                settle_phases=args_cli.settle_phases,
+                                serialised=args_cli.serialised)
             holder["c"] = coord
         else:
             coord = Coordinator(cell, zonemap, engine=engine,
                                 settle_wait=args_cli.settle_wait,
-                                settle_phases=args_cli.settle_phases)
+                                settle_phases=args_cli.settle_phases,
+                                serialised=args_cli.serialised)
 
     # spawn the cast and submit one task per object. In vlm mode the task
     # has NO destination: choosing the basket IS the allocator's job.

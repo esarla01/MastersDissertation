@@ -36,6 +36,30 @@ is, so there is one place.
 The spine is L3 -> L3-nowidth -> L1-nowidth, each step removing exactly
 one kind of information. L4 sits above it as a control and L2 beside it.
 
+TWO DESIGNS, AND THE ROWS SAY WHICH. Everything above describes v1, the
+published Experiment 1, and it is the default because every run already on
+disk was made under it. --design v2 selects the redesign:
+
+    the states come from a SERIALISED cell, so one task is offered and
+    every arm is idle at every decision;
+
+    the prompt is rebuilt on Experiment 2's base rather than substituted
+    into the shared one, with Experiment 2's field aliases and seven
+    separated rules, so the ablation can withhold one constraint at a time;
+
+    the conditions are named full, nowidth, anon, nowidth-anon, swap,
+    nowidth-swap, givenset and norules-<constraint>, and the v1 names
+    resolve to them as aliases so a command line typed from memory works;
+
+    a --directive adds one prompt-level treatment at one anchor: recall,
+    report or elicit.
+
+The two are not poolable. Serialising draws states from a different
+distribution, so a v1 rate and a v2 rate answer the same question on
+different populations. Every row records its design, --resume refuses to
+append across a mismatch, and a v2 run refuses a probe set whose states are
+not serialised.
+
 VIOLATION TYPING. A row records not only whether a proposal was rejected
 but which constraint it broke. The validator emits one code and stops at
 the first failure, which is right for a guard and wrong for a tally, so
@@ -86,6 +110,7 @@ from analysis.frozen_coord import from_record, idle_arms           # noqa: E402
 from analysis.probe_store import (load as load_probes,             # noqa: E402
                                   capability_cause)
 from experiments.ex1 import prompts as EX1P                        # noqa: E402
+from experiments.ex1 import prompts_v2 as EX1P2                    # noqa: E402
 from experiments.ex1 import anonymise as EX1A                      # noqa: E402
 from experiments.ex1 import mislabel as EX1M                       # noqa: E402
 
@@ -93,6 +118,45 @@ from experiments.ex1 import mislabel as EX1M                       # noqa: E402
 # rung is defined by the EX1 table, so adding a rung there adds it here and
 # the two can never drift.
 RUNGS = ("recorded",) + tuple(sorted(EX1P.RUNGS))
+
+# THE TWO DESIGNS. v1 is the published Experiment 1: the contended cell,
+# the substituted base prompt and the L-named rungs. v2 is the redesign:
+# the serialised cell, the prompt rebuilt on Experiment 2's base, the
+# Experiment 2 field aliases and one rule ablation per constraint.
+#
+# The design is never defaulted per call and never inferred from the rung
+# name. It is passed explicitly, recorded on every row, and checked when a
+# run is resumed, because a v1 row and a v2 row answer different questions
+# on states that are not comparable, and a file holding both could not be
+# separated afterwards.
+DESIGNS = {
+    "v1": {"module": EX1P, "rungs": tuple(sorted(EX1P.RUNGS)),
+           "version": EX1P.EX1_PROMPT_VERSION},
+    "v2": {"module": EX1P2, "rungs": tuple(sorted(EX1P2.CONDITIONS)),
+           "version": EX1P2.EX1_V2_PROMPT_VERSION},
+}
+RUNGS_V2 = DESIGNS["v2"]["rungs"]
+DIRECTIVES = tuple(sorted(EX1P2.DIRECTIVES))
+
+
+def design_spec(design):
+    """The design table, or a message naming both. Never defaults."""
+    if design not in DESIGNS:
+        raise ValueError(
+            f"unknown design {design!r}; expected one of {sorted(DESIGNS)}. "
+            f"v1 is the published contended-cell experiment and v2 the "
+            f"serialised redesign. They are answered on different states "
+            f"and a result recorded under the wrong one would be invisible "
+            f"in the output.")
+    return DESIGNS[design]
+
+
+def rung_spec(rung, design="v1"):
+    """What this rung supplies, from whichever design's table."""
+    mod = design_spec(design)["module"]
+    if design == "v2":
+        return mod.condition_spec(rung)
+    return mod.rung_spec(rung)
 
 # Kept, and empty. The mechanism is what stops a rung silently falling back
 # to L3 and reporting an L3 result under another label. It cost nothing to
@@ -178,7 +242,7 @@ def _strip_width(state):
     return state
 
 
-def state_at_rung(probe, rung, return_map=False):
+def state_at_rung(probe, rung, return_map=False, design="v1"):
     """A copy of the saved state adjusted for the requested rung.
 
     The state is copied, never mutated in place: a probe set is frozen and
@@ -196,20 +260,25 @@ def state_at_rung(probe, rung, return_map=False):
     must not carry it: anything left in the state gets rendered into the
     prompt.
     """
+    known = ("recorded",) + design_spec(design)["rungs"]
     if rung in NOT_BUILT:
         raise ValueError(f"rung {rung} is not built ({NOT_BUILT[rung]}). "
-                         f"Available: {list(RUNGS)}.")
-    if rung not in RUNGS:
-        raise ValueError(f"unknown rung {rung!r}; expected one of "
-                         f"{list(RUNGS)}. Rungs are never defaulted: an "
-                         f"L3 result reported under another label would be "
-                         f"invisible in the output.")
+                         f"Available: {list(known)}.")
+    if rung != "recorded" and rung not in known:
+        # v2 accepts the v1 names as aliases so a command line typed from
+        # memory resolves; condition_spec raises with both lists otherwise.
+        if design != "v2" or rung not in EX1P2.CONDITION_ALIASES:
+            raise ValueError(f"unknown rung {rung!r} for design {design!r}; "
+                             f"expected one of {list(known)}. Rungs are "
+                             f"never defaulted: a result reported under "
+                             f"another label would be invisible in the "
+                             f"output.")
 
     state = copy.deepcopy(probe["state"])
     if rung == "recorded":
         return (state, None) if return_map else state
 
-    spec = EX1P.rung_spec(rung)
+    spec = rung_spec(rung, design)
     state = (_add_eligible(state, probe) if spec["eligible"]
              else _strip_eligible(state))
     if not spec["declared_width"]:
@@ -230,7 +299,8 @@ def state_at_rung(probe, rung, return_map=False):
     return (state, mapping) if return_map else state
 
 
-def render(probe, rung="recorded", condition="A", return_map=False):
+def render(probe, rung="recorded", condition="A", return_map=False,
+           design="v1", directive="none"):
     """(messages, state) for this probe at this rung and condition.
 
     return_map=True appends the alias mapping, which is None except at an
@@ -242,7 +312,8 @@ def render(probe, rung="recorded", condition="A", return_map=False):
     and putting anything between the saved state and the prompt would make
     the test check this module rather than the shim it is meant to check.
     """
-    state, mapping = state_at_rung(probe, rung, return_map=True)
+    state, mapping = state_at_rung(probe, rung, return_map=True,
+                                   design=design)
     frame_b64 = None
     if condition == "V":
         path = probe.get("frame_path")
@@ -256,6 +327,16 @@ def render(probe, rung="recorded", condition="A", return_map=False):
 
     if rung == "recorded":
         messages = build_prompt(state, condition, image_b64=frame_b64)
+    elif design == "v2":
+        # v2 builds the whole prompt rather than substituting into the base:
+        # the rules are renumbered per constraint and the state is rendered
+        # through Experiment 2's field aliases, so there is no base text
+        # left to substitute into. build_ex1_prompt runs assert_clean
+        # against the mapping at an anonymised condition and refuses to
+        # build one without it, exactly as v1 does.
+        messages = EX1P2.build_ex1_prompt(state, rung, directive=directive,
+                                          image_b64=frame_b64,
+                                          mapping=mapping)
     else:
         # build_ex1_prompt runs assert_clean against the mapping at an
         # anonymised rung and REFUSES to build one without it. The check
@@ -383,9 +464,22 @@ def all_violated(decision, probe, baskets=None):
         return None
 
 
-def _attach_violation(row, why, decision, probe, ok, baskets=None):
-    """Write the typing fields onto a row and flag any disagreement."""
+def _attach_violation(row, why, decision, probe, ok, baskets=None,
+                      design="v1"):
+    """Write the typing fields onto a row and flag any disagreement.
+
+    THE RULE NUMBER IS DESIGN-DEPENDENT AND THE CAUSE IS NOT. The validator
+    emits one code per rejection and its codes were numbered against the v1
+    base, where a single CAPABILITY code covered the gripper opening, the
+    load and the delicate flag. Separating those rules buys nothing unless
+    a rejection can be filed against the rule that was actually broken, so
+    under v2 the rule is resolved through the same capability decomposition
+    probe_store uses. The code, the cause and the validator's verdict are
+    untouched: only the label changes, and only for v2 rows.
+    """
     code, rule, cause, fields = violation_detail(why, decision)
+    if design == "v2":
+        rule = EX1P2.violation_rule(code, cause)
     row["violation"] = code
     row["violation_rule"] = rule
     row["violation_cause"] = cause
@@ -414,7 +508,8 @@ REPAIR_FEEDBACK = (
 
 
 def replay_one(probe, rung="recorded", condition="A", alias=None,
-               model_fn=openai_chat, timeout=60.0, baskets=None, repair=1):
+               model_fn=openai_chat, timeout=60.0, baskets=None, repair=1,
+               design="v1", directive="none"):
     """One probe: render, ask, validate, record. Never raises on a model
     error; the row carries the error so a long run does not die on one
     timeout.
@@ -443,7 +538,21 @@ def replay_one(probe, rung="recorded", condition="A", alias=None,
     Only rejections are retried. An unparseable reply has no binding cause
     to return, and a noop is a decision rather than a failure."""
     baskets = baskets or _baskets()
-    messages, state, mapping = render(probe, rung, condition, return_map=True)
+    dspec = design_spec(design)
+    if design == "v2" and rung != "recorded":
+        # The CANONICAL name is recorded, never the alias that was typed.
+        # A file holding both "L3" and "full" rows would need a second table
+        # to be grouped, and that table would be one more place for the two
+        # designs to disagree about what a cell is.
+        rung = EX1P2.canonical(rung)
+    if design != "v2" and directive != "none":
+        raise ValueError(
+            f"directive {directive!r} was given for design {design!r}. The "
+            f"directives are a v2 construct and v1 has no anchor to insert "
+            f"one at, so a v1 row carrying a directive label would claim a "
+            f"manipulation the prompt does not contain.")
+    messages, state, mapping = render(probe, rung, condition, return_map=True,
+                                      design=design, directive=directive)
     derived = dict(probe.get("derived", {}))
     causes = derived.get("binding_causes") or {}
 
@@ -451,11 +560,16 @@ def replay_one(probe, rung="recorded", condition="A", alias=None,
         "provenance": dict(probe["provenance"]),
         "rung": rung,
         "condition": condition,
+        # The design and the directive are separate columns, not encoded in
+        # the rung name, so analysis can group by either without parsing a
+        # string. "design" is v1 or v2; "directive" is a v2 treatment.
+        "design": design,
+        "directive": directive if design == "v2" else None,
         "prompt_version": prompt_version(state),
         "ex1_prompt_version": (None if rung == "recorded"
-                               else EX1P.EX1_PROMPT_VERSION),
+                               else dspec["version"]),
         "rung_flags": (None if rung == "recorded"
-                       else EX1P.rung_spec(rung)),
+                       else rung_spec(rung, design)),
         "prompt_chars": len(messages[0]["content"]),
         "model_alias": alias,
         "derived": derived,
@@ -551,7 +665,8 @@ def replay_one(probe, rung="recorded", condition="A", alias=None,
         "route_inserted": sub is not None,
         "via_pad": _pad_name(target) if sub is not None else None,
     })
-    _attach_violation(row, why, decision, probe, ok, baskets)
+    _attach_violation(row, why, decision, probe, ok, baskets,
+                      design=design)
 
     if ok:
         task = next(t for t in coord.pool
@@ -619,7 +734,8 @@ def replay_one(probe, rung="recorded", condition="A", alias=None,
             "repeated_same_pair": (d2.get("task_id") == row.get("task_id")
                                    and d2.get("arm") == row.get("arm")),
         })
-        _attach_violation(sub_row, why, d2, probe, ok, baskets)
+        _attach_violation(sub_row, why, d2, probe, ok, baskets,
+                          design=design)
         history.append(sub_row)
         if ok:
             row["accepted_at"] = attempt
@@ -668,7 +784,8 @@ def _score_quality(row, probe, coord, task, sub, baskets,
     return row
 
 
-def _load_done(path, probe_set, rung, condition, alias):
+def _load_done(path, probe_set, rung, condition, alias,
+               design="v1", directive="none"):
     """Rows already on disk, as {(seq, source, repeat)}, for --resume.
 
     Refuses to resume across a mismatch. A file whose probe set hash, rung,
@@ -702,7 +819,17 @@ def _load_done(path, probe_set, rung, condition, alias):
                                      ("rung", rung, r.get("rung")),
                                      ("condition", condition,
                                       r.get("condition")),
-                                     ("model", alias, r.get("model_alias"))):
+                                     ("model", alias, r.get("model_alias")),
+                                     # A v1 row and a v2 row answer
+                                     # different questions on states that
+                                     # are not comparable, and a directive
+                                     # is a different manipulation of the
+                                     # same cell. Splicing either pair into
+                                     # one file would be unrecoverable.
+                                     ("design", design, r.get("design")),
+                                     ("directive",
+                                      directive if design == "v2" else None,
+                                      r.get("directive"))):
                 if want is not None and got is not None and want != got:
                     raise ValueError(
                         f"cannot resume {path}: it holds rows with "
@@ -742,7 +869,8 @@ def _load_done(path, probe_set, rung, condition, alias):
 
 def replay_set(probe_set, rung="recorded", condition="A", alias=None,
                model_fn=openai_chat, timeout=60.0, out=None, baskets=None,
-               progress=False, repeats=1, repair=1, resume=False):
+               progress=False, repeats=1, repair=1, resume=False,
+               design="v1", directive="none"):
     """Run every probe, optionally several times each.
 
     repeats defaults to 1, so nothing already run changes meaning. Each row
@@ -775,7 +903,7 @@ def replay_set(probe_set, rung="recorded", condition="A", alias=None,
     done = set()
     if resume and out and os.path.exists(out):
         done, bad, errored = _load_done(out, probe_set, rung, condition,
-                                        alias)
+                                        alias, design, directive)
         if progress:
             print(f"resuming {out}: {len(done)} rows already complete"
                   + (f", {errored} errored rows will be retried"
@@ -794,7 +922,8 @@ def replay_set(probe_set, rung="recorded", condition="A", alias=None,
                 if (prov.get("seq"), prov.get("source"), rep) in done:
                     continue
                 row = replay_one(probe, rung, condition, alias, model_fn,
-                                 timeout, baskets, repair=repair)
+                                 timeout, baskets, repair=repair,
+                                 design=design, directive=directive)
                 row["probe_set_hash"] = probe_set.get("hash")
                 row["repeat"] = rep
                 row["n_repeats"] = repeats
@@ -1033,6 +1162,19 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--probes", help="probe set JSON")
     ap.add_argument("--rung", default="recorded")
+    ap.add_argument("--design", default="v1", choices=sorted(DESIGNS),
+                    help="v1 is the published contended-cell experiment; "
+                         "v2 is the serialised redesign, with the prompt "
+                         "rebuilt on Experiment 2's base, its field aliases "
+                         "and one rule ablation per constraint. Recorded on "
+                         "every row and checked on --resume: the two are "
+                         "answered on states that are not comparable")
+    ap.add_argument("--directive", default="none", choices=list(DIRECTIVES),
+                    help="v2 only. A prompt-level treatment added at one "
+                         "anchor: recall names memory as a source to use, "
+                         "report asks for the judged opening before the arm "
+                         "is named, elicit additionally asks the arm to be "
+                         "chosen to fit it")
     ap.add_argument("--condition", default="A", choices=["A", "V"])
     ap.add_argument("--model", default=None, help="registry alias")
     ap.add_argument("--out", default=None, help="JSONL output")
@@ -1113,16 +1255,25 @@ def main(argv=None):
     if args.limit:
         ps = dict(ps, probes=ps["probes"][:args.limit])
 
+    # The serialisation check runs before any spend, not after it. A v2 run
+    # on a contended set renders perfectly well and would be reported under
+    # a serialised label, understating how often the opening can bind.
+    if args.design == "v2" and args.rung != "recorded":
+        EX1P2.assert_states_are_serialised(ps["probes"])
+
     if args.dry_run:
         for probe in ps["probes"]:
-            messages, _ = render(probe, args.rung, args.condition)
+            messages, _ = render(probe, args.rung, args.condition,
+                                 design=args.design,
+                                 directive=args.directive)
             print(f"seq {probe['provenance'].get('seq')} rung {args.rung} "
                   f"chars {len(messages[0]['content'])}")
         return 0
 
     rows = replay_set(ps, args.rung, args.condition, args.model,
                       out=args.out, progress=True, repeats=args.repeats,
-                      repair=args.repair, resume=args.resume)
+                      repair=args.repair, resume=args.resume,
+                      design=args.design, directive=args.directive)
     counts, viol, cause, rule, first_only = {}, {}, {}, {}, 0
     for r in rows:
         counts[r.get("result", "error")] = counts.get(

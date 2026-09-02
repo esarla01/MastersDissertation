@@ -39,8 +39,9 @@ them as `analysis.<name>`. Change them with care.
 |---|---|---|
 | `probe_store.py` | Harvest audit trails into frozen, content-hashed probe sets. Also `legal_options()` and `capability_cause()` | 10 modules |
 | `frozen_coord.py` | Rebuild a validator-compatible coordinator from a saved state, with no simulator | 11 modules, including `experiments/ex2/run.py` |
-| `probe_replay.py` | Re-render a frozen state at a chosen condition and judge the answer | 3 modules |
+| `probe_replay.py` | Re-render a frozen state at a chosen condition and judge the answer. `--design v1` is the published experiment, `--design v2` the serialised redesign | 3 modules |
 | `build_master_set.py` | Merge harvested trails into one master set | run directly |
+| `build_ex1_set_v2.py` | The Experiment 1 v2 set: harvest serialised trails, check they are serialised, stratify toward grasp-binding states behind a declared non-grasp floor, freeze. See `docs/EX1_REDESIGN.md` | run directly |
 | `refreeze_probe_set.py` | Refreeze a set with sources excluded. Produced `ex1_v2` from `ex1_v1` | run directly |
 
 `probe_store` and `frozen_coord` are shared between Experiment 1 and
@@ -55,7 +56,7 @@ Run in roughly this order. All read from `out/` and `probes/`.
 
 | Module | Does |
 |---|---|
-| `ex1_chance_floor.py` | Computes the chance floor and width-blind reference lines. Writes `out/ex1_chance_floor.json` |
+| `ex1_chance_floor.py` | Computes the chance floor and width-blind reference lines. Writes `out/ex1_chance_floor.json`. Run it again on any new probe set: neither line transfers across a change to the states |
 | `ex1_report.py` | The main tables, one pass over every run file |
 | `ex1_verify_tables.py` | Regenerates every published table from raw data and diffs it against the thesis. **Start here.** See `docs/TABLE_PROVENANCE.md` |
 | `ex1_effects.py` | Effect sizes and intervals for the results section. Standard library only |

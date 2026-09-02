@@ -72,6 +72,16 @@ class Task:
     # Measured only, never predicted; the cost model prices motion, and
     # contention enters separately as an optional surcharge.
     blocked_ticks: int = 0
+    # SERIALISED CELL (EX1 v2). A held task is in the pool, has an id, and
+    # is INVISIBLE: build_state does not render it, the allocator is never
+    # offered it, and the validator rejects it if a reply names one anyway.
+    # It is how "one task at a time" reaches the MODEL and not only the
+    # coordinator. Serialising the offer alone would leave every queued
+    # task in the rendered state, so the model would still be choosing
+    # which task to serve, and removing task selection from the decision is
+    # half of what the redesign is for. Always False in the contended cell,
+    # so nothing already recorded moves.
+    held: bool = False
     kind: str = "primary"               # 'primary' | 'handover_leg' (set by
                                         # the coordinator when it authors a
                                         # pad leg); makes the tasks table
@@ -775,10 +785,38 @@ class Coordinator:
     cell.tick(); pending() tells you when everything is done."""
 
     def __init__(self, cell, zonemap, allocate=rule_based_allocate, engine=None,
-                 settle_wait=0, settle_phases="tight"):
+                 settle_wait=0, settle_phases="tight", serialised=False):
         self.cell = cell
         self.zonemap = zonemap
         self.allocate = allocate
+        # SERIALISED CELL (EX1 v2, 2026-09-02). False reproduces every
+        # episode recorded before this date tick for tick, so nothing
+        # already on disk moves; the harness pins that.
+        #
+        # True makes the cell run ONE task at a time: a round is offered
+        # only when every non-disabled arm is idle, and only the first
+        # assignable task in pool order is offered. Two properties follow,
+        # and EX1 v2 exists for both.
+        #
+        # EVERY ARM IS IDLE AT EVERY DECISION. Under the contended cell an
+        # arm busy on another task is simply unavailable, so a state can
+        # only discriminate on the arms that happen to be free. On the
+        # frozen v1 set that left grasp binding a pair on 96 of 162
+        # states. With all four arms offered at every decision, both arm
+        # types are available almost everywhere and the gripper opening
+        # can bind far more often.
+        #
+        # THE ALLOCATOR NO LONGER CHOOSES WHICH TASK. Pool order fixes
+        # that, so the decision is one arm for one named task. Task
+        # selection stops being a source of variance and of error, and a
+        # rejection can only be about the arm.
+        #
+        # WHAT IT COSTS. Makespan, and every contention measure: zone
+        # queueing, scarce-arm protection and relay avoidance all become
+        # vacuous, because no second arm is ever working. That is why this
+        # is an EX1 switch and not a new default. EX3 is the experiment
+        # about contention and must never run serialised.
+        self.serialised = bool(serialised)
         # settle_wait 0 is OFF and reproduces every episode recorded before
         # 2026-08-02 tick for tick. The harness pins that.
         self.settle_wait = int(settle_wait or 0)
@@ -841,8 +879,33 @@ class Coordinator:
         t.submit_tick = self.m.makespan_ticks
         if dest is not None:
             t.dest_by = "given"
+        # SERIALISED: every task but the first arrives HELD, and _release
+        # lets the next one through when the live one finishes. Submission
+        # order is pool order, which is what makes "handled in pool order"
+        # a property of the cell rather than of the allocator.
+        if self.serialised and any(not x.done and not x.failed and not x.held
+                                   for x in self.pool):
+            t.held = True
         self.pool.append(t)
         return t
+
+    def _release(self):
+        """Let the next held task through when nothing live is outstanding.
+
+        Outstanding means any unheld task that is neither done nor failed,
+        which includes a parent parked behind its own handover leg. Parent
+        and leg are one unit of work and are released together, so a relay
+        is never split across two decisions that see different pools.
+        """
+        if not self.serialised:
+            return
+        if any(not t.done and not t.failed and not t.held for t in self.pool):
+            return
+        for t in self.pool:
+            if t.held:
+                t.held = False
+                t.submit_tick = self.m.makespan_ticks
+                return
 
     def event(self, etype, text=None, **fields):
         """Emit once: append the typed record and (optionally) print the
@@ -903,10 +966,25 @@ class Coordinator:
                          if ag.arm.disabled)
         if not idle:
             return
+        # THE SERIALISED GATE. Two halves, and they are not the same check.
+        #
+        # The first holds the round until every non-disabled arm is idle,
+        # which is what makes "every arm is available at every decision"
+        # true rather than merely usual. Without it a round could fire
+        # while one arm was still folding, and the state harvested from
+        # that round would carry a busy arm under a serialised label.
+        #
+        # The second is in the loop below: only the first assignable task
+        # in pool order is offered, and the round ends whether or not it
+        # was taken. Offering the rest would hand task selection back to
+        # the allocator, which is the other half of what serialising buys.
+        if self.serialised and len(idle) < len(
+                [n for n, ag in self.agents.items() if not ag.arm.disabled]):
+            return
         done_ids = {t.id for t in self.pool if t.done}
         failed_ids = {t.id for t in self.pool if t.failed}
         for task in list(self.pool):
-            if task.done or task.claimed or task.failed:
+            if task.done or task.claimed or task.failed or task.held:
                 continue
             if task.waiting_on is not None:
                 if task.waiting_on in failed_ids:
@@ -974,6 +1052,12 @@ class Coordinator:
                           f"obj({ox:.2f},{oy:.2f}) reachable by {can_obj}, "
                           f"dest{task.dest} reachable by {can_dst}, "
                           f"idle={idle}", flush=True)
+                if self.serialised:
+                    # The task was OFFERED and refused. Moving on to the
+                    # next one would offer a choice of tasks, which is the
+                    # thing serialising removes; the round simply ends and
+                    # the same task is offered again next tick.
+                    return
                 continue
             if sub is not None:            # handover: run the pad leg first
                 if not self._pad_available(sub.dest, task.obj):
@@ -1006,6 +1090,8 @@ class Coordinator:
                                      f"{sub.dest} occupied/reserved, "
                                      f"handover waits"),
                                task=task.id, pad=list(sub.dest))
+                    if self.serialised:
+                        return          # offered and held; see the gate above
                     continue
                 task.waiting_on = sub.id
                 sub.submit_tick = self.m.makespan_ticks
@@ -1017,7 +1103,7 @@ class Coordinator:
             else:
                 self.agents[arm].claim(task, target)   # stays in pool, claimed
             idle.remove(arm)
-            if not idle:
+            if self.serialised or not idle:
                 return
 
     def _pad_available(self, pad_xy, for_obj):
@@ -1098,6 +1184,10 @@ class Coordinator:
         self._assign_round += 1
         self.locks.tick = self.m.makespan_ticks
         self._drain_disabled()
+        # Before the round, not inside _assign: a held round still has to
+        # release, or a cell whose live task finished during a settle wait
+        # would sit with nothing visible until the wait expired.
+        self._release()
         held = self._hold_round()
         if held:
             # A held tick does EVERYTHING a normal tick does except assign.

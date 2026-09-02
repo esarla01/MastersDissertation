@@ -83,6 +83,10 @@ def make_coord(states, settle_wait=0, settle_phases="tight", disabled=()):
               scene={})
     coord = T.Coordinator.__new__(T.Coordinator)
     coord.cell = cell
+    # Contended, which is what this policy is about: the settle wait exists
+    # to raise the share of rounds taken with two arms idle, and a
+    # serialised cell holds every round until all four are.
+    coord.serialised = False
     coord.settle_wait = int(settle_wait)
     if settle_phases not in T.SETTLE_PHASES:
         raise ValueError(settle_phases)
