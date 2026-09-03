@@ -375,7 +375,31 @@ which face it is resting on, "resting_face", its mass, "mass_kg", whether it
 is "delicate", its three extents largest first, "extents_m", and the arms
 that can reach it, "arms_that_can_reach"."""
 
+_OBJECT_FIELDS_FACE_EXTENTS = """Each object states which face it is resting on,
+"resting_face", its mass, "mass_kg", whether it is "delicate", its three
+extents largest first, "extents_m", and the arms that can reach it,
+"arms_that_can_reach". No opening is given."""
+
 DIMS_FRAMES = ("named", "extents")
+
+# KEYED ON THE NAMED GLOSS, not on the condition name. The dispatch here was
+# `_OBJECT_FIELDS_DIMS_EXTENTS if condition == "dims" else FULL_EXTENTS`,
+# which is right for the two conditions that had ever been rendered under
+# extents and wrong for the other three: congruent_face and conflict_face
+# withhold the opening and say so ("No opening is given"), and the else
+# branch handed them the FULL gloss, which announces an "opening_needed_m"
+# the state does not carry. Nothing on disk was rendered that way -- only
+# dims and congruent have ever been run under extents -- so no result is
+# affected and EX2_PROMPT_VERSION does not move.
+#
+# Keying on the gloss the condition already uses means a new condition
+# reusing an existing gloss is covered without an edit here, and a new gloss
+# with no extents twin raises instead of silently receiving the wrong one.
+_EXTENTS_BY_NAMED = {
+    _OBJECT_FIELDS_FULL: _OBJECT_FIELDS_FULL_EXTENTS,
+    _OBJECT_FIELDS_FACE: _OBJECT_FIELDS_FACE_EXTENTS,
+    _OBJECT_FIELDS_DIMS: _OBJECT_FIELDS_DIMS_EXTENTS,
+}
 
 
 def _object_fields(condition, dims_frame="named"):
@@ -385,10 +409,17 @@ def _object_fields(condition, dims_frame="named"):
             f"unknown dims_frame {dims_frame!r}; expected one of "
             f"{list(DIMS_FRAMES)}. Never defaulted at the call site: an "
             f"extents result recorded as named would be invisible.")
+    named = CONDITIONS[condition]["object_fields"]
     if dims_frame == "named":
-        return CONDITIONS[condition]["object_fields"]
-    return (_OBJECT_FIELDS_DIMS_EXTENTS if condition == "dims"
-            else _OBJECT_FIELDS_FULL_EXTENTS)
+        return named
+    try:
+        return _EXTENTS_BY_NAMED[named]
+    except KeyError:
+        raise ValueError(
+            f"condition {condition!r} has an object-field gloss with no "
+            f"extents twin. Add one to _EXTENTS_BY_NAMED rather than "
+            f"falling back: a gloss that names fields the state withholds "
+            f"is a prompt that contradicts itself.") from None
 
 
 EXTENTS_FIELD = "extents_m"
