@@ -560,19 +560,26 @@ Where the image and the stated resting face disagree, go by the state.
 # changes how the model is asked at step 2. A treatment that works tells you
 # which of the two the model was short of.
 
-# STEP 1, SUPPLY THE FACT. Says what the two candidate faces ARE and does not
-# say which one the object is on, so the image is still the only way to
-# decide. It gives no opening and states no relation between the extents and
-# the opening; that is C's, and B is only ever run alongside C.
+# STEP 1, SUPPLY THE FACT. Says how a resting face relates to the extents the
+# state already gives, so that a pose can be identified from a picture, and
+# does not say which face this object is on. The image is still the only way
+# to decide.
 #
-# IT DOES NAME EXTENTS, by design, which is why the rung carrying it is
-# exempt from the rung-level boundary rule and the block is checked directly
-# instead. Naming the two faces as "the larger" and "the smaller" also fixes
-# the referents of the answer words, which is part of the fact being
-# supplied rather than a leak of the answer.
+# OBJECT-GENERAL, deliberately. An earlier version quoted this block's two
+# face sizes in metres. That supplied the same fact and made the treatment a
+# statement about one object: a deployer could not carry it to a second
+# object without rewriting it, and a result obtained with it would not
+# support a claim about what a state schema should contain. This version
+# holds for any rigid box and is what the chapter generalises from.
+#
+# IT NAMES EXTENTS, by design, which is why the rung carrying it is exempt
+# from the rung-level boundary rule and the block is checked directly
+# instead. What it must never carry is the opening, the relation between the
+# extents and the opening, which is C, or a direction to the image, which
+# is A.
 B_DESCRIBE = """
-The block is resting on one of two faces. They measure 0.130 m by 0.100 m
-(the larger) and 0.100 m by 0.050 m (the smaller).
+An object rests on one of its faces. Each face is a pair of the object's
+extents, and the third extent stands vertical.
 """
 
 # STEP 2, CHANGE HOW IT IS ASKED. Demands the intermediate quantity that the
@@ -1192,10 +1199,17 @@ def assert_rungs_isolated(condition="congruent", **kw):
                 f"the description block names {_w!r}. It supplies what the "
                 f"two candidate faces are and must not say which one the "
                 f"object is on, what opening either needs, or where to look.")
-    if "0.130" not in B_DESCRIBE or "0.050" not in B_DESCRIBE:
+    if "extent" not in _b:
         raise ValueError(
-            "the description block does not quote the block's extents, so "
-            "it supplies no fact and is not the treatment it is named for.")
+            "the description block does not mention the extents, so it "
+            "supplies no fact and is not the treatment it is named for.")
+    import re as _re
+    if _re.search(r"\d", B_DESCRIBE):
+        raise ValueError(
+            "the description block carries a number. It is object-general on "
+            "purpose: a measurement here would make the treatment a "
+            "statement about this block, and no result from it could support "
+            "a claim about what a state schema should contain.")
 
     # THE DIRECTIVES. Structurally N0 plus a block at the anchor, like N-A
     # and N-C, and they keep the base schema so the arm is still committed
