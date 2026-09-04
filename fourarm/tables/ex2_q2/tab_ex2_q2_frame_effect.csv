@@ -1,0 +1,10 @@
+condition,model,delta_named_pts,delta_extents_pts,difference_pts,reading_named,reading_extents,verdict_moved
+conflict,gpt_hi,-100.0,-100.0,0.0,text (or R3 compliance),text (or R3 compliance),same
+conflict,gemini,-100.0,-100.0,0.0,text (or R3 compliance),text (or R3 compliance),same
+conflict,claude_md,-100.0,-100.0,0.0,text (or R3 compliance),text (or R3 compliance),same
+conflict_face,gpt_hi,-89.6,NA,NA,TRACKS THE TEXT,NA,
+conflict_face,gemini,-100.0,NA,NA,TRACKS THE TEXT,NA,
+conflict_face,claude_md,7.3,NA,NA,tracks neither,NA,
+congruent_face,gpt_hi,89.6,64.6,-25.0,not diagnostic: sources agree,not diagnostic: sources agree,same
+congruent_face,gemini,100.0,100.0,0.0,not diagnostic: sources agree,not diagnostic: sources agree,same
+congruent_face,claude_md,-5.2,1.0,6.2,not diagnostic: sources agree,not diagnostic: sources agree,same

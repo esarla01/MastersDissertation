@@ -88,6 +88,8 @@ CELLS = [
     ("md", Q.MD6A), ("code", Q.C6A),     # the withheld-number prompt
     ("md", Q.MD6B), ("code", Q.C6B),     # PAID: conflict_face at N0
     ("md", Q.MD6C), ("code", Q.C6C),     # PAID: congruent_face, its ceiling
+    ("md", Q.MD6D), ("code", Q.C6D),     # PAID: conflict under extents
+    ("md", Q.MD6E), ("code", Q.C6E),     # PAID: conflict_face under extents
     ("md", Q.MD7),  ("code", Q.C7),      # load, validate, coupling
     ("md", Q.MD8),  ("code", Q.C8),      # franka share
     ("md", Q.MD9),  ("code", Q.C9),      # paired contrasts, the endpoint
@@ -95,6 +97,7 @@ CELLS = [
     ("md", Q.MD11), ("code", Q.C11),     # declines by direction
     ("md", MD12),   ("code", C12),       # figure, Q1's, repointed
     ("md", Q.MD13), ("code", Q.C13),     # provenance
+    ("md", Q.MD14), ("code", Q.C14),     # the frame read-out
 ]
 
 
@@ -107,21 +110,60 @@ def cell_id(i, kind):
     return "%s-%02d" % ("md" if kind == "md" else "code", i)
 
 
+# OUTPUTS SURVIVE A REBUILD. This script used to emit every cell with
+# execution_count None and no outputs, so adding one cell threw away the
+# stored results of the other thirty-three -- including the paid cells,
+# whose printed cost lines and "already answered" counts are the record of
+# what was bought and when. Same rule and same reasoning as build_q1_nb.py.
+#
+# Matched on the cell's SOURCE TEXT, not on its id or its position: ids are
+# derived from position, so inserting a cell renames every cell after it,
+# and matching on position would carry cell 7's output onto cell 6d. Source
+# text is what the output is an output OF, so a cell whose source changed
+# correctly loses its output and has to be re-run.
+def stored_outputs(dest):
+    """{source text: [(execution_count, outputs), ...]} from an existing nb."""
+    try:
+        with open(dest) as fh:
+            old = json.load(fh)
+    except (IOError, OSError, ValueError):
+        return {}
+    out = {}
+    for cell in old.get("cells", []):
+        if cell.get("cell_type") != "code" or not cell.get("outputs"):
+            continue
+        out.setdefault("".join(cell.get("source", [])), []).append(
+            (cell.get("execution_count"), cell["outputs"]))
+    return out
+
+
 def build(dest):
     """Emit the notebook. Behind a function so this module can be IMPORTED
     for its CELLS list -- a driver that executes the cells wants the same
     composition the notebook has, and importing a script that writes a file
     as a side effect is how a test ends up clobbering its own argument."""
+    stored = stored_outputs(dest)
+    carried = [0]
+
+    def build_cell(i, kind, src):
+        body = lines(src)
+        if kind == "md":
+            return {"cell_type": "markdown", "id": cell_id(i, kind),
+                    "metadata": {}, "source": body}
+        count, outputs = None, []
+        have = stored.get("".join(body))
+        if have:
+            # First match wins and is then consumed, so two cells with
+            # identical source take the first and second stored outputs in
+            # order rather than both taking the first.
+            count, outputs = have.pop(0)
+            carried[0] += 1
+        return {"cell_type": "code", "id": cell_id(i, kind),
+                "execution_count": count, "metadata": {},
+                "outputs": outputs, "source": body}
+
     nb = {
-        "cells": [
-            ({"cell_type": "markdown", "id": cell_id(i, kind),
-              "metadata": {}, "source": lines(s)}
-             if kind == "md" else
-             {"cell_type": "code", "id": cell_id(i, kind),
-              "execution_count": None, "metadata": {},
-              "outputs": [], "source": lines(s)})
-            for i, (kind, s) in enumerate(CELLS)
-        ],
+        "cells": [build_cell(i, kind, s) for i, (kind, s) in enumerate(CELLS)],
         "metadata": {
             "kernelspec": {"display_name": "Python 3", "language": "python",
                            "name": "python3"},
@@ -138,6 +180,12 @@ def build(dest):
           % (dest, len(nb["cells"]),
              sum(1 for k, _ in CELLS if k == "code"),
              sum(1 for k, _ in CELLS if k == "md")))
+    print("outputs carried over: %d of %d that were stored"
+          % (carried[0], sum(len(v) for v in stored.values()) + carried[0]))
+    for _src in stored:
+        for _ in stored[_src]:
+            print("   DROPPED, its source changed and it must be re-run: %s"
+                  % _src.split("\n")[0][:66])
 
     import ast
     for i, (kind, src) in enumerate(CELLS):
