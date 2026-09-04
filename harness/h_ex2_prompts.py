@@ -130,6 +130,7 @@ state_d, meta_d = prepared("dims")
 RUNGS = tuple(P.RUNGS)
 LADDER = tuple(P.LADDER_RUNGS)
 DIRECTIVES = tuple(P.DIRECTIVE_RUNGS)
+REPAIR = tuple(P.REPAIR_RUNGS)
 sys_texts = {r: P.system_prompt(r, "congruent") for r in RUNGS}
 
 
@@ -221,15 +222,31 @@ check("D never states the relation",
 # resting face and says the image can contradict it. That is why it is off
 # the ladder and checked here against a rule of its own, rather than being
 # exempted from the one it cannot satisfy.
-check("the ladder is exactly the six pre-registered rungs",
-      set(LADDER) == {"N0", "N-A", "N-C", "N-order", "N-D", "N-CD"},
-      "a literal on purpose: the ladder IS the pre-registration, and a "
-      "silent widening of it is what this catches")
+# READ FROM PRE_REGISTERED_LADDER, not from LADDER_RUNGS. This compared the
+# latter until 2026-09-04 and had been failing since N-ACD was added on
+# 2026-09-01: N-ACD is a ladder rung and is deliberately NOT part of the
+# pre-registration, so the two sets are not the same and the check was
+# reading the wrong one.
+check("the pre-registration is exactly the six rungs",
+      set(P.PRE_REGISTERED_LADDER) == {"N0", "N-A", "N-C", "N-order",
+                                       "N-D", "N-CD"},
+      "a literal on purpose: it IS the pre-registration, and a silent "
+      "widening of it is what this catches")
+check("every ladder rung outside the pre-registration is declared",
+      set(LADDER) - set(P.PRE_REGISTERED_LADDER) == {"N-ACD"},
+      "a rung added to the ladder after the fact must be named here, so "
+      "that a table presenting the ladder as pre-registered cannot include "
+      "it by accident")
 check("every directive is off the ladder",
       bool(DIRECTIVES) and not (set(DIRECTIVES) & set(LADDER)))
-check("the ladder plus the directives is every rung",
-      set(LADDER) | set(DIRECTIVES) == set(RUNGS),
-      "a variant in neither is checked by neither")
+check("the ladder, the directives and the repair cells are every rung",
+      set(LADDER) | set(DIRECTIVES) | set(REPAIR) == set(RUNGS),
+      "a variant in none of the three is checked by none of them")
+check("the three categories do not overlap",
+      len(set(LADDER)) + len(set(DIRECTIVES)) + len(set(REPAIR))
+      == len(set(LADDER) | set(DIRECTIVES) | set(REPAIR)),
+      "a rung in two categories is held to two rules and reported under "
+      "whichever the reader happens to read first")
 
 for _r in DIRECTIVES:
     _x = " ".join(P.RUNGS[_r]["text"].split()).lower()
@@ -277,9 +294,10 @@ try:
     check("rendering a vacuous cell raises", False, "it rendered")
 except ValueError as e:                                # noqa: BLE001
     check("rendering a vacuous cell raises", "vacuous" in str(e), str(e)[:70])
-check("rung_diff in dims returns the ladder and nothing else",
-      set(P.rung_diff("dims")) == set(LADDER),
-      "the eyeball tool must not offer a cell that cannot be bought")
+check("rung_diff in dims returns the ladder and the repair cells",
+      set(P.rung_diff("dims")) == set(LADDER) | set(REPAIR),
+      "the eyeball tool must not offer a cell that cannot be bought, and "
+      "must offer every cell that can be")
 
 # The isolation assertion must now ACCOUNT for every rendered rung. Before
 # 2026-08-31 it walked literal names, so a new rung passed while being
@@ -488,15 +506,30 @@ for rung in RUNGS:
           '"why"' not in t and '"reason"' not in t,
           "a prose field puts an extractor back between reply and number")
 
+# DERIVED, not literal. Two schemas ask for the face now: face_first and the
+# staged schema N-S uses, which is face_first with the intermediate added.
+# The set is read off the schemas rather than named here, so a third one
+# cannot join without this check seeing it.
+_FACE_SCHEMAS = {n for n, txt in P.SCHEMAS.items() if '"resting_face": "<' in txt}
 _asks_face = [r for r in RUNGS if '"resting_face": "<' in sys_texts[r]]
-check("only the face-first rungs ask for the resting face",
-      _asks_face == [r for r in RUNGS
-                     if P.RUNGS[r]["schema"] == "face_first"],
+check("a rung asks for the resting face exactly when its schema does",
+      set(_asks_face) == {r for r in RUNGS
+                          if P.RUNGS[r]["schema"] in _FACE_SCHEMAS},
       "asking for it elsewhere would tell the model the face matters")
-check("the face-first set is still exactly the D rungs",
-      set(_asks_face) == {"N-D", "N-CD"},
-      "a literal on purpose: a new variant quietly joining the face-first "
-      "schema would change what N-D minus N0 measures")
+# The literal that used to sit here was {N-D, N-CD} and had been failing
+# since N-ACD was added on 2026-09-01. What it was protecting is that no
+# rung picks up the face field without declaring the factor that asks for
+# it, and that is what is checked now.
+check("every rung that asks for the face declares elicitation or staged",
+      all({"elicitation", "staged"} & set(P.RUNGS[r]["factors"])
+          for r in _asks_face),
+      "a variant quietly joining a face-reporting schema would change what "
+      "N-D minus N0 measures while declaring no factor that says so")
+check("no rung declares elicitation or staged without asking for the face",
+      all(r in _asks_face for r in RUNGS
+          if {"elicitation", "staged"} & set(P.RUNGS[r]["factors"])),
+      "a rung claiming the factor while using a schema that never asks for "
+      "the face would be reported as eliciting something it does not")
 
 # Measured inside the ANSWER section only. The glossary and R3 both name
 # "opening_needed_m" forty lines earlier, so searching the whole prompt

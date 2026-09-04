@@ -424,6 +424,62 @@ def _object_fields(condition, dims_frame="named"):
 
 EXTENTS_FIELD = "extents_m"
 
+# The field factor B adds to the state, and the rungs that get it. Named here
+# rather than tested inline at the call site so that adding a second rung to
+# the treatment is one edit and cannot be done by accident.
+CANDIDATE_FACES_FIELD = "candidate_faces_m"
+CANDIDATE_FACE_RUNGS = ("N-BCD",)
+
+
+def face_pairs(extents):
+    """The three faces a box could rest on, as pairs of extents, or None.
+
+    SORTED DESCENDING BEFORE PAIRING, which is what makes the result carry no
+    information about the current pose. The three extents of a rigid body are
+    the same multiset whichever face is down, so a pairing that depends only
+    on the multiset is identical for both poses at a position. A pairing that
+    used the order the state happened to present them in would not be, and
+    would hand the model the answer.
+
+    Accepts the named dict and the sorted list alike, so the field is built
+    the same way under either dims frame. Returns None rather than guessing
+    when the value is not three numbers.
+    """
+    if isinstance(extents, dict):
+        vals = list(extents.values())
+    elif isinstance(extents, (list, tuple)):
+        vals = list(extents)
+    else:
+        return None
+    if len(vals) != 3:
+        return None
+    if any(isinstance(v, bool) or not isinstance(v, (int, float))
+           for v in vals):
+        return None
+    a, b, c = sorted((float(v) for v in vals), reverse=True)
+    return [[a, b], [a, c], [b, c]]
+
+
+def with_candidate_faces(value):
+    """Add CANDIDATE_FACES_FIELD beside every extents field in the state.
+
+    Inserted directly after the extents it is derived from, so the two read
+    together, and derived rather than looked up, so the field carries to any
+    object the cell is given without an edit here.
+    """
+    if isinstance(value, dict):
+        out = {}
+        for k, v in value.items():
+            out[k] = with_candidate_faces(v)
+            if k in ("size_upright_m", EXTENTS_FIELD):
+                pairs = face_pairs(v)
+                if pairs is not None:
+                    out[CANDIDATE_FACES_FIELD] = pairs
+        return out
+    if isinstance(value, (list, tuple)):
+        return [with_candidate_faces(v) for v in value]
+    return value
+
 
 def as_extents(value):
     """Render every size_upright_m as a descending list under a frame-free
@@ -560,26 +616,28 @@ Where the image and the stated resting face disagree, go by the state.
 # changes how the model is asked at step 2. A treatment that works tells you
 # which of the two the model was short of.
 
-# STEP 1, SUPPLY THE FACT. Says how a resting face relates to the extents the
-# state already gives, so that a pose can be identified from a picture, and
-# does not say which face this object is on. The image is still the only way
-# to decide.
+# STEP 1, SUPPLY THE FACT. The fact goes in the STATE, and this block is only
+# the gloss that names the field. Every other factor changes the instruction;
+# this one changes what the cell tells the model about its objects.
 #
-# OBJECT-GENERAL, deliberately. An earlier version quoted this block's two
-# face sizes in metres. That supplied the same fact and made the treatment a
-# statement about one object: a deployer could not carry it to a second
-# object without rewriting it, and a result obtained with it would not
-# support a claim about what a state schema should contain. This version
-# holds for any rigid box and is what the chapter generalises from.
+# WHY THE STATE AND NOT A SENTENCE. What a deployer controls is the schema, so
+# a treatment answering "the model was missing information" has to show what
+# adding that information to the state is worth, not what asserting it in a
+# prompt is worth. Two earlier versions asserted it instead. The first quoted
+# this block's two face sizes in metres, which supplied the fact and made the
+# treatment a statement about one object. The second stated the relation
+# between faces and extents in general, which is true of a box, false of
+# anything else, and close enough to a definition that a model failing to use
+# it was probably not missing it.
 #
-# IT NAMES EXTENTS, by design, which is why the rung carrying it is exempt
-# from the rung-level boundary rule and the block is checked directly
-# instead. What it must never carry is the opening, the relation between the
-# extents and the opening, which is C, or a direction to the image, which
-# is A.
+# THE FIELD CARRIES NO POSE. candidate_faces_m enumerates every face the
+# object could be on, sorted, so it is identical for the two poses at a
+# position: the three extents of a rigid body are the same multiset in every
+# orientation. That is the property the whole treatment rests on and it is
+# asserted rather than assumed; see assert_candidate_faces_carry_no_pose.
 B_DESCRIBE = """
-An object rests on one of its faces. Each face is a pair of the object's
-extents, and the third extent stands vertical.
+The state lists, for each object, the faces it could be resting on, as the
+pair of extents that would lie flat, "candidate_faces_m".
 """
 
 # STEP 2, CHANGE HOW IT IS ASKED. Demands the intermediate quantity that the
@@ -703,6 +761,22 @@ PREDICTIONS = {
     # what stops a null here being read as "the model ignores instructions".
     "precedence_state": "inert in conflict_face: text-following is already "
                         "at floor there, so there is nothing for it to add",
+
+    # THE TWO REPAIR FACTORS. Recorded 2026-09-04, before either was called
+    # once, for the same reason the six above were: a prediction written
+    # after the number is not a prediction. Both are stated against the
+    # configuration each is read from, not against N0.
+    "staged": "moves conversion in dims, read from N-D: GPT converts a "
+              "correctly named face on 65.1 percent of such replies there "
+              "and the relation is predicted to be present but unapplied, "
+              "so requiring the intermediate should raise it. Inert would "
+              "mean the relation was genuinely absent",
+    "description": "moves face reading in dims, read from N-CD, where face "
+                   "accuracy is 66.1 percent. Inert would mean the model "
+                   "was not short of a set of poses to match the image "
+                   "against, which given attention's 10.5-point gain at "
+                   "N-ACD would locate the loss in consulting the image "
+                   "rather than in describing it",
 }
 
 
@@ -913,7 +987,8 @@ def unmark_decimals(text):
     return out
 
 
-def render_state(state, condition, dims_frame="named"):
+def render_state(state, condition, dims_frame="named",
+                 candidate_faces=False):
     """The user-message text: trimmed, aliased, withheld, fixed-width."""
     if condition not in CONDITIONS:
         raise ValueError(f"unknown condition {condition!r}")
@@ -923,6 +998,10 @@ def render_state(state, condition, dims_frame="named"):
         body = as_extents(body)
     elif dims_frame not in DIMS_FRAMES:
         raise ValueError(f"unknown dims_frame {dims_frame!r}")
+    # AFTER the frame transform, so the field is built from whichever extents
+    # key the frame left behind and reads the same under either.
+    if candidate_faces:
+        body = with_candidate_faces(body)
     idle = [a["name"] for a in state["arms"]
             if a["state"] == "IDLE" and not a["disabled"]]
     return unmark_decimals(
@@ -986,8 +1065,13 @@ def build_ex2_prompt(state, rung, condition, image_b64=None,
                      preference="franka", face_order="small_first",
                      dims_frame="named"):
     """Messages for one EX2 trial."""
+    # A BOOLEAN, not the rung. The renderer has no business knowing about the
+    # ladder, and a rung parameter here would invite a second factor being
+    # switched on inside it where no assertion would see it.
     content = [{"type": "text",
-                "text": render_state(state, condition, dims_frame)}]
+                "text": render_state(
+                    state, condition, dims_frame,
+                    candidate_faces=rung in CANDIDATE_FACE_RUNGS)}]
     if image_b64 is not None:
         content = [{"type": "image_url",
                     "image_url":
@@ -1098,6 +1182,33 @@ def assert_r3_matches_state(condition):
     return True
 
 
+def assert_candidate_faces_carry_no_pose():
+    """The enumeration must not depend on how the extents are presented.
+
+    This is the property factor B rests on. If the field differed between the
+    two poses at a position, it would state the resting face, and the
+    treatment would be measuring obedience to a supplied answer rather than
+    what a description is worth. Checked over every ordering of a triple
+    rather than over the captures, because the guarantee wanted is about the
+    function and not about one object.
+    """
+    import itertools
+    triple = [0.130, 0.100, 0.050]
+    seen = {tuple(tuple(p) for p in face_pairs(list(order)))
+            for order in itertools.permutations(triple)}
+    if len(seen) != 1:
+        raise ValueError(
+            "candidate_faces_m depends on the order the extents arrive in, "
+            "so it differs between two presentations of the same object and "
+            "can encode the resting face. Sort before pairing.")
+    if face_pairs(dict(zip("abc", triple))) != face_pairs(triple):
+        raise ValueError(
+            "candidate_faces_m differs between the named and the listed "
+            "extents, so the field would not mean the same thing under the "
+            "two dims frames.")
+    return True
+
+
 def assert_base_states_no_relation():
     """The base prompt states the conventions and never the relation.
 
@@ -1203,6 +1314,14 @@ def assert_rungs_isolated(condition="congruent", **kw):
         raise ValueError(
             "the description block does not mention the extents, so it "
             "supplies no fact and is not the treatment it is named for.")
+    if CANDIDATE_FACES_FIELD not in B_DESCRIBE:
+        raise ValueError(
+            f"the description block does not name {CANDIDATE_FACES_FIELD!r}. "
+            f"The fact this treatment supplies lives in the state, and the "
+            f"block is the gloss that points at it; a gloss naming no field "
+            f"asserts the fact in the prompt instead, which is the version "
+            f"this treatment exists not to be.")
+    assert_candidate_faces_carry_no_pose()
     import re as _re
     if _re.search(r"\d", B_DESCRIBE):
         raise ValueError(
