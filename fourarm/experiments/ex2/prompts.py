@@ -548,6 +548,48 @@ X_PREFER_STATE = """
 Where the image and the stated resting face disagree, go by the state.
 """
 
+# ---------------------------------------------------------------------------
+# THE REPAIR FACTORS. Added 2026-09-04, after the ladder had been run, for the
+# design in docs/q3_repair_plan.md. They are NOT part of the ladder and not
+# directives; see REPAIR_RUNGS below.
+#
+# The ladder varies how much instruction is given. These two vary its KIND.
+# Each of the two failing steps already has one factor that SUPPLIES A FACT
+# (derivation, at step 2) or CHANGES HOW THE MODEL IS ASKED (attention, at
+# step 1). B and S fill the other diagonal: B supplies a fact at step 1, S
+# changes how the model is asked at step 2. A treatment that works tells you
+# which of the two the model was short of.
+
+# STEP 1, SUPPLY THE FACT. Says what the two candidate faces ARE and does not
+# say which one the object is on, so the image is still the only way to
+# decide. It gives no opening and states no relation between the extents and
+# the opening; that is C's, and B is only ever run alongside C.
+#
+# IT DOES NAME EXTENTS, by design, which is why the rung carrying it is
+# exempt from the rung-level boundary rule and the block is checked directly
+# instead. Naming the two faces as "the larger" and "the smaller" also fixes
+# the referents of the answer words, which is part of the fact being
+# supplied rather than a leak of the answer.
+B_DESCRIBE = """
+The block is resting on one of two faces. They measure 0.130 m by 0.100 m
+(the larger) and 0.100 m by 0.050 m (the smaller).
+"""
+
+# STEP 2, CHANGE HOW IT IS ASKED. Demands the intermediate quantity that the
+# conversion runs through, without saying what to do with it. D asks for the
+# face and the opening and leaves the middle implicit; S makes the middle a
+# field the model has to fill in.
+#
+# IT MUST NOT STATE THE RELATION. "the smaller of" and "depends on" belong to
+# C, and a version of S that said them would be C wearing a schema. The whole
+# question S asks is whether producing the intermediate is enough on its own,
+# so N-S is read against N-D and never against N-CD.
+S_STAGE = """
+Give "resting_face", then "horizontal_extents_m" for the two horizontal
+extents of that face, then "opening_needed_m", BEFORE naming an arm, and
+choose the arm to fit the opening you gave.
+"""
+
 RUNGS = {
     "N0":      {"text": "", "schema": "base", "factors": ()},
     "N-A":     {"text": A_ATTEND, "schema": "base",
@@ -576,6 +618,19 @@ RUNGS = {
     "N-ACD":   {"text": A_ATTEND + C_DERIVE + D_ELICIT,
                 "schema": "face_first",
                 "factors": ("attention", "derivation", "elicitation",
+                            "order")},
+
+    # THE TWO REPAIR CELLS. Off the ladder and not directives.
+    #
+    # N-S is read against N-D: same demand for a face and an opening ahead of
+    # the arm, one extra field between them. N-BCD is read against N-CD: the
+    # same two blocks with the description in front. Each contrast is one
+    # change, which is what makes either number attributable.
+    "N-S":     {"text": S_STAGE, "schema": "staged_first",
+                "factors": ("staged", "order")},
+    "N-BCD":   {"text": B_DESCRIBE + C_DERIVE + D_ELICIT,
+                "schema": "face_first",
+                "factors": ("description", "derivation", "elicitation",
                             "order")},
 
     # OFF THE LADDER. See LADDER_RUNGS below and the module docstring.
@@ -610,7 +665,15 @@ PRE_REGISTERED_LADDER = ("N0", "N-A", "N-C", "N-order", "N-D", "N-CD")
 LADDER_RUNGS = PRE_REGISTERED_LADDER + ("N-ACD",)
 
 # Derived, never typed twice.
-DIRECTIVE_RUNGS = tuple(r for r in RUNGS if r not in LADDER_RUNGS)
+# The repair cells, pinned for the reason LADDER_RUNGS is pinned. They are
+# named here so that DIRECTIVE_RUNGS stays exactly ("X-image", "X-state"):
+# it was derived by exclusion from LADDER_RUNGS, so any rung added to RUNGS
+# became a directive by default and would then be held to the directives'
+# content rule, which requires the block to open with A_ATTEND.
+REPAIR_RUNGS = ("N-S", "N-BCD")
+
+DIRECTIVE_RUNGS = tuple(r for r in RUNGS
+                        if r not in LADDER_RUNGS and r not in REPAIR_RUNGS)
 
 # WHERE A DIRECTIVE IS VACUOUS. dims pops resting_face from the state and
 # the glossary says "No opening and no resting face are given", so a
@@ -715,6 +778,10 @@ def _face_field(face_order="small_first"):
 _FACE_FIELD = _face_field("small_first")
 _OPEN_FIELD = ('  "opening_needed_m": <number>')
 _OPEN_FIELD_C = ('  "opening_needed_m": <number>,')
+# The intermediate S asks for. Two numbers, not three: the horizontal pair of
+# the face the model has just named, so a reply that lists all three extents
+# has not answered the question S poses.
+_EXTENTS_FIELD = ('  "horizontal_extents_m": [<number>, <number>],')
 
 SCHEMAS = {
     # N0, N-A, N-C. Arm first, report last.
@@ -737,7 +804,7 @@ SCHEMAS = {
         "}",
         _SCHEMA_TAIL,
     ]),
-    # N-D, N-CD. Face and opening, both ahead of the arm.
+    # N-D, N-CD, N-ACD, N-BCD. Face and opening, both ahead of the arm.
     "face_first": "\n".join([
         "Answer ONLY with JSON, no prose, with the fields in this order:",
         '{"task_id": <int>,',
@@ -747,6 +814,24 @@ SCHEMAS = {
         '  "basket": "<any box the arm you named can reach>"',
         "}",
         _SCHEMA_TAIL,
+    ]),
+    # N-S. face_first with the horizontal pair between the face and the
+    # opening. The tail gains one sentence saying what the field is; it says
+    # nothing about how the two numbers relate to the opening, because that
+    # is factor C and S exists to be run without it.
+    "staged_first": "\n".join([
+        "Answer ONLY with JSON, no prose, with the fields in this order:",
+        '{"task_id": <int>,',
+        _FACE_FIELD,
+        _EXTENTS_FIELD,
+        _OPEN_FIELD_C,
+        '  "arm": "<arm name>",',
+        '  "basket": "<any box the arm you named can reach>"',
+        "}",
+        _SCHEMA_TAIL,
+        '"horizontal_extents_m" is the two extents of the object that lie flat'
+        " on the table in the pose you named, in metres, each a number with"
+        " three decimals.",
     ]),
 }
 
@@ -1066,7 +1151,7 @@ def assert_rungs_isolated(condition="congruent", **kw):
             "applied, so the control measures nothing.")
     checked.add("N-order")
 
-    for rung in ("N-D", "N-CD", "N-ACD"):
+    for rung in ("N-D", "N-CD", "N-ACD", "N-BCD"):
         if head(p[rung]) != head(base) + RUNGS[rung]["text"]:
             raise ValueError(
                 f"{rung}'s wording is not N0's plus its blocks, so its "
@@ -1074,6 +1159,43 @@ def assert_rungs_isolated(condition="congruent", **kw):
         if RUNGS[rung]["schema"] != "face_first":
             raise ValueError(f"{rung} must use the face-first schema.")
         checked.add(rung)
+
+    # N-S is D's demand with one field added, so it is checked like the
+    # face-first rungs on its wording and separately on its schema. It must
+    # NOT share D's schema: if it did, the extra field would be absent and
+    # the rung would be D under another name.
+    if head(p["N-S"]) != head(base) + RUNGS["N-S"]["text"]:
+        raise ValueError(
+            "N-S's wording is not N0's plus its block, so its effect cannot "
+            "be separated from the report order.")
+    if RUNGS["N-S"]["schema"] != "staged_first":
+        raise ValueError(
+            "N-S must use the staged schema. Its whole contrast against N-D "
+            "is the intermediate field, and without it there is none.")
+    if "horizontal_extents_m" not in SCHEMAS["staged_first"]:
+        raise ValueError(
+            "the staged schema does not carry the intermediate field N-S "
+            "asks for, so the block requires something the answer format "
+            "gives the model nowhere to put.")
+    checked.add("N-S")
+
+    # THE DESCRIPTION BLOCK, checked directly rather than through its rung.
+    # N-BCD is exempt from the rung-level rule below because it is a declared
+    # combination and its text is B plus C plus D, so a rung-keyed word list
+    # could not tell which block named what. B is the new part, so B is what
+    # is checked.
+    _b = B_DESCRIBE.lower()
+    for _w in ("small_face", "large_face", "opening", "smaller of",
+               "depends on", "look", "image", "report", "give"):
+        if _w in _b:
+            raise ValueError(
+                f"the description block names {_w!r}. It supplies what the "
+                f"two candidate faces are and must not say which one the "
+                f"object is on, what opening either needs, or where to look.")
+    if "0.130" not in B_DESCRIBE or "0.050" not in B_DESCRIBE:
+        raise ValueError(
+            "the description block does not quote the block's extents, so "
+            "it supplies no fact and is not the treatment it is named for.")
 
     # THE DIRECTIVES. Structurally N0 plus a block at the anchor, like N-A
     # and N-C, and they keep the base schema so the arm is still committed
@@ -1114,6 +1236,11 @@ def assert_rungs_isolated(condition="congruent", **kw):
         "N-A": ("resting_face", "face", "orientation", "opening", "extent"),
         "N-C": ("look", "image", "give", "report"),
         "N-D": ("smaller of", "horizontal extent", "depends on"),
+        # S NAMES THE EXTENTS ON PURPOSE, which is why it cannot inherit
+        # N-D's list. What it must never do is state the relation between
+        # them and the opening, or send the model to the image; those are C
+        # and A, and S run with either would not be one change.
+        "N-S": ("smaller of", "depends on", "look", "image"),
         "X-image": ("small_face", "large_face", "orientation", "opening",
                     "extent", "smaller of", "depends on", "franka", "ur_",
                     "report"),
@@ -1124,7 +1251,12 @@ def assert_rungs_isolated(condition="congruent", **kw):
     # Exempting a rung is a DECISION and must be written where it can be
     # read, not reached by falling off the end of a dict. N0 and N-order add
     # no wording; N-CD is a declared combination rather than one factor.
-    exempt = {"N0", "N-order", "N-CD", "N-ACD"}
+    exempt = {"N0", "N-order", "N-CD", "N-ACD",
+              # A declared combination, like N-CD: its text is B plus C plus
+              # D, so a rung-keyed word list cannot attribute a word to a
+              # block. B carries the words that matter and is checked
+              # directly above.
+              "N-BCD"}
     unruled = set(RUNGS) - set(forbidden) - exempt
     if unruled:
         raise ValueError(

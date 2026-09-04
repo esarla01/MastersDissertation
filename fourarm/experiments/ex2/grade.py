@@ -194,6 +194,35 @@ def reported_face(decision):
     return val if isinstance(val, str) and val.strip() else None
 
 
+def reported_extents(decision):
+    """The typed "horizontal_extents_m" from a reply, or None.
+
+    Present only under factor S, which is the only rung whose schema carries
+    the field. It is the intermediate the conversion runs through, recorded
+    so that a conversion failure can be split: a model that names the right
+    face and the right pair and still reports the wrong opening has failed
+    the arithmetic, while one that names the wrong pair has failed to decide
+    which extents lie flat.
+
+    TWO NUMBERS, and returned as-is when it is not. S asks for the
+    horizontal pair, so a reply listing all three extents has answered a
+    different question, and coercing it to a pair here would hide that. The
+    value is returned when it is a list of two numbers and None otherwise,
+    with the length recorded by the caller through the raw reply.
+    """
+    if not isinstance(decision, dict):
+        return None
+    val = decision.get("horizontal_extents_m")
+    if not isinstance(val, list) or len(val) != 2:
+        return None
+    out = []
+    for v in val:
+        if isinstance(v, bool) or not isinstance(v, (int, float)):
+            return None
+        out.append(float(v))
+    return out
+
+
 def believed_width(decision):
     """The opening the model believed, in metres, or None.
 
@@ -392,6 +421,7 @@ def grade(text, meta, legal_true, legal_declared, limits=None):
     row["why"] = decision.get("why")
     row["opening_needed_m"] = reported_opening(decision)
     row["resting_face"] = reported_face(decision)
+    row["horizontal_extents_m"] = reported_extents(decision)
     row["believed_width_m"] = believed_width(decision)
     row["width_belief"] = classify_width(row["believed_width_m"], meta)
     row["reasoning"] = classify_reasoning(row["why"])
