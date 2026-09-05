@@ -428,7 +428,7 @@ EXTENTS_FIELD = "extents_m"
 # rather than tested inline at the call site so that adding a second rung to
 # the treatment is one edit and cannot be done by accident.
 CANDIDATE_FACES_FIELD = "candidate_faces_m"
-CANDIDATE_FACE_RUNGS = ("N-BCD",)
+CANDIDATE_FACE_RUNGS = ("N-BCD", "N-ABCS")
 
 
 def face_pairs(extents):
@@ -458,6 +458,37 @@ def face_pairs(extents):
         return None
     a, b, c = sorted((float(v) for v in vals), reverse=True)
     return [[a, b], [a, c], [b, c]]
+
+
+def candidate_faces_signature(value):
+    """Every candidate_faces_m in a state, as one comparable string.
+
+    The invariant factor B rests on is that this signature is the same for
+    the two poses at a position. assert_candidate_faces_carry_no_pose checks
+    that over orderings of a triple, which is a statement about the function;
+    this is what lets a caller check it over the states actually being
+    bought, which is a statement about the data.
+
+    READ OFF THE STRUCTURE, never sliced out of the rendered text. The
+    rendered state also carries the positions and the idle arms, which differ
+    between the two poses for reasons that have nothing to do with this
+    field, so a text comparison always reports a difference and always fails.
+    """
+    found = []
+
+    def walk(v):
+        if isinstance(v, dict):
+            for k, x in v.items():
+                if k == CANDIDATE_FACES_FIELD:
+                    found.append(x)
+                else:
+                    walk(x)
+        elif isinstance(v, (list, tuple)):
+            for x in v:
+                walk(x)
+
+    walk(with_candidate_faces(value))
+    return json.dumps(sorted(json.dumps(f) for f in found))
 
 
 def with_candidate_faces(value):
@@ -698,6 +729,27 @@ RUNGS = {
                 "factors": ("description", "derivation", "elicitation",
                             "order")},
 
+    # THE CEILING CELL FOR THE REPAIR DESIGN. Every treatment at once, so
+    # that the four single cells have something to be a decomposition OF.
+    #
+    # IT IS NOT DIAGNOSTIC AND IT SUPPORTS NO INCREMENT. Attribution comes
+    # from the four single cells; this gives the height of the wall they are
+    # climbing and nothing else. In particular N-ABCS minus N-ACD is NOT the
+    # description's contribution: it also swaps D for S, so it carries two
+    # changes and is attributable to neither. Every contrast this cell can
+    # be read in is against N-D, which differs from it by all four
+    # treatments at once.
+    #
+    # S RATHER THAN D, so conversion is asked for in the staged form. Note
+    # that C already takes conversion to 100 percent, so S cannot contribute
+    # through step 2 here and can only act through reading or the arm. That
+    # is a limit on what this cell can attribute, not on what it measures,
+    # and it is stated in CEILING_PREDICTION.
+    "N-ABCS":  {"text": A_ATTEND + B_DESCRIBE + C_DERIVE + S_STAGE,
+                "schema": "staged_first",
+                "factors": ("attention", "description", "derivation",
+                            "staged", "order")},
+
     # OFF THE LADDER. See LADDER_RUNGS below and the module docstring.
     #
     # The text is A_ATTEND plus one sentence, exactly as N-CD is C plus D.
@@ -735,7 +787,7 @@ LADDER_RUNGS = PRE_REGISTERED_LADDER + ("N-ACD",)
 # it was derived by exclusion from LADDER_RUNGS, so any rung added to RUNGS
 # became a directive by default and would then be held to the directives'
 # content rule, which requires the block to open with A_ATTEND.
-REPAIR_RUNGS = ("N-S", "N-BCD")
+REPAIR_RUNGS = ("N-S", "N-BCD", "N-ABCS")
 
 DIRECTIVE_RUNGS = tuple(r for r in RUNGS
                         if r not in LADDER_RUNGS and r not in REPAIR_RUNGS)
@@ -750,6 +802,23 @@ RUNG_VACUOUS_IN = {"X-image": ("dims",), "X-state": ("dims",)}
 
 # Recorded before the first call so the factor structure cannot be fitted to
 # the outcome, following experiments/ex1/mislabel.py.
+# THE CEILING CELL'S PREDICTION. Recorded 2026-09-04, before N-ABCS had been
+# called once and after the four single treatments had been read, which is
+# why it is written as a quantity rather than a direction: a cell added once
+# the singles are known invites the charge that it was run until a number
+# came out well, and the only answer to that is to say the number first.
+#
+# Against GPT's best single cells, N-ACD at 76.6 percent face accuracy and a
+# contrast of 53.1, and N-BCD at 75.0 and 50.0.
+CEILING_PREDICTION = (
+    "face accuracy above 76.6 percent and a contrast above 53.1, both short "
+    "of 100, leaving a residual that no combination of supplying information "
+    "and rephrasing the question closes. Claude stays at zero with face "
+    "accuracy at chance, since nothing has moved its reading. A contrast "
+    "reaching 100 would be a better result than the chapter currently claims "
+    "is available and would have to be reported as such."
+)
+
 PREDICTIONS = {
     "attention": "inert",
     "derivation": "moves in conflict",
@@ -1269,33 +1338,37 @@ def assert_rungs_isolated(condition="congruent", **kw):
             "applied, so the control measures nothing.")
     checked.add("N-order")
 
-    for rung in ("N-D", "N-CD", "N-ACD", "N-BCD"):
+    # DRIVEN OFF THE DECLARED SCHEMA, not a literal rung list. Every rung
+    # that reports the face before the arm is checked the same way: its
+    # wording is N0's plus its own blocks, and it uses the schema it says it
+    # uses. A literal list here is what let N-ACD, and later the repair
+    # rungs, join this family unchecked.
+    _reporting = {"face_first", "staged_first"}
+    for rung in sorted(r for r in RUNGS if RUNGS[r]["schema"] in _reporting):
+        if rung not in p:
+            continue                      # vacuous in this condition
         if head(p[rung]) != head(base) + RUNGS[rung]["text"]:
             raise ValueError(
                 f"{rung}'s wording is not N0's plus its blocks, so its "
                 f"effect cannot be separated from the report order.")
-        if RUNGS[rung]["schema"] != "face_first":
-            raise ValueError(f"{rung} must use the face-first schema.")
         checked.add(rung)
 
-    # N-S is D's demand with one field added, so it is checked like the
-    # face-first rungs on its wording and separately on its schema. It must
-    # NOT share D's schema: if it did, the extra field would be absent and
-    # the rung would be D under another name.
-    if head(p["N-S"]) != head(base) + RUNGS["N-S"]["text"]:
-        raise ValueError(
-            "N-S's wording is not N0's plus its block, so its effect cannot "
-            "be separated from the report order.")
-    if RUNGS["N-S"]["schema"] != "staged_first":
-        raise ValueError(
-            "N-S must use the staged schema. Its whole contrast against N-D "
-            "is the intermediate field, and without it there is none.")
+    # THE TWO SCHEMAS ARE NOT INTERCHANGEABLE. A staged rung on the
+    # face-first schema would be its face-first twin under another name, and
+    # the contrast the staged report exists to measure would be nothing.
+    for rung, want in (("N-S", "staged_first"), ("N-D", "face_first"),
+                       ("N-CD", "face_first"), ("N-ACD", "face_first"),
+                       ("N-BCD", "face_first"), ("N-ABCS", "staged_first")):
+        if RUNGS[rung]["schema"] != want:
+            raise ValueError(
+                f"{rung} does not use the {want} schema. The schema is part "
+                f"of what the rung is, and swapping it silently changes what "
+                f"every contrast against it measures.")
     if "horizontal_extents_m" not in SCHEMAS["staged_first"]:
         raise ValueError(
-            "the staged schema does not carry the intermediate field N-S "
-            "asks for, so the block requires something the answer format "
-            "gives the model nowhere to put.")
-    checked.add("N-S")
+            "the staged schema does not carry the intermediate field the "
+            "staged block asks for, so the block requires something the "
+            "answer format gives the model nowhere to put.")
 
     # THE DESCRIPTION BLOCK, checked directly rather than through its rung.
     # N-BCD is exempt from the rung-level rule below because it is a declared
@@ -1389,7 +1462,11 @@ def assert_rungs_isolated(condition="congruent", **kw):
               # D, so a rung-keyed word list cannot attribute a word to a
               # block. B carries the words that matter and is checked
               # directly above.
-              "N-BCD"}
+              "N-BCD",
+              # The ceiling cell, four blocks. Same reason again: a
+              # rung-keyed word list cannot say which block named what, and
+              # each of its blocks is checked where it is defined.
+              "N-ABCS"}
     unruled = set(RUNGS) - set(forbidden) - exempt
     if unruled:
         raise ValueError(

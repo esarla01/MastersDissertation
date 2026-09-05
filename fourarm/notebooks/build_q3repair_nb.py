@@ -82,6 +82,7 @@ CELLS = [
     ("md", Q.MD_TREAT),
     ("code", Q.C_TREAT_S),                                     # PAID
     ("code", Q.C_TREAT_B),                                     # PAID
+    ("md", Q.MD_CEILING),   ("code", Q.C_CEILING),             # PAID, last
     ("md", Q.MD_PROV),      ("code", Q.C_PROV),                # the trail
 ]
 

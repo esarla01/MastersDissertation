@@ -149,34 +149,12 @@ print("      66.1% for GPT and 50.5% for Claude.")
 # is not, the state names the resting face and this cell measures obedience
 # to a supplied answer. prompts asserts it over orderings; this asserts it
 # over the scenes actually being bought.
-def _faces_in(body):
-    """Every candidate_faces_m value in a state, as a sorted signature.
-
-    Read off the structure rather than sliced out of the rendered text: the
-    rendered state also carries the positions and the idle arms, which differ
-    between the two poses for reasons that have nothing to do with this
-    field, so a text slice compares the wrong thing and always fails.
-    """
-    found = []
-    def walk(v):
-        if isinstance(v, dict):
-            for k, x in v.items():
-                if k == P.CANDIDATE_FACES_FIELD:
-                    found.append(x)
-                else:
-                    walk(x)
-        elif isinstance(v, (list, tuple)):
-            for x in v:
-                walk(x)
-    walk(P.with_candidate_faces(body))
-    return json.dumps(sorted(json.dumps(f) for f in found))
-
 _seen = {}
 for _s in CALL_SCENES:
     _body, _meta = T.transform({"state": _s["state"],
                                 "positions_exact": _s["positions_exact"]}, "dims")
     _pos = _s["seq"].rsplit("_", 1)[0]
-    _seen.setdefault(_pos, {})[_meta["true_pose"]] = _faces_in(_body)
+    _seen.setdefault(_pos, {})[_meta["true_pose"]] = P.candidate_faces_signature(_body)
 _leaky = [p for p, v in _seen.items() if len(v) == 2 and len(set(v.values())) != 1]
 assert not _leaky, (
     "candidate_faces_m differs between the two poses at %s, so the state "
@@ -221,6 +199,70 @@ print("prompt_version is not %s was written under a different prompt and"
       % P.EX2_PROMPT_VERSION)
 print("cannot be compared with the rest without saying so in the chapter.")'''
 
+MD_CEILING = """## Ceiling cell
+
+**Makes model calls,** three repeats, \\num{408} calls.
+
+`N-ABCS` applies all four treatments at once: attention, the description in
+the state, the derivation sentence, and the staged report. It is not
+diagnostic and is not meant to be. Attribution comes from the four single
+cells; this one answers what the combination reaches, which is the question
+the singles cannot.
+
+It supports no increment. `N-ABCS` minus `N-ACD` is not the description's
+contribution, because it also swaps the elicitation block for the staged one
+and so carries two changes. The only contrast it can be read in is against the
+baseline, which differs from it by all four treatments together.
+
+Note that derivation already takes conversion to 100 per cent, so the staged
+report cannot contribute through step 2 here and can act only through reading
+or the arm.
+
+**Run this last**, after the four cells above, so that the prediction recorded
+in `prompts.CEILING_PREDICTION` is read against numbers that already exist."""
+
+C_CEILING = r'''# --- Ceiling cell. dims at N-ABCS. MAKES MODEL CALLS. -----------------------
+CEIL_OUT = RUNS / "ex2_q3_dims_N-ABCS.jsonl"
+
+print("THE PREDICTION, from prompts.CEILING_PREDICTION, recorded before this")
+print("cell was called once:")
+for _line in P.CEILING_PREDICTION.split(". "):
+    print("   ", _line.strip().rstrip(".") + ".")
+print()
+
+n_calls = len(CALL_SCENES) * len(MODELS) * REPEATS
+print("COST: %d scenes x %d models x %d repeats = %d calls"
+      % (len(CALL_SCENES), len(MODELS), REPEATS, n_calls))
+print("      dims at N-ABCS, all four treatments at once. Read against the")
+print("      N-D baseline; it differs from every other cell by more than one")
+print("      change and attributes nothing.")
+
+# The same pose-invariance guard the N-BCD cell applies, because N-ABCS also
+# carries the description and the field must state no pose here either.
+_seen = {}
+for _s in CALL_SCENES:
+    _body, _meta = T.transform({"state": _s["state"],
+                                "positions_exact": _s["positions_exact"]}, "dims")
+    _pos = _s["seq"].rsplit("_", 1)[0]
+    _seen.setdefault(_pos, {})[_meta["true_pose"]] = P.candidate_faces_signature(_body)
+_leaky = [q for q, v in _seen.items() if len(v) == 2 and len(set(v.values())) != 1]
+assert not _leaky, (
+    "candidate_faces_m differs between the two poses at %s" % _leaky)
+assert "N-ABCS" in P.CANDIDATE_FACE_RUNGS, (
+    "N-ABCS carries the description block but is not in CANDIDATE_FACE_RUNGS, "
+    "so the gloss would name a field the state does not carry")
+print("      candidate_faces_m checked at all %d positions." % len(_seen))
+
+CONFIRM_SPEND = None            # <-- set to the number in the COST line
+
+if spend_gate(n_calls, CONFIRM_SPEND, CEIL_OUT,
+              factors=(("scenes", len(CALL_SCENES)), ("models", len(MODELS)),
+                       ("repeats", REPEATS))):
+    S.run(str(CAPTURES), out_path=str(CEIL_OUT), models=MODELS,
+          conditions=("dims",), preferences=(PREFERENCE,),
+          rungs=("N-ABCS",), modalities=("V",), kind="pair", repeats=REPEATS)
+    print("answered now:", answered(CEIL_OUT))'''
+
 MD_READ = """## Read-out
 
 No model calls. Reads every file off disk, so it survives a kernel restart and
@@ -239,6 +281,8 @@ FILES = {
     ("dims",           "N-CD",  "baseline"):  RUNS / "ex2_q3_dims_N-CD.jsonl",
     ("dims",           "N-S",   "treatment"): RUNS / "ex2_q3_dims_N-S.jsonl",
     ("dims",           "N-BCD", "treatment"): RUNS / "ex2_q3_dims_N-BCD.jsonl",
+    ("dims",           "N-ACD", "baseline"):  RUNS / "ex2_q3_dims_N-ACD.jsonl",
+    ("dims",           "N-ABCS", "ceiling"):  RUNS / "ex2_q3_dims_N-ABCS.jsonl",
 }
 TOL = 0.006
 
@@ -357,6 +401,33 @@ else:
     print("  The delta columns are carried for both because a treatment that")
     print("  moves its own step and not the allocation is a different finding")
     print("  from one that moves neither.")
+
+    # --- the ceiling, reported apart because it attributes nothing ---------
+    _ceil = loaded[("dims", "N-ABCS", "ceiling")]
+    if _ceil:
+        print()
+        print("=" * 72)
+        print("CEILING CELL, all four treatments at once")
+        print("=" * 72)
+        print("  prediction: %s" % P.CEILING_PREDICTION)
+        print()
+        crow = []
+        for m in MODELS:
+            c = summarise(_ceil, m)
+            b = summarise(loaded[("dims", "N-D", "baseline")], m)
+            if c is None:
+                continue
+            crow.append([m, c["n"], fmt(c["face"]), fmt(c["face_lo"]),
+                         fmt(c["face_hi"]), fmt(c["conv"]), fmt(c["delta"]),
+                         fmt(c["lo"]), fmt(c["hi"]),
+                         "%d/%d" % (c["flips"], c["flips_n"]),
+                         fmt(b["delta"]) if b else "--"])
+        show(["model", "n", "face%", "face lo", "face hi", "conv%",
+              "delta", "lo", "hi", "flips", "baseline delta"], crow)
+        print()
+        print("  Read against the baseline column only. This cell differs")
+        print("  from every other by more than one change, so it gives the")
+        print("  height reached and attributes none of it.")
 
 # --- THE EXTRACT. One long-format row per cell, every quantity, always ------
 # Written whatever has been run so far, with the missing cells absent rather
