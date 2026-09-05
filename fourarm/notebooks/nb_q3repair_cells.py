@@ -194,6 +194,33 @@ if spend_gate(n_calls, CONFIRM_SPEND, TREAT_B_OUT,
           rungs=("N-BCD",), modalities=("V",), kind="pair", repeats=REPEATS)
     print("answered now:", answered(TREAT_B_OUT))'''
 
+MD_PROV = """## Provenance
+
+No model calls. One row per input file, with its length, its SHA-256 and the
+prompt version it was written under. This is the trail from a number in the
+chapter back to the file it came from, and it is what lets a reader a month
+later tell a file that was bought whole from one that was topped up."""
+
+C_PROV = r'''# --- Provenance. No model calls. -------------------------------------------
+today = datetime.date.today().isoformat()
+prov = [provenance_row("captures", CAPTURES / "consults.jsonl", OUT,
+                       today=today, default_version=P.EX2_PROMPT_VERSION)]
+for (cond, rung, role), path in sorted(FILES.items()):
+    prov.append(provenance_row("%s_%s_%s" % (role.replace(" ", ""), cond, rung),
+                               path, OUT, today=today,
+                               default_version=P.EX2_PROMPT_VERSION))
+
+show(["role", "rows", "sha256", "prompt_version", "models"],
+     [[r[0], r[2], (r[3] or "")[:12], r[4], r[5]] for r in prov])
+write_csv("tab_ex2_q3_repair_provenance.csv",
+          ["role", "path", "rows", "sha256", "prompt_version", "model_string",
+           "run_date"], prov)
+print()
+print("A row reading MISSING is a cell that has not been bought. A row whose")
+print("prompt_version is not %s was written under a different prompt and"
+      % P.EX2_PROMPT_VERSION)
+print("cannot be compared with the rest without saying so in the chapter.")'''
+
 MD_READ = """## Read-out
 
 No model calls. Reads every file off disk, so it survives a kernel restart and
@@ -222,7 +249,15 @@ def cells(path, cond):
     return keep_analysable(rows, USABLE)
 
 def summarise(rows, model):
-    """(n, face accuracy, conversion on correct faces, delta, lo, hi)."""
+    """Every quantity this design reads, for one cell of it.
+
+    Conversion is measured ONLY on replies that named the face correctly.
+    A model that reads the wrong face and then converts it faithfully has
+    not failed step 2, and scoring it as though it had would move the two
+    steps' numbers together and hide which one a treatment repaired. The
+    denominator is therefore n_face_ok, which is reported beside it because
+    it shrinks exactly where reading is worst and the rate is noisiest.
+    """
     sub = [r for r in rows if r["model"] == model]
     if not sub:
         return None
@@ -232,10 +267,21 @@ def summarise(rows, model):
             and abs(r["opening_needed_m"] - FACTS[r["resting_face"]]["grasp_m"]) <= TOL]
     d = [x for _, x in paired_diffs(sub, USABLE, "small_face", "large_face")]
     mean, lo, hi, npos = paired_mean_ci(d)
-    return dict(n=len(sub),
+    fk, fn = full_flip_count(d)
+    flo, fhi = wilson(fk, fn)
+    face_lo, face_hi = wilson(len(fok), len(told)) if told else (None, None)
+    conv_lo, conv_hi = wilson(len(conv), len(fok)) if fok else (None, None)
+    return dict(n=len(sub), n_told=len(told), n_face_ok=len(fok),
                 face=pct(len(fok), len(told)) if told else None,
+                face_lo=face_lo, face_hi=face_hi,
                 conv=pct(len(conv), len(fok)) if fok else None,
-                delta=mean, lo=lo, hi=hi)
+                conv_lo=conv_lo, conv_hi=conv_hi,
+                franka_small=share_at([r for r in sub
+                                       if r["face"] == "small_face"]),
+                franka_large=share_at([r for r in sub
+                                       if r["face"] == "large_face"]),
+                delta=mean, lo=lo, hi=hi, npos=npos,
+                flips=fk, flips_n=fn, flips_lo=flo, flips_hi=fhi)
 
 loaded = {k: cells(v, k[0]) for k, v in FILES.items()}
 
@@ -310,4 +356,37 @@ else:
     print("  N-S is read on the conversion column, N-BCD on the face column.")
     print("  The delta columns are carried for both because a treatment that")
     print("  moves its own step and not the allocation is a different finding")
-    print("  from one that moves neither.")'''
+    print("  from one that moves neither.")
+
+# --- THE EXTRACT. One long-format row per cell, every quantity, always ------
+# Written whatever has been run so far, with the missing cells absent rather
+# than blank, so the file is a record of what exists rather than a shape that
+# has to be filled in. Long format on purpose: the chapter's tables are not
+# settled, and a wide file built for one of them has to be regenerated for
+# the next, whereas any of them can be pivoted out of this.
+COLS = ["condition", "rung", "role", "model", "n", "n_told", "n_face_ok",
+        "face_pct", "face_lo", "face_hi", "conv_pct", "conv_lo", "conv_hi",
+        "franka_small_pct", "franka_large_pct", "delta", "delta_lo",
+        "delta_hi", "n_positions", "flips", "flips_of", "flips_lo",
+        "flips_hi"]
+long_rows = []
+for (cond, rung, role), rows in sorted(loaded.items()):
+    if rows is None:
+        continue
+    for m in MODELS:
+        d = summarise(rows, m)
+        if d is None:
+            continue
+        long_rows.append([cond, rung, role, m, d["n"], d["n_told"],
+                          d["n_face_ok"], fmt(d["face"]), fmt(d["face_lo"]),
+                          fmt(d["face_hi"]), fmt(d["conv"]), fmt(d["conv_lo"]),
+                          fmt(d["conv_hi"]), fmt(d["franka_small"]),
+                          fmt(d["franka_large"]), fmt(d["delta"]),
+                          fmt(d["lo"]), fmt(d["hi"]), d["npos"], d["flips"],
+                          d["flips_n"], fmt(d["flips_lo"]),
+                          fmt(d["flips_hi"])])
+print()
+if long_rows:
+    write_csv("tab_ex2_q3_repair_cells.csv", COLS, long_rows)
+else:
+    print("nothing run yet, so no extract written")'''
