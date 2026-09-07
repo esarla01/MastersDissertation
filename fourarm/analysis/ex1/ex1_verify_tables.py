@@ -204,26 +204,103 @@ def check_interval(table, label, k, n, exp_pt, exp_lo, exp_hi):
 
 
 # ---------------------------------------------------------------------------
-# Table 3.2, binding constraints.
+# Table 4.2, binding constraints.
 # ---------------------------------------------------------------------------
 
 
 def t_binding(root):
+    """Check Table 4.2: how often each constraint blocks a candidate pair.
+
+    WHAT IS BEING COUNTED
+
+    A candidate pair is one open task offered to one idle arm. Across the 162
+    frozen states there are 1732 of them. The validator accepts 536, so 1196
+    are rejected, and this table breaks those 1196 down by cause. No model is
+    involved at any point: these are verdicts on hypothetical pairs, computed
+    when the probe set was frozen. The same word "rejected" is used elsewhere
+    for a model proposal the validator turned down, which is a far smaller
+    number, so the two must not be read together.
+
+    ONE CAUSE PER REJECTED PAIR, AND WHOSE ORDERING IT IS
+
+    A pair can fail several checks at once, yet each is counted once. That is
+    not a convention chosen here. validate_decision is a chain of early
+    returns, so the deployed validator itself reports one reason and stops:
+    can_grasp gives CAPABILITY, then reachable(arm, object) gives
+    REACH_OBJECT, then the router gives NO_ROUTE. Inside can_grasp, delicacy
+    is tested before size and mass. probe_store.capability_cause only splits
+    the single CAPABILITY code into delicate, grasp and payload, re-reading
+    the tables can_grasp reads in the order can_grasp reads them, so it
+    cannot drift from the validator.
+
+    WHICH ROWS ARE EXACT AND WHICH ARE FLOORS
+
+    Because the chain stops at the first failure, a constraint tested late is
+    recorded only when nothing earlier fired:
+
+        delicate   Exact. Nothing precedes it.
+        grasp      Exact HERE. Only delicacy precedes it, and no object in
+                   this cast is both delicate and wider than an aperture, so
+                   nothing ever hides grasp. That is a property of the object
+                   cast, not a structural guarantee. Add one fragile wide
+                   object and this row becomes a floor, and this comment
+                   becomes wrong.
+        reach      Floor. 516 recorded here, 869 pairs fail reach when reach
+                   is evaluated on its own.
+        no_route   Floor, and the largest one, since route is last and is
+                   pre-empted by capability and by reach. Its isolated figure
+                   is not computed here; that needs the router re-run.
+
+    The thesis caption states this, so the reader is not left to infer it.
+
+    WHAT THIS IS AND IS NOT INDEPENDENT OF
+
+    binding_causes is precomputed at freeze time by probe_store.legal_options
+    and stored in each probe's derived block. This function only aggregates
+    and totals it. So it is an independent check on the REPORTING, but not on
+    the cause derivation: a bug inside capability_cause would pass every check
+    below. What guards the derivation is that capability_cause reads the same
+    tables as can_grasp, not anything asserted here.
+    """
     probes = json.load(open(os.path.join(root, PROBES_A)))["probes"]
+
+    # Two different units. pairs[c] totals the rejected pairs attributed to
+    # cause c. states[c] counts states where c fired at least once, so a
+    # state contributes 1 whether it lost one pair to c or twenty.
     pairs, states = collections.Counter(), collections.Counter()
     for p in probes:
         for cause, n in (p["derived"].get("binding_causes") or {}).items():
             if n:
                 pairs[cause] += n
                 states[cause] += 1
+
+    # (states, pairs, pairs per binding state), transcribed from the thesis.
     expected = {"reach": (146, 516, 3.5), "grasp": (122, 493, 4.0),
                 "delicate": (80, 135, 1.7), "no_route": (44, 52, 1.2)}
     for cause, (s, pr, per) in expected.items():
         check("binding", cause + " states", states[cause], s)
         check("binding", cause + " pairs", pairs[cause], pr)
-        check("binding", cause + " per state", round(pairs[cause] / states[cause], 1), per)
+        # Published to one decimal, so compare at that precision rather than
+        # letting float noise fail a row that is in fact correct.
+        check("binding", cause + " per state",
+              round(pairs[cause] / states[cause], 1), per)
+
+    # Payload is published as an explicit zero rather than omitted, because a
+    # missing row reads as untested rather than as tested and inert. It is
+    # structurally zero here: the heaviest object in the set is 1.58 kg
+    # against a 3.0 kg Franka limit and 10.0 kg for the UR10.
     check("binding", "payload states", states["payload"], 0)
+
+    # Two structural checks that catch errors the per-row checks cannot.
+    #
+    # The pairs column must total the rejected pairs, since every rejected
+    # pair carries exactly one cause: 1196 = 1732 candidates - 536 legal. A
+    # cause double-counted or silently dropped shows up here and nowhere else.
     check("binding", "pairs column sums to rejected", sum(pairs.values()), 1196)
+    # The states column deliberately does NOT total 162. Several constraints
+    # can bind in one state, so the column overlaps and sums higher. Asserting
+    # the overlap total pins that as intended, rather than leaving a later
+    # reader to wonder whether the column was meant to partition and failed to.
     check("binding", "states column does not partition", sum(states.values()), 392)
 
 
