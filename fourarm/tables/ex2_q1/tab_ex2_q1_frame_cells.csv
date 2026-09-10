@@ -1,0 +1,13 @@
+condition,model,dims_frame,n_rows,n_stated,opening_correct_pct,reports_small_opening_pct,franka_share_small_pct,franka_share_large_pct,n_positions,mean_diff_pts,paired_lo,paired_hi,full_flips
+congruent,gpt_hi,named,192,192,100.0,50.0,100.0,0.0,32,100.0,100.0,100.0,32/32
+congruent,gpt_hi,extents,192,192,100.0,50.0,100.0,0.0,32,100.0,100.0,100.0,32/32
+congruent,gemini,named,192,192,100.0,50.0,100.0,0.0,32,100.0,100.0,100.0,32/32
+congruent,gemini,extents,192,192,100.0,50.0,100.0,0.0,32,100.0,100.0,100.0,32/32
+congruent,claude_md,named,192,192,100.0,50.0,100.0,0.0,32,100.0,100.0,100.0,32/32
+congruent,claude_md,extents,192,192,100.0,50.0,100.0,0.0,32,100.0,100.0,100.0,32/32
+congruent_face,gpt_hi,named,192,192,94.8,45.8,90.6,1.0,32,89.6,84.1,95.0,22/32
+congruent_face,gpt_hi,extents,192,192,82.8,32.8,65.6,1.0,32,64.6,54.0,75.1,9/32
+congruent_face,gemini,named,192,192,100.0,50.0,100.0,0.0,32,100.0,100.0,100.0,32/32
+congruent_face,gemini,extents,192,192,100.0,50.0,100.0,0.0,32,100.0,100.0,100.0,32/32
+congruent_face,claude_md,named,192,192,45.3,52.6,47.9,53.1,32,-5.2,-21.6,11.2,1/32
+congruent_face,claude_md,extents,192,192,32.8,0.0,1.0,0.0,32,1.0,-1.0,3.1,0/32

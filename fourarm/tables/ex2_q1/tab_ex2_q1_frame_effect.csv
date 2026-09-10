@@ -1,0 +1,7 @@
+condition,model,delta_named_pts,delta_extents_pts,difference_pts,reports_small_opening_named_pct,reports_small_opening_extents_pct
+congruent,gpt_hi,100.0,100.0,0.0,50.0,50.0
+congruent,gemini,100.0,100.0,0.0,50.0,50.0
+congruent,claude_md,100.0,100.0,0.0,50.0,50.0
+congruent_face,gpt_hi,89.6,64.6,-25.0,45.8,32.8
+congruent_face,gemini,100.0,100.0,0.0,50.0,50.0
+congruent_face,claude_md,-5.2,1.0,6.2,52.6,0.0

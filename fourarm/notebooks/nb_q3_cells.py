@@ -59,11 +59,20 @@ CEILING = tuple(r for r in P.LADDER_RUNGS if r not in LADDER)
 # prompts.RUNGS and quietly reaching neither list: it would then be swept
 # by nothing and checked by nothing, which is how a rung goes missing.
 DIRECTIVES = tuple(P.DIRECTIVE_RUNGS)
-if set(LADDER) | set(CEILING) | set(DIRECTIVES) != set(P.RUNGS):
+
+# The Q3 repair treatments, read from the module for the same reason. They are
+# a fourth category because prompts.py derives DIRECTIVE_RUNGS by exclusion
+# from LADDER_RUNGS, so without REPAIR_RUNGS to name them they would land in
+# it and be swept as precedence directives. This partition did not know they
+# existed until 2026-09-10, and the guard below correctly refused to run.
+REPAIR = tuple(P.REPAIR_RUNGS)
+
+if (set(LADDER) | set(CEILING) | set(DIRECTIVES) | set(REPAIR)
+        != set(P.RUNGS)):
     raise SystemExit("prompts.RUNGS holds %s, which is neither the ladder, "
-                     "the ceiling, nor a declared directive"
+                     "the ceiling, a declared directive, nor a repair rung"
                      % sorted(set(P.RUNGS) - set(LADDER) - set(CEILING)
-                              - set(DIRECTIVES)))
+                              - set(DIRECTIVES) - set(REPAIR)))
 
 # WHICH DIRECTIVE CELL IS BOUGHT, IN STAGES, following the same discipline
 # as GATE_RUNG below: a cheaper cell decides whether the rest is worth

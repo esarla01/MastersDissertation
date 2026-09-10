@@ -6,11 +6,11 @@ conflict,gemini,extents,192,192,0.0,50.0,0.0,100.0,32,-100.0,-100.0,-100.0,32/32
 conflict,claude_md,named,192,192,0.0,50.0,0.0,100.0,32,-100.0,-100.0,-100.0,32/32,text (or R3 compliance)
 conflict,claude_md,extents,192,192,0.0,50.0,0.0,100.0,32,-100.0,-100.0,-100.0,32/32,text (or R3 compliance)
 conflict_face,gpt_hi,named,192,192,5.2,44.8,0.0,89.6,32,-89.6,-95.0,-84.1,22/32,TRACKS THE TEXT
-conflict_face,gpt_hi,extents,0,0,NA,NA,NA,NA,0,NA,NA,NA,0/0,NA
+conflict_face,gpt_hi,extents,192,192,18.2,31.8,2.1,63.5,32,-61.5,-72.5,-50.4,7/32,TRACKS THE TEXT
 conflict_face,gemini,named,192,192,0.0,50.0,0.0,100.0,32,-100.0,-100.0,-100.0,32/32,TRACKS THE TEXT
-conflict_face,gemini,extents,0,0,NA,NA,NA,NA,0,NA,NA,NA,0/0,NA
+conflict_face,gemini,extents,192,192,0.0,50.0,0.0,100.0,32,-100.0,-100.0,-100.0,32/32,TRACKS THE TEXT
 conflict_face,claude_md,named,192,192,51.0,49.5,50.0,42.7,32,7.3,-6.7,21.3,1/32,tracks neither
-conflict_face,claude_md,extents,0,0,NA,NA,NA,NA,0,NA,NA,NA,0/0,NA
+conflict_face,claude_md,extents,189,189,34.9,4.2,0.0,9.7,32,-9.9,-16.3,-3.5,0/32,TRACKS THE TEXT
 congruent_face,gpt_hi,named,192,192,94.8,45.8,90.6,1.0,32,89.6,84.1,95.0,22/32,not diagnostic: sources agree
 congruent_face,gpt_hi,extents,192,192,82.8,32.8,65.6,1.0,32,64.6,54.0,75.1,9/32,not diagnostic: sources agree
 congruent_face,gemini,named,192,192,100.0,50.0,100.0,0.0,32,100.0,100.0,100.0,32/32,not diagnostic: sources agree
