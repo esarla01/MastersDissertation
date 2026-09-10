@@ -1,0 +1,19 @@
+\begin{table}[H]
+  \centering
+  \caption{The pre-registered directional test on the object-name swap, cast A. Change in Franka share, swapped condition minus its matched unmanipulated parent, pooled by the direction the name was moved across the Franka aperture. Name-following requires the two swapped columns to move in OPPOSITE directions, so the separation between them is the statistic rather than whether either column excludes zero. The untouched controls are the benchmark.}
+  \label{tab:ex1:swap}
+  \small
+  \begin{tabular}{llrrrr}
+    \toprule
+    Model & Width & Wide obj, narrow name & Narrow obj, wide name & Untouched controls & Separation \\
+    \midrule
+    Gemini & width present & +0.0 & -5.3 & +0.6 & +5.3 [-8.3, +19.0] \\
+     & width absent & -5.9 & -6.8 & +0.6 & +0.8 [-15.9, +17.5] \\
+    GPT & width present & +1.1 & -6.7 & -2.2 & +7.8 [-7.4, +23.0] \\
+     & width absent & -3.4 & -1.6 & +0.3 & -1.8 [-17.7, +14.0] \\
+    Qwen & width present & +2.3 & -3.0 & +4.7 & +5.3 [-4.7, +15.4] \\
+     & width absent & +1.0 & -6.2 & +7.1 & +7.2 [-3.3, +17.8] \\
+    \bottomrule
+  \end{tabular}
+  \begin{minipage}{\linewidth}\vspace{2pt}\footnotesize Three pairs swap across the aperture, category-matched, none delicate. Physical fields stay with the true object, so ground truth does not move. Four objects are left unmanipulated as in-prompt controls. The parent of No Width + Swapped is No Width, not No Width + Anonymous, because the swapped condition carries names that are present but false.\end{minipage}
+\end{table}

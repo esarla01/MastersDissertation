@@ -1,0 +1,16 @@
+\begin{table}[H]
+  \centering
+  \caption{Cast B, ten objects disjoint from cast A, GPT only, three repeats on 108 states. Per-scene majority with Wilson \SI{95}{\percent} intervals, the unit of analysis for this chapter, and Newcombe intervals on the contrasts. Width-blind reference line 69.2\%, chance floor 34.6\%. The direction of the width effect reproduces. The magnitude is smaller than on cast A but is not separable from it.}
+  \label{tab:ex1:castb}
+  \small
+  \begin{tabular}{lrrrr}
+    \toprule
+    Condition & Legality & Scenes & Independent run & Gap from Full Info \\
+    \midrule
+    Full Information & 100.0 [93.8, 100.0] & 58 & 98.1 & -- \\
+    No Width & 87.5 [76.4, 93.8] & 56 & 88.5 & +12.5 [+3.6, +23.6] \\
+    No Width + Anon. & 86.0 [74.7, 92.7] & 57 & 92.2 & +14.0 [+4.9, +25.3] \\
+    \bottomrule
+  \end{tabular}
+  \begin{minipage}{\linewidth}\vspace{2pt}\footnotesize Reported as a generalisation check and not a replication. Cast B was run at one model for cost reasons, which is stated as a limitation rather than presented as a second experiment. Legality is the per-scene majority across three repeats on the grasp-binding subset, matching Table~\ref{tab:ex1:design}, so the contrasts here and the cast~A contrasts in Section~\ref{sec:exp:ladder:width} are computed at the same denominator and can be compared. The scene count falls below \num{58} where a single unparseable reply leaves a state unscored. The independent-run column is a separate single-repeat execution of the same three cells at the same prompt version, so its scene majority is its trial rate. Its trials are not contained in the three-repeat run and it is not pooled with it, because cast A is three repeats throughout.\end{minipage}
+\end{table}

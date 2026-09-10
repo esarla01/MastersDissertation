@@ -1,0 +1,22 @@
+\begin{table}[H]
+  \centering
+  \caption{Three readings of the same question, cast A, Full Information against No Width. A model that registered the loss of the declared width would say so, abstain more, or both. Refusal and Franka share are per-scene and per-proposal respectively. The refusal change is Full Information minus No Width, so a positive value means the model abstains less when it knows less. Two Franka arms and two UR arms, so a Franka share of 50.0\% is what treating the four arms as interchangeable looks like.}
+  \label{tab:ex1:signatures}
+  \small
+  \begin{tabular}{llrrr}
+    \toprule
+    Model & Signature & Width shown & Width absent & Change [95\% CI] \\
+    \midrule
+    Gemini & Reasons admitting the gap & -- & 0/256 & -- \\
+     & Correct refusal & 91.7 & 50.0 & +41.7 [+21.1, +58.1] \\
+     & Franka share & 28.1 & 48.0 [43.3, 52.7] & +20.0 [+13.4, +26.3] \\
+    GPT & Reasons admitting the gap & -- & 0/237 & -- \\
+     & Correct refusal & 88.9 & 52.8 & +36.1 [+15.3, +53.2] \\
+     & Franka share & 26.0 & 45.7 [41.0, 50.6] & +19.7 [+13.1, +26.1] \\
+    Qwen & Reasons admitting the gap & -- & 0/85 & -- \\
+     & Correct refusal & 0.0 & 0.0 & +0.0 [-9.6, +9.6] \\
+     & Franka share & 21.0 & 21.8 [18.4, 25.7] & +0.8 [-4.3, +6.0] \\
+    \bottomrule
+  \end{tabular}
+  \begin{minipage}{\linewidth}\vspace{2pt}\footnotesize Reasons are counted over both width-absent design conditions, so the denominator is larger than a single cell. The one-sided 95\% upper bound on the pooled rate is given in the text.\end{minipage}
+\end{table}

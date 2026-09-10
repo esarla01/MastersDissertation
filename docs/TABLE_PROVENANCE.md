@@ -3,6 +3,16 @@
 Every number in the Experiment 1 chapter, where it comes from, and how to
 regenerate it. Verified 20 August 2026: **303 of 303 checks pass**.
 
+> **The table list below uses the labels the chapter carried in August.** Six of
+> them have since been renamed or dropped: `spine`, `gaps`, `offspine`,
+> `consistency`, `objects` and `optionspace` are no longer in the thesis, and
+> the results tables it does carry are `design`, `baseline`, `composition`,
+> `signatures`, `castb` and `swap`. For the current set, and for a table-by-table
+> rebuild from the raw data, run
+> `analysis/ex1/ex1_reproduce_tables.ipynb`. It regenerates all thirteen
+> published tables and checks each against the thesis; its section 20 is the
+> up-to-date provenance list.
+
 Run the whole check from the `fourarm/` directory:
 
 ```bash
@@ -124,8 +134,11 @@ Each of these was got wrong at least once during verification. They are
 recorded because a reader recomputing a number will hit the same forks.
 
 **Legality** is proposals accepted over proposals made, on picking states.
-Declines are **not** in the denominator. Including them changes every headline
-figure.
+Declines are **not** in the denominator, on either side. Including them changes
+every headline figure. This is why the trial denominators differ between cells:
+a model that declines on a picking state removes that trial from the fraction.
+It is also why a scene can leave the scene-level denominator entirely, when
+every one of its three repeats was a decline.
 
 **The grasp-binding subset is 122 states, but legality is measured on 96.**
 The 122 split into 96 picking and 26 refusal. The 26 are scored by correct
@@ -146,8 +159,14 @@ noop`, is flickering, not stable wrong. Scoring on correctness instead moves
 two GPT No Width states across, giving 78/12/36 where the table says 78/10/38.
 
 **A decline is recorded as `noop`, not `declined`.** On a picking state it is
-a wrong answer, so it is scored rather than dropped. Dropping it silently
-changes the denominator for any model that declines.
+a wrong answer, but it is **not scored as an illegal proposal**: it is dropped
+from the legality fraction, because legality is over proposals made and a
+decline is not a proposal. It is instead measured directly by correct refusal,
+which is the mirror measure on the 36 refusal states. An earlier version of this
+document said a decline is "scored rather than dropped", which is the opposite
+of what the pipeline does and of what the thesis glossary states. The
+consequence of dropping it is that the denominator varies between cells for any
+model that declines, which is exactly what the published `n` columns show.
 
 **Reference lines are stored as fractions of 1, not percentages.** Keys are
 `uniform/mean` and `width_blind/mean` for all picking states, and

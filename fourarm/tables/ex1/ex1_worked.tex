@@ -1,0 +1,26 @@
+\begin{table}[H]
+  \centering
+  \begin{threeparttable}
+    \caption{One frozen state, \texttt{rec\_decision\_rich} seq \num{13}. 3
+      open tasks and 3 idle arms give 9 candidate pairs. Only two of them are legal.}
+    \label{tab:ex1:worked}
+    \footnotesize
+    \setlength{\tabcolsep}{4pt}
+    \begin{tabular}{llccccccc}
+      \toprule
+      \multicolumn{6}{c}{The task} & \multicolumn{3}{c}{Is this arm legal for it?} \\
+      \cmidrule(lr){1-6}\cmidrule(lr){7-9}
+      ID & Deliver & Width (\si{\metre}) & Delicate & From & To
+        & \texttt{ur\_w} & \texttt{ur\_e} & \texttt{franka\_s} \\
+      \midrule
+      7 & bowl & 0.030 & yes & \texttt{nw} & \texttt{ne} & no (delicacy) & no (delicacy) & no (reach) \\
+      9 & large clamp & 0.122 & no & \texttt{sw} & \texttt{sw} & \textbf{legal} & no (reach) & no (grasp) \\
+      10 & wood block & 0.090 & no & \texttt{sw} & \texttt{sw} & \textbf{legal} & no (reach) & no (grasp) \\
+      \bottomrule
+    \end{tabular}
+    \begin{tablenotes}[flushleft]\footnotesize
+      \item The second
+        Franka, \texttt{franka\_n}, is holding the banana and is not offered.
+    \end{tablenotes}
+  \end{threeparttable}
+\end{table}

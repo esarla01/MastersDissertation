@@ -876,62 +876,91 @@ def table_composition(root, files, show, write):
 # ===========================================================================
 
 def table_castb(root, files, ref, show, write):
-    headers = ["Condition", "Legality", "n", "Scene", "Independent run",
+    # Scene-majority throughout, matching tab:ex1:design and the contrasts
+    # quoted for cast A in the width subsection. This table used to report
+    # trial-denominator legality and a trial-denominator gap, which made the
+    # cast A and cast B contrasts incomparable and produced an apparent
+    # separation between them that the chapter's own unit does not support.
+    headers = ["Condition", "Legality", "Scenes", "Independent run",
                "Gap from Full Info"]
     rows, base = [], None
     for cond in CASTB_CONDITIONS:
         rs = load(root, files[("castb", "gpt", cond)])
-        kn = legality(rs)
         ks, ns = scene_legality(rs)
         if base is None:
-            base, gap = kn, "--"
+            base, gap = (ks, ns), "--"
         else:
-            gap = fmt_gap(base, kn)
+            gap = fmt_gap(base, (ks, ns))
         r1 = files.get(("castb_r1", "gpt", cond))
         r1cell = "--"
         if r1 is not None:
-            k1, n1 = legality(load(root, r1))
+            # A single repeat, so its scene majority is its trial rate.
+            k1, n1 = scene_legality(load(root, r1))
             r1cell = "%.1f" % pct(k1, n1)
-        rows.append([CONDITIONS[cond][0], fmt_ci(*kn), kn[1],
-                     "%.1f" % pct(ks, ns), r1cell, gap])
+        rows.append([CONDITIONS[cond][0], fmt_ci(ks, ns), ns, r1cell, gap])
 
     if show:
         print_table("tab:ex1:castb   Cast B, GPT only, 108 states", headers, rows)
         if any(("castb_r1", "gpt", c) in files for c in CASTB_CONDITIONS):
+            # Measured, not asserted. The previous version of this line
+            # claimed "roughly a fifth of individual states" as a hardcoded
+            # string; the measured figure is 11 to 14 per cent.
             print("The independent run is a separate single-repeat execution "
                   "of the same three cells at the same prompt version, not a "
-                  "subset of the three-repeat run. Two executions agree to "
-                  "within about a point on legality while disagreeing on "
-                  "roughly a fifth of individual states.")
-        a = newcombe(*legality(load(root, files[("casta", "gpt", "full")])),
-                     *legality(load(root, files[("casta", "gpt", "nowidth")])))
-        b = newcombe(*legality(load(root, files[("castb", "gpt", "full")])),
-                     *legality(load(root, files[("castb", "gpt", "nowidth")])))
+                  "subset of the three-repeat run.")
+            for cond in CASTB_CONDITIONS:
+                # scene_key already carries the round, so the three repeats of
+                # a state share a key. Repeat 1 is the first row for that key.
+                main1 = {}
+                for r in load(root, files[("castb", "gpt", cond)]):
+                    main1.setdefault(scene_key(r), r.get("result"))
+                ind = {scene_key(r): r.get("result")
+                       for r in load(root, files[("castb_r1", "gpt", cond)])}
+                d = sum(1 for k in ind if ind[k] != main1.get(k))
+                print("  %-19s independent run answers %d of %d states "
+                      "differently (%.0f%%)"
+                      % (CONDITIONS[cond][0], d, len(ind), pct(d, len(ind))))
+        a = newcombe(*scene_legality(load(root, files[("casta", "gpt", "full")])),
+                     *scene_legality(load(root, files[("casta", "gpt", "nowidth")])))
+        b = newcombe(*scene_legality(load(root, files[("castb", "gpt", "full")])),
+                     *scene_legality(load(root, files[("castb", "gpt", "nowidth")])))
         print("width-removal gap, GPT")
         print("  cast A  %+.1f [%+.1f, %+.1f]   width-blind line %.1f"
               % (a[0], a[1], a[2], ref["casta"]["width_blind"]))
         print("  cast B  %+.1f [%+.1f, %+.1f]   width-blind line %.1f"
               % (b[0], b[1], b[2], ref["castb"]["width_blind"]))
+        print("  per-scene majority, the unit of analysis for the chapter")
         print("  both exclude zero: %s     intervals overlap: %s"
               % (not spans_zero(a[1], a[2]) and not spans_zero(b[1], b[2]),
                  not (a[1] > b[2] or b[1] > a[2])))
-        print("  Direction reproduces, magnitude does not. This is a "
-              "generalisation check, not a replication.")
+        print("  Direction reproduces. The cast B estimate is smaller but "
+              "its interval overlaps cast A's, so the magnitudes are not "
+              "separable. This is a generalisation check, not a replication.")
 
     caption = ("Cast B, ten objects disjoint from cast A, GPT only, three "
-               "repeats on 108 states. Width-blind reference line %.1f\\%%, "
-               "chance floor %.1f\\%%. The direction of the width effect "
-               "reproduces and the magnitude does not."
+               "repeats on 108 states. Per-scene majority with Wilson "
+               "\\SI{95}{\\percent} intervals, the unit of analysis for this "
+               "chapter, and Newcombe intervals on the contrasts. Width-blind "
+               "reference line %.1f\\%%, chance floor %.1f\\%%. The direction "
+               "of the width effect reproduces. The magnitude is smaller than "
+               "on cast A but is not separable from it."
                % (ref["castb"]["width_blind"], ref["castb"]["chance"]))
     note = ("Reported as a generalisation check and not a replication. Cast B "
             "was run at one model for cost reasons, which is stated as a "
-            "limitation rather than presented as a second experiment. The "
-            "independent-run column is a separate single-repeat execution of "
-            "the same three cells at the same prompt version. Its trials are "
+            "limitation rather than presented as a second experiment. "
+            "Legality is the per-scene majority across three repeats on the "
+            "grasp-binding subset, matching Table~\\ref{tab:ex1:design}, so "
+            "the contrasts here and the cast~A contrasts in "
+            "Section~\\ref{sec:exp:ladder:width} are computed at the same "
+            "denominator and can be compared. The scene count falls below "
+            "\\num{58} where a single unparseable reply leaves a state "
+            "unscored. The independent-run column is a separate single-repeat "
+            "execution of the same three cells at the same prompt version, so "
+            "its scene majority is its trial rate. Its trials are "
             "not contained in the three-repeat run and it is not pooled with "
             "it, because cast A is three repeats throughout.")
     emit_table(root, "tab:ex1:castb", headers, rows, caption,
-               "lrrrrr", note, write)
+               "lrrrr", note, write)
 
 
 # ===========================================================================

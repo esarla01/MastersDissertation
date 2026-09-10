@@ -1,0 +1,20 @@
+\begin{table}[H]
+  \centering
+  \caption{Baseline competence at Full Information, cast A.}
+  \label{tab:ex1:baseline}
+  \small
+  \begin{tabular}{@{}lccc@{}}
+    \toprule
+    Model & Grasp-binding states & Correct refusal & All picking states \\
+          & $n=96$               & $n=36$          & $n=126$ \\
+          & Legality (\%)        & Refusals correct (\%) & Legality (\%) \\
+    \midrule
+    Gemini & 100.0 [96.2, 100.0] & 91.7 [78.2, 97.1] & 100.0 [97.0, 100.0] \\
+    GPT & 97.9 [92.7, 99.4] & 88.9 [74.7, 95.6] & 98.4 [94.4, 99.6] \\
+    Qwen & 77.1 [67.7, 84.4] & 0.0 [0.0, 9.6] & 76.2 [68.0, 82.8] \\
+    \bottomrule
+  \end{tabular}
+  \begin{minipage}{0.94\linewidth}\vspace{2pt}\footnotesize
+    Percentages are per-state majorities across three repeats; brackets give Wilson 95\% intervals. Denominators are Gemini $n=96$, 36, 126; GPT $n=96$, 36, 125; Qwen $n=96$, 36, 126 for the three columns respectively.
+  \end{minipage}
+\end{table}

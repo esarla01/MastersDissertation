@@ -1,0 +1,21 @@
+\begin{table}[H]
+  \centering
+  \caption{Violations by cause, cast A. Removing the declared width changes the composition on one constraint only. Removing the rules multiplies violations across every constraint.}
+  \label{tab:ex1:composition}
+  \small
+  \begin{tabular}{llrrrrrr}
+    \toprule
+    Model & Condition & grasp & reach & delicate & arm\_state & no\_route & Total \\
+    \midrule
+    Gemini & Full Information & 0 & 0 & 0 & 0 & 7 & 7 \\
+     & No Width & 133 & 0 & 0 & 0 & 0 & 133 \\
+     & No Rules & 1 & 0 & 0 & 0 & 0 & 1 \\
+    GPT & Full Information & 7 & 0 & 2 & 0 & 10 & 19 \\
+     & No Width & 121 & 0 & 0 & 0 & 3 & 124 \\
+     & No Rules & 28 & 0 & 3 & 0 & 5 & 36 \\
+    Qwen & Full Information & 41 & 52 & 39 & 67 & 1 & 200 \\
+     & No Width & 43 & 56 & 34 & 55 & 1 & 189 \\
+     & No Rules & 52 & 59 & 43 & 58 & 1 & 213 \\
+    \bottomrule
+  \end{tabular}
+\end{table}

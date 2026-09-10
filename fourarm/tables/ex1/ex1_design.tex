@@ -1,0 +1,37 @@
+\begin{table}[H]
+  \centering
+  \caption{Experiment 1, cast A. Grasp-binding legality across the crossed design and the two off-design controls. The reported figure is the per-scene majority with a Wilson 95\% interval, the state being the unit of analysis. Width-blind reference line 74.9\%, chance floor 30.5\%. Neg.\ control is legality on states where grasp binds nothing, which localises the effect to the grasp constraint.}
+  \label{tab:ex1:design}
+  \small
+  \begin{tabular}{llllrr}
+    \toprule
+    Model & Condition & Width & Identity & Legality & Neg. control \\
+    \midrule
+    Gemini & Full Information & present & true & 100.0 [96.2, 100.0] & 100.0 \\
+     & Anonymous & present & withheld & 100.0 [96.2, 100.0] & 100.0 \\
+     & Swapped Names & present & swapped & 100.0 [96.2, 100.0] & 100.0 \\
+     & No Width & absent & true & 71.9 [62.2, 79.9] & 100.0 \\
+     & No Width + Anon. & absent & withheld & 77.1 [67.7, 84.4] & 100.0 \\
+     & No Width + Swapped & absent & swapped & 75.0 [65.5, 82.6] & 100.0 \\
+     & No Rules & -- & -- & 100.0 [96.2, 100.0] & 100.0 \\
+     & Legal-Arm Control & -- & -- & 100.0 [96.2, 100.0] & 100.0 \\
+    GPT & Full Information & present & true & 97.9 [92.7, 99.4] & 100.0 \\
+     & Anonymous & present & withheld & 98.9 [94.3, 99.8] & 100.0 \\
+     & Swapped Names & present & swapped & 95.8 [89.7, 98.4] & 100.0 \\
+     & No Width & absent & true & 71.6 [61.8, 79.7] & 100.0 \\
+     & No Width + Anon. & absent & withheld & 77.9 [68.6, 85.1] & 100.0 \\
+     & No Width + Swapped & absent & swapped & 78.9 [69.7, 85.9] & 100.0 \\
+     & No Rules & -- & -- & 94.7 [88.1, 97.7] & 100.0 \\
+     & Legal-Arm Control & -- & -- & 100.0 [96.1, 100.0] & 100.0 \\
+    Qwen & Full Information & present & true & 77.1 [67.7, 84.4] & 76.7 \\
+     & Anonymous & present & withheld & 76.0 [66.6, 83.5] & 80.0 \\
+     & Swapped Names & present & swapped & 74.0 [64.4, 81.7] & 76.7 \\
+     & No Width & absent & true & 78.1 [68.9, 85.2] & 84.4 \\
+     & No Width + Anon. & absent & withheld & 72.9 [63.3, 80.8] & 82.2 \\
+     & No Width + Swapped & absent & swapped & 76.0 [66.6, 83.5] & 78.9 \\
+     & No Rules & -- & -- & 72.9 [63.3, 80.8] & 72.2 \\
+     & Legal-Arm Control & -- & -- & 95.8 [89.8, 98.4] & 96.7 \\
+    \bottomrule
+  \end{tabular}
+  \begin{minipage}{\linewidth}\vspace{2pt}\footnotesize All conditions are three repeats of 162 frozen states except Legal-Arm Control, which is one repeat. Each cell is scored on 94 to 96 grasp-binding scenes: a scene leaves the denominator when every repeat was a decline, which happens only to GPT.\end{minipage}
+\end{table}

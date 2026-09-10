@@ -1,0 +1,4 @@
+model,reasons_admitting,reasons_examined,refusal_shown_pct,refusal_absent_pct,franka_shown_pct,franka_absent_pct
+"Gemini","0","256","91.67","50.00","28.05","48.03"
+"GPT","0","237","88.89","52.78","25.99","45.74"
+"Qwen","0","85","0.00","0.00","20.99","21.81"

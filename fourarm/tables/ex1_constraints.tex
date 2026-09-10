@@ -1,0 +1,17 @@
+\begin{table}[H]
+  \centering
+  \caption{Legality at Full Information split by which constraint binds the state. Denominators differ between models because a declined reply is scored on neither side.}
+  \label{tab:ex1:constraints}
+  \small
+  \begin{tabular}{lllrrr}
+    \toprule
+    Constraint & Rule & Reasoning demanded & Gemini & GPT & Qwen \\
+    \midrule
+    Reach & R4 & list lookup & 100.0 (n=213) & 99.0 (n=205) & 77.9 (n=213) \\
+    Grasp & R3 & numeric comparison & 100.0 (n=153) & 96.7 (n=151) & 73.9 (n=153) \\
+    Delicacy & R3 & boolean check & 100.0 (n=9) & 100.0 (n=6) & 44.4 (n=9) \\
+    All constraints & -- & -- & 100.0 (n=378) & 98.1 (n=365) & 75.7 (n=378) \\
+    \bottomrule
+  \end{tabular}
+  \begin{minipage}{\linewidth}\vspace{2pt}\footnotesize Delicacy binds only nine states in cast A, so that row is shown for completeness and no conclusion is drawn from it. A small number of trials have no single dominant binding cause and are excluded.\end{minipage}
+\end{table}

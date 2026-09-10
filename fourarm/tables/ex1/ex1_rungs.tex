@@ -1,0 +1,23 @@
+\begin{table}[H]
+\centering
+\caption{The eight prompt conditions and the information each supplies.}
+\label{tab:ex1:rungs}
+\small
+\setlength{\tabcolsep}{4.5pt}
+\begin{tabular}{llccccc}
+\toprule
+Condition & Tag & Width & Identity & \shortstack{Capability rules} &
+\shortstack{Legal set} \\
+\midrule
+Full Information & \texttt{P-FULL} & \checkmark & true & \checkmark & -- \\
+Anonymous & \texttt{P-ANON} & \checkmark & withheld & \checkmark & -- \\
+Swapped Names & \texttt{P-SWAP} & \checkmark & false & \checkmark & -- \\
+No Width & \texttt{P-NOWIDTH} & -- & true & \checkmark & -- \\
+No Width + Anon. & \texttt{P-NOWIDTH-ANON} & -- & withheld & \checkmark & -- \\
+No Width + Swapped & \texttt{P-NOWIDTH-SWAP} & -- & false & \checkmark & -- \\
+\midrule
+No Rules & \texttt{P-NORULES} & \checkmark & true & -- & -- \\
+Legal-Arm Control & \texttt{P-GIVENSET} & \checkmark & true & \checkmark & \checkmark \\
+\bottomrule
+\end{tabular}
+\end{table}

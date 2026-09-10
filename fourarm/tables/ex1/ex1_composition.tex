@@ -1,0 +1,21 @@
+\begin{table}[H]
+  \centering
+  \caption{Violations by cause, cast A, with grasp-binding legality (per-scene majority, \%) alongside. Removing the declared width changes the composition on grasp alone; removing the rules multiplies violations across every constraint. Violation counts are over all trials.}
+  \label{tab:ex1:composition}
+  \small
+  \begin{tabular}{llrrrrrrr}
+    \toprule
+    Model & Condition & Legality & grasp & reach & delicate & arm\_state & no\_route & Total \\
+    \midrule
+    Gemini & Full Information & 100.0 & 0 & 0 & 0 & 0 & 7 & 7 \\
+     & No Width & 71.9 & 133 & 0 & 0 & 0 & 0 & 133 \\
+     & No Rules & 100.0 & 1 & 0 & 0 & 0 & 0 & 1 \\
+    GPT & Full Information & 97.9 & 7 & 0 & 2 & 0 & 10 & 19 \\
+     & No Width & 71.6 & 121 & 0 & 0 & 0 & 3 & 124 \\
+     & No Rules & 94.7 & 28 & 0 & 3 & 0 & 5 & 36 \\
+    Qwen & Full Information & 77.1 & 41 & 52 & 39 & 67 & 1 & 200 \\
+     & No Width & 78.1 & 43 & 56 & 34 & 55 & 1 & 189 \\
+     & No Rules & 72.9 & 52 & 59 & 43 & 58 & 1 & 213 \\
+    \bottomrule
+  \end{tabular}
+\end{table}

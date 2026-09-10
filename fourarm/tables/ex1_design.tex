@@ -1,0 +1,37 @@
+\begin{table}[H]
+  \centering
+  \caption{Experiment 1, cast A. Grasp-binding legality with Wilson 95\% intervals across the crossed design and the two off-design controls. Width-blind reference line 74.9\%, chance floor 30.5\%. Scene is the per-scene majority. Neg.\ control is legality on states where grasp binds nothing, which localises the effect to the grasp constraint.}
+  \label{tab:ex1:design}
+  \small
+  \begin{tabular}{llllrrrr}
+    \toprule
+    Model & Condition & Width & Identity & Legality & n & Scene & Neg. control \\
+    \midrule
+    Gemini & Full Information & present & true & 100.0 [98.7, 100.0] & 288 & 100.0 & 100.0 \\
+     & Anonymous & present & withheld & 100.0 [98.7, 100.0] & 288 & 100.0 & 100.0 \\
+     & Swapped Names & present & swapped & 100.0 [98.7, 100.0] & 288 & 100.0 & 100.0 \\
+     & No Width & absent & true & 72.2 [66.8, 77.1] & 288 & 71.9 & 100.0 \\
+     & No Width + Anon. & absent & withheld & 75.3 [70.1, 80.0] & 288 & 77.1 & 100.0 \\
+     & No Width + Swapped & absent & swapped & 76.0 [70.7, 80.5] & 287 & 75.0 & 100.0 \\
+     & No Rules & -- & -- & 100.0 [98.7, 100.0] & 288 & 100.0 & 100.0 \\
+     & Legal-Arm Control & -- & -- & 100.0 [96.2, 100.0] & 96 & 100.0 & 100.0 \\
+    GPT & Full Information & present & true & 97.5 [95.0, 98.8] & 283 & 97.9 & 100.0 \\
+     & Anonymous & present & withheld & 98.6 [96.4, 99.4] & 280 & 98.9 & 100.0 \\
+     & Swapped Names & present & swapped & 97.5 [94.8, 98.8] & 275 & 95.8 & 100.0 \\
+     & No Width & absent & true & 73.6 [68.1, 78.4] & 280 & 71.6 & 100.0 \\
+     & No Width + Anon. & absent & withheld & 76.7 [71.4, 81.2] & 283 & 77.9 & 100.0 \\
+     & No Width + Swapped & absent & swapped & 77.6 [72.4, 82.1] & 281 & 78.9 & 100.0 \\
+     & No Rules & -- & -- & 95.1 [91.9, 97.1] & 268 & 94.7 & 100.0 \\
+     & Legal-Arm Control & -- & -- & 100.0 [96.1, 100.0] & 94 & 100.0 & 100.0 \\
+    Qwen & Full Information & present & true & 75.3 [70.1, 80.0] & 288 & 77.1 & 76.7 \\
+     & Anonymous & present & withheld & 76.7 [71.5, 81.2] & 288 & 76.0 & 80.0 \\
+     & Swapped Names & present & swapped & 75.3 [70.1, 80.0] & 288 & 74.0 & 76.7 \\
+     & No Width & absent & true & 76.7 [71.5, 81.2] & 288 & 78.1 & 84.4 \\
+     & No Width + Anon. & absent & withheld & 72.6 [67.1, 77.4] & 288 & 72.9 & 82.2 \\
+     & No Width + Swapped & absent & swapped & 75.0 [69.7, 79.6] & 288 & 76.0 & 78.9 \\
+     & No Rules & -- & -- & 72.2 [66.8, 77.1] & 288 & 72.9 & 72.2 \\
+     & Legal-Arm Control & -- & -- & 95.8 [89.8, 98.4] & 96 & 95.8 & 96.7 \\
+    \bottomrule
+  \end{tabular}
+  \begin{minipage}{\linewidth}\vspace{2pt}\footnotesize All conditions are three repeats of 162 frozen states except Legal-Arm Control, which is one repeat. Denominators differ between conditions because a declined reply is scored on neither side.\end{minipage}
+\end{table}
