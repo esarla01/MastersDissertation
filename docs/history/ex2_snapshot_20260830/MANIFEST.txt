@@ -1,0 +1,159 @@
+Experiment 2: results snapshot, settled cells only
+==================================================
+Taken 2026-08-30 17:20 from the working tree at /Users/erinsarlak/Downloads/MastersDissertation.
+Prompt version 2026-08-27b throughout. Models: gpt_hi (gpt-5.6-terra,
+reasoning_effort high), gemini (gemini-3.6-flash, no effort control),
+claude_md (claude-sonnet-5, effort medium, max_tokens 1024).
+
+EVERY CELL IN THIS BUNDLE IS FINISHED AND UNCHANGED SINCE ITS TABLES WERE
+BUILT. Collection was still running when the bundle was cut, so the two
+cells still being written were removed rather than reported part way. What
+is here can be quoted; what was removed is named in section 3 so nothing
+goes missing silently.
+
+1. WHAT IS IN THE BUNDLE
+------------------------
+Counts are ANALYSABLE trials: a repeat is 68 rows, of which 64 survive the
+three exclusions (transport error, unparseable reply, and the two positions
+that do not carry the contrast, e02 and e10). "3 x 64" is three complete
+repeats of 64. Every cell below is complete repeats only, verified against
+the run files at snapshot time. RUN_INVENTORY.csv holds this as CSV.
+
+condition       rung           gpt_hi      gemini   claude_md
+-------------------------------------------------------------
+congruent       N0             3 x 64      3 x 64      3 x 64
+congruent_face  N0             3 x 64      3 x 64      3 x 64
+dims            N0             3 x 64      3 x 64      3 x 64
+conflict        N0             3 x 64      3 x 64      3 x 64
+conflict_face   N0             3 x 64      3 x 64      3 x 64
+dims            N-C            2 x 64      2 x 64      2 x 64
+dims            N-order        2 x 64      2 x 64      2 x 64
+dims            N-CD           2 x 64      2 x 64      2 x 64
+conflict_face   N-A            2 x 64      2 x 64      2 x 64
+conflict_face   N-C            2 x 64      2 x 64      2 x 64
+conflict_face   N-order        2 x 64      2 x 64      2 x 64
+conflict_face   N-D            2 x 64      2 x 64      2 x 64
+conflict_face   N-CD           2 x 64      2 x 64      2 x 64
+
+Q1 and Q2 are complete: all five N0 conditions at three repeats for all
+three models, no cell short and no denominator uneven. The Q3 ladder is
+complete for conflict_face at all five rungs, and for dims at three of
+five.
+
+2. HOW "SETTLED" WAS DECIDED
+----------------------------
+Each tab_ex2_q{1,2,3}_provenance.csv records the sha256 of every run file
+its tables were built from. Those hashes were recomputed against the
+working tree at snapshot time. A cell is settled when its hash still
+matches, which means no row has landed since the table was built. Every
+cell in section 1 matched, hash for hash.
+
+3. WHAT WAS REMOVED, AND WHY
+----------------------------
+Two dims rungs were being written at snapshot time and are excluded:
+
+  dims_N-A       runs/ex2_q3_dims_N-A.jsonl         408 rows at build, 462 and rising
+  dims_N-D       runs/ex2_q3_dims_N-D.jsonl         204 rows at build, 285 and rising
+
+  dims / N-A   a third gpt_hi repeat had just started
+  dims / N-D   gpt_hi reached a complete second repeat, gemini was part
+               way into one, claude_md still at one
+
+Rows carrying those two cells were deleted from the tables in this bundle:
+
+  dims N-A                     9 rows
+  dims N-D                     12 rows
+  dims attribution             6 rows
+  provenance dims_N-A          1 row
+  provenance dims_N-D          1 row
+  provenance dims_N-D_noimage  1 row
+
+tab_ex2_q3_attribution.csv loses all six dims rows, not two: every
+attribution contrast in it is built on N-D (N-D minus N-C, N-D minus
+N-order), so with N-D unsettled no dims attribution row stands. The six
+conflict_face rows are unaffected and remain.
+
+runs/ex2_q3_dims_N-D_noimage.jsonl is dropped from the provenance table
+too. It is not growing (68 rows, gemini only, hash unchanged), but it is
+the no-image control FOR the N-D rung, and with N-D out it has no
+comparator here. No reported number depended on it.
+
+tab_ex2_q3_rungs.csv still describes all six rungs including N-A and N-D,
+deliberately: it documents the instrument, and conflict_face is reported
+at both.
+
+4. THE ONE PLACE THE PROSE AND THE TABLES DISAGREE
+--------------------------------------------------
+EX2_FINAL_RESULTS.md was written 2026-08-29 12:43, before the Q3 second
+repeats were collected that afternoon between 16:58 and 19:58 and the
+tables rebuilt from them. Two kinds of drift follow, both in the document
+and not in the data:
+
+  It understates the Q3 sample. Lines 558, 569-571, 773 and limitation 7
+  at 939 all say every rung is one repeat. Nine of the ten rung cells are
+  now two repeats, 408 rows, and eight of those nine are in this bundle.
+
+  It still reports dims at N-A and N-D. Section 9.5 tabulates all six
+  rungs for dims. Those two columns are the cells removed in section 3,
+  and the CSVs here no longer carry them. Treat the section 9.5 dims row
+  as provisional for N-A and N-D until the sweep finishes.
+
+The rule the document itself states still holds: a current number is one
+that appears in a CSV under tables/. The data is sound; the prose around
+the Q3 sample size is what needs updating.
+
+5. CONTENTS
+-----------
+EX2_FINAL_RESULTS.md            The reference: design, prompts verbatim, run
+                                configuration, measures and statistics,
+                                results per question, figures, limitations,
+                                discrepancy register. See section 4.
+EX2_INSTRUMENT_VALIDATION.md    Cue validation and ground-truth/stability
+                                source pack: the perception probe that
+                                gated the spend, the bounding-box check and
+                                the settle check.
+RUN_INVENTORY.csv               Section 1 as CSV, recomputed from the run
+                                files at snapshot time.
+
+tables/ex2_q1/  Q1 derivation, 11 files
+  tab_ex2_q1_contrasts.csv  tab_ex2_q1_contrasts_bypos.csv  
+  tab_ex2_q1_cue.csv  tab_ex2_q1_cue_confusion.csv  tab_ex2_q1_design.csv  
+  tab_ex2_q1_inventory.csv  tab_ex2_q1_noimage_contrast.csv  
+  tab_ex2_q1_noimage_share.csv  tab_ex2_q1_provenance.csv  
+  tab_ex2_q1_share.csv  tab_ex2_q1_waits.csv
+tables/ex2_q2/  Q2 precedence, 9 files
+  tab_ex2_q2_contrasts.csv  tab_ex2_q2_contrasts_bypos.csv  
+  tab_ex2_q2_design.csv  tab_ex2_q2_geometry.csv  tab_ex2_q2_inventory.csv  
+  tab_ex2_q2_provenance.csv  tab_ex2_q2_share.csv  tab_ex2_q2_source.csv  
+  tab_ex2_q2_waits.csv
+tables/ex2_q3/  Q3 remediation, 8 files
+  tab_ex2_q3_attribution.csv  tab_ex2_q3_contrasts.csv  
+  tab_ex2_q3_face.csv  tab_ex2_q3_geometry.csv  tab_ex2_q3_inventory.csv  
+  tab_ex2_q3_provenance.csv  tab_ex2_q3_reported.csv  tab_ex2_q3_rungs.csv
+
+figures/ex2_q1/  fig_ex2_q1_share.tex   TikZ, 3 panels
+figures/ex2_q2/  fig_ex2_q2_share.tex   TikZ, 5 panels
+                 Each .csv holds the plotted values. Include with \input{}.
+                 Q3 has no figure, deliberately: bars would imply a
+                 precision its intervals do not have.
+
+6. NOT INCLUDED
+---------------
+The run files themselves (fourarm/runs/, 17 MB). Each table carries the
+sha256 of every run behind it, so the trail back is intact without them.
+Ask if the raw JSONL is wanted.
+
+tables/_archive/ and figures/_archive/, the superseded three-face design,
+whose share table is all zeros.
+
+runs/ex2_q3_conflict_N-CD.jsonl, an abandoned partial cell: the bare
+conflict condition at N-CD, gpt_hi 64 + 23 and gemini 6, never completed
+and cited by no provenance table. The Q3 ladder uses conflict_face, not
+conflict.
+
+7. TO COMPLETE THE SET
+----------------------
+Let the dims N-A and dims N-D sweeps finish, rerun
+fourarm/notebooks/ex2_q3_remediation.ipynb to rebuild the Q3 tables from
+the full files, and re-cut this bundle. Q1, Q2 and the eight settled Q3
+cells will not move; only the two removed rungs will reappear.

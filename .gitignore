@@ -36,3 +36,17 @@ fourarm/env/keys.local.env
 # and cell 0 is a place keys get pasted.
 *.ipynb.bak
 .ipynb_checkpoints/
+
+# Stray virtualenvs. Three lived at the repo root (.venv-1, .venv-2 and
+# q2precedence, which is a venv despite the name) and carried 824 MB.
+.venv*/
+q2precedence/
+
+# Result snapshots. Two zips of tables/ were tracked; the live directories
+# and git history are the record, and a zip in the tree goes stale silently.
+*.zip
+
+# Editor duplicates. A "foo copy.ipynb" beside foo.ipynb is an unreviewed
+# fork that drifts -- one of them carried an armed spend gate.
+* copy.*
+*.orig

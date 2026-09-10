@@ -1,0 +1,14 @@
+condition,rung,run_file,gpt_hi,gemini,claude_md
+congruent,N0,ex2_q1_congruent_N0.jsonl,3 x 64,3 x 64,3 x 64
+congruent_face,N0,ex2_q1_congruent_face_N0.jsonl,3 x 64,3 x 64,3 x 64
+dims,N0,ex2_q1_dims_N0.jsonl,3 x 64,3 x 64,3 x 64
+conflict,N0,ex2_q2_conflict_N0.jsonl,3 x 64,3 x 64,3 x 64
+conflict_face,N0,ex2_q2_conflict_face_N0.jsonl,3 x 64,3 x 64,3 x 64
+dims,N-C,ex2_q3_dims_N-C.jsonl,2 x 64,2 x 64,2 x 64
+dims,N-order,ex2_q3_dims_N-order.jsonl,2 x 64,2 x 64,2 x 64
+dims,N-CD,ex2_q3_dims_N-CD.jsonl,2 x 64,2 x 64,2 x 64
+conflict_face,N-A,ex2_q3_conflict_face_N-A.jsonl,2 x 64,2 x 64,2 x 64
+conflict_face,N-C,ex2_q3_conflict_face_N-C.jsonl,2 x 64,2 x 64,2 x 64
+conflict_face,N-order,ex2_q3_conflict_face_N-order.jsonl,2 x 64,2 x 64,2 x 64
+conflict_face,N-D,ex2_q3_conflict_face_N-D.jsonl,2 x 64,2 x 64,2 x 64
+conflict_face,N-CD,ex2_q3_conflict_face_N-CD.jsonl,2 x 64,2 x 64,2 x 64
