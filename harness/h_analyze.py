@@ -19,7 +19,7 @@ import types
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "fourarm"))
 
 from instrumentation.episode_logger import EpisodeLogger   # REAL logger
-from analysis import analyze as az                          # REAL pipeline
+from analysis.episode import episode_metrics as az                          # REAL pipeline
 
 fails = []
 
@@ -145,7 +145,7 @@ with tempfile.TemporaryDirectory() as d:
     csv_path = os.path.join(d, "metrics.csv")
     r = subprocess.run([sys.executable,
                         os.path.join(os.path.dirname(__file__), "..",
-                                     "fourarm", "analysis", "episode_metrics.py"),
+                                     "fourarm", "analysis", "episode", "episode_metrics.py"),
                         os.path.join(d, "ep_b1.json"),
                         os.path.join(d, "ep_vlm2.json"),
                         "--csv", csv_path],

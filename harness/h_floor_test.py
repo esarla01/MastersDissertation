@@ -16,7 +16,7 @@ import tempfile
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "fourarm"))
 
-from analysis import perception_floor as pf   # REAL module
+from analysis.ex2 import ex2_perception_floor as pf   # REAL module
 
 fails = []
 

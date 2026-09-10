@@ -44,7 +44,7 @@ import types
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "fourarm"))
 
 from instrumentation.episode_logger import EpisodeLogger   # REAL logger
-from analysis import analyze as az                          # REAL pipeline
+from analysis.episode import episode_metrics as az                          # REAL pipeline
 
 fails = []
 

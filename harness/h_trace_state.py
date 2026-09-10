@@ -24,7 +24,7 @@ import contextlib
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "fourarm"))
 
 from instrumentation.episode_logger import EpisodeLogger   # REAL logger
-from analysis import trace_episode as tr                    # REAL viewer
+from analysis.episode import episode_trace as tr                    # REAL viewer
 
 fails = []
 

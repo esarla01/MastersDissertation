@@ -29,7 +29,7 @@ import types
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "fourarm"))
 
 from instrumentation.episode_logger import EpisodeLogger   # REAL logger
-from analysis import input_audit as ia                     # REAL auditor
+from analysis.episode import episode_input_audit as ia                     # REAL auditor
 
 fails = []
 

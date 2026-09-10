@@ -38,7 +38,7 @@ for p in (ROOT, os.path.join(ROOT, "ycb")):
 from core.cell import cell_config as C                          # noqa: E402
 from core.cell.zones import ZoneMap                             # noqa: E402
 from core.decision import state_builder as sb                   # noqa: E402
-from analysis import buffer_density as bd                       # noqa: E402
+from analysis.episode import episode_buffer_density as bd                       # noqa: E402
 from ycb_objects import register_specs                          # noqa: E402
 from ycb_scene import BASKETS                                   # noqa: E402
 

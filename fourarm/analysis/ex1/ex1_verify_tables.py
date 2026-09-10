@@ -32,32 +32,38 @@ import sys
 # them. Pass files by name, never by glob.
 # ---------------------------------------------------------------------------
 
+# Resolved through out/RENAME_MANIFEST.json, which records every rename with
+# an md5 either side. The condition codes below are the thesis's, kept because
+# they appear in the expected values further down; the paths are the current
+# ones. Three of the old names -- the L2 files -- mapped to superseded
+# duplicates now in out/attic/, so those point at the live three-repeat runs.
 CAST_A = {
-    ("gemini", "L3"):      "out/ex1_gemini_L3_r3.jsonl",
-    ("gemini", "L3anon"):  "out/ex1_gemini_L3anon_r3.jsonl",
-    ("gemini", "L3nw"):    "out/ex1_gemini_L3nw_r3.jsonl",
-    ("gemini", "L1nw"):    "out/ex1_gemini_L1nw_r3.jsonl",
-    ("gemini", "L2"):      "out/ex1_gemini_L2.jsonl",
-    ("gemini", "L4"):      "out/ex1_gemini_L4.jsonl",
-    ("gpt", "L3"):         "out/ex1_gpt_L3_r3.jsonl",
-    ("gpt", "L3anon"):     "out/ex1_gpt_L3anon_r3.jsonl",
-    ("gpt", "L3nw"):       "out/ex1_gpt_L3nw_r3.jsonl",
-    ("gpt", "L1nw"):       "out/ex1_gpt_L1nw_r3b.jsonl",
-    ("gpt", "L2"):         "out/ex1_gpt_L2.jsonl",
-    ("gpt", "L4"):         "out/ex1_gpt_L4.jsonl",
-    ("qwen", "L3"):        "out/ex1_qwen_L3_r3.jsonl",
-    ("qwen", "L3anon"):    "out/ex1_qwen_L3anon_r3.jsonl",
-    ("qwen", "L3nw"):      "out/ex1_qwen_L3nw_r3.jsonl",
-    ("qwen", "L1nw"):      "out/ex1_qwen_L1nw_r3.jsonl",
-    ("qwen", "L2"):        "out/ex1_qwen_L2.jsonl",
-    ("qwen", "L4"):        "out/ex1_qwen_L4.jsonl",
+    ("gemini", "L3"):      "out/ex1_casta_gemini_full_r3.jsonl",
+    ("gemini", "L3anon"):  "out/ex1_casta_gemini_anon_r3.jsonl",
+    ("gemini", "L3nw"):    "out/ex1_casta_gemini_nowidth_r3.jsonl",
+    ("gemini", "L1nw"):    "out/ex1_casta_gemini_nowidth-anon_r3.jsonl",
+    ("gemini", "L2"):      "out/ex1_casta_gemini_norules_r3.jsonl",
+    ("gemini", "L4"):      "out/ex1_casta_gemini_givenset_r1.jsonl",
+    ("gpt", "L3"):         "out/ex1_casta_gpt_full_r3.jsonl",
+    ("gpt", "L3anon"):     "out/ex1_casta_gpt_anon_r3.jsonl",
+    ("gpt", "L3nw"):       "out/ex1_casta_gpt_nowidth_r3.jsonl",
+    ("gpt", "L1nw"):       "out/ex1_casta_gpt_nowidth-anon_r3.jsonl",
+    ("gpt", "L2"):         "out/ex1_casta_gpt_norules_r3.jsonl",
+    ("gpt", "L4"):         "out/ex1_casta_gpt_givenset_r1.jsonl",
+    ("qwen", "L3"):        "out/ex1_casta_qwen_full_r3.jsonl",
+    ("qwen", "L3anon"):    "out/ex1_casta_qwen_anon_r3.jsonl",
+    ("qwen", "L3nw"):      "out/ex1_casta_qwen_nowidth_r3.jsonl",
+    ("qwen", "L1nw"):      "out/ex1_casta_qwen_nowidth-anon_r3.jsonl",
+    ("qwen", "L2"):        "out/ex1_casta_qwen_norules_r3.jsonl",
+    ("qwen", "L4"):        "out/ex1_casta_qwen_givenset_r1.jsonl",
 }
 CAST_B = {
-    ("gpt", "L3"):   "out/ex1_setb_gpt_L3_r3.jsonl",
-    ("gpt", "L3nw"): "out/ex1_setb_gpt_L3nw_r3.jsonl",
-    ("gpt", "L1nw"): "out/ex1_setb_gpt_L1nw_r3.jsonl",
+    ("gpt", "L3"):     "out/ex1_castb_gpt_full_r3.jsonl",
+    ("gpt", "L3anon"): "out/ex1_castb_gpt_anon_r3.jsonl",
+    ("gpt", "L3nw"):   "out/ex1_castb_gpt_nowidth_r3.jsonl",
+    ("gpt", "L1nw"):   "out/ex1_castb_gpt_nowidth-anon_r3.jsonl",
 }
-IMAGE_ON = "runs/ex1_L1-nowidth_V_gpt.jsonl"
+IMAGE_ON = "out/ex1_casta_gpt_nowidth-anon_r3_image.jsonl"
 
 PROBES_A = "probes/ex1_v2.json"
 PROBES_B = "probes/ex1_setb_v1.json"
@@ -406,17 +412,23 @@ def t_setbfloors(root):
 
 
 def t_offspine(root):
+    # Legality is the SCENE majority, as Table 4.7 reports it for every
+    # condition. This measured the trial rate until 2026-09-10, which agreed
+    # only while No Rules was a single repeat and trial and scene coincide.
+    # At three repeats the trial denominator triples and the interval narrows,
+    # so Gemini's No Rules read 100.0 [98.7, 100.0] against the thesis's
+    # 100.0 [96.2, 100.0]. Values below are Table 4.7's own.
     expected = {
         ("gemini", "L4"): (100.0, 96.2, 100.0, 100.0, 90.4, 100.0),
         ("gemini", "L2"): (100.0, 96.2, 100.0, 100.0, 90.4, 100.0),
         ("gpt", "L4"):    (100.0, 96.1, 100.0, 100.0, 90.4, 100.0),
-        ("gpt", "L2"):    (93.4, 86.4, 96.9, 77.8, 61.9, 88.3),
+        ("gpt", "L2"):    (94.7, 88.1, 97.7, 77.8, 61.9, 88.3),
         ("qwen", "L4"):   (95.8, 89.8, 98.4, 5.6, 1.5, 18.1),
-        ("qwen", "L2"):   (74.0, 64.4, 81.7, 0.0, 0.0, 9.6),
+        ("qwen", "L2"):   (72.9, 63.3, 80.8, 0.0, 0.0, 9.6),
     }
     for (m, t), (lp, llo, lhi, rp, rlo, rhi) in expected.items():
         rows = load_rows(root, CAST_A[(m, t)])
-        k, n = legality(rows)
+        k, n = scene_legality(rows)
         check_interval("offspine", f"{m} {NAME[t]} legality", k, n, lp, llo, lhi)
         k, n = correct_refusal(rows)
         check_interval("offspine", f"{m} {NAME[t]} refusal", k, n, rp, rlo, rhi)
@@ -555,7 +567,9 @@ def t_intext(root):
     files = sum(1 for _ in CAST_A)
     rows = sum(len(load_rows(root, p)) for p in CAST_A.values())
     check("in-text", "cast A run files", files, 18)
-    check("in-text", "cast A rows", rows, 6804)
+    # 15 files at 3 repeats plus the 3 Legal-Arm Control files at 1.
+    # Was 6804 while No Rules was also a single repeat.
+    check("in-text", "cast A rows", rows, 7776)
 
     # Cast B at three repeats.
     k1, n1 = legality(load_rows(root, CAST_B[("gpt", "L3")]))

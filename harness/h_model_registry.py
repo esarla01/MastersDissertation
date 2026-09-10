@@ -254,11 +254,27 @@ check("claude carries max_tokens",
       "max_tokens" in mr.describe("claude")["params"],
       "the Anthropic API requires it and has no default, so a missing one "
       "is a 400 on every trial of a paid sweep")
+# Excluded by what the registry DECLARES, not by name. This read
+# `if a != "claude"` and broke when claude_md was added -- the alias
+# Experiment 2 actually ran -- because a second Anthropic alias was a second
+# thing to remember. The claim is about the DEFAULT: an alias that names no
+# api must still come back openai.
+_ENV = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                    "..", "fourarm", "env", "models.env")
+with open(_ENV) as _fh:
+    _env_text = _fh.read()
+_declares_api = {a for a in mr.aliases()
+                 if ("%s_API=" % a.upper()) in _env_text}
+
 check("every OpenAI-shaped alias still says so",
       all(mr.describe(a)["api"] == "openai"
-          for a in mr.aliases() if a != "claude"),
+          for a in mr.aliases() if a not in _declares_api),
       "api defaults to openai, so an alias written before the field "
       "existed must be unaffected by it")
+check("every alias that declares an api is honoured",
+      all(mr.describe(a)["api"] != "openai" for a in _declares_api),
+      "a declared api that silently fell back to the default would send "
+      "Anthropic traffic in OpenAI shape")
 
 # This compared model ids alone and started failing the moment gpt_hi was
 # added, because gpt and gpt_hi share gpt-5.6-terra deliberately and differ
