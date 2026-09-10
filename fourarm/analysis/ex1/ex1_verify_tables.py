@@ -27,48 +27,31 @@ import statistics
 import sys
 
 # ---------------------------------------------------------------------------
-# Run files. The smoke and repair files are deliberately absent: they collide
-# in the same (model, condition) bucket as the real runs and silently overwrite
-# them. Pass files by name, never by glob.
+# Run files. Taken from run_files.py, the single manifest, so this script and
+# ex1_reproduce_tables.ipynb cannot drift onto different inputs -- which is the
+# whole point of running both. run_files.audit() additionally fails if a
+# .jsonl appears under out/ that no list mentions.
 # ---------------------------------------------------------------------------
 
-# Resolved through out/RENAME_MANIFEST.json, which records every rename with
-# an md5 either side. The condition codes below are the thesis's, kept because
-# they appear in the expected values further down; the paths are the current
-# ones. Three of the old names -- the L2 files -- mapped to superseded
-# duplicates now in out/attic/, so those point at the live three-repeat runs.
-CAST_A = {
-    ("gemini", "L3"):      "out/ex1_casta_gemini_full_r3.jsonl",
-    ("gemini", "L3anon"):  "out/ex1_casta_gemini_anon_r3.jsonl",
-    ("gemini", "L3nw"):    "out/ex1_casta_gemini_nowidth_r3.jsonl",
-    ("gemini", "L1nw"):    "out/ex1_casta_gemini_nowidth-anon_r3.jsonl",
-    ("gemini", "L2"):      "out/ex1_casta_gemini_norules_r3.jsonl",
-    ("gemini", "L4"):      "out/ex1_casta_gemini_givenset_r1.jsonl",
-    ("gpt", "L3"):         "out/ex1_casta_gpt_full_r3.jsonl",
-    ("gpt", "L3anon"):     "out/ex1_casta_gpt_anon_r3.jsonl",
-    ("gpt", "L3nw"):       "out/ex1_casta_gpt_nowidth_r3.jsonl",
-    ("gpt", "L1nw"):       "out/ex1_casta_gpt_nowidth-anon_r3.jsonl",
-    ("gpt", "L2"):         "out/ex1_casta_gpt_norules_r3.jsonl",
-    ("gpt", "L4"):         "out/ex1_casta_gpt_givenset_r1.jsonl",
-    ("qwen", "L3"):        "out/ex1_casta_qwen_full_r3.jsonl",
-    ("qwen", "L3anon"):    "out/ex1_casta_qwen_anon_r3.jsonl",
-    ("qwen", "L3nw"):      "out/ex1_casta_qwen_nowidth_r3.jsonl",
-    ("qwen", "L1nw"):      "out/ex1_casta_qwen_nowidth-anon_r3.jsonl",
-    ("qwen", "L2"):        "out/ex1_casta_qwen_norules_r3.jsonl",
-    ("qwen", "L4"):        "out/ex1_casta_qwen_givenset_r1.jsonl",
-}
-CAST_B = {
-    ("gpt", "L3"):     "out/ex1_castb_gpt_full_r3.jsonl",
-    ("gpt", "L3anon"): "out/ex1_castb_gpt_anon_r3.jsonl",
-    ("gpt", "L3nw"):   "out/ex1_castb_gpt_nowidth_r3.jsonl",
-    ("gpt", "L1nw"):   "out/ex1_castb_gpt_nowidth-anon_r3.jsonl",
-}
-IMAGE_ON = "out/ex1_casta_gpt_nowidth-anon_r3_image.jsonl"
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
+    os.path.abspath(__file__)))))
+import run_files                                                # noqa: E402
 
-PROBES_A = "probes/ex1_v2.json"
-PROBES_B = "probes/ex1_setb_v1.json"
-FLOORS_A = "out/ex1_chance_floor.json"
-FLOORS_B = "out/ex1_setb_floors.json"
+# Keyed by the thesis's condition codes, which the expected values below use.
+_CODE = {"L3": "full", "L3anon": "anon", "L3nw": "nowidth",
+         "L1nw": "nowidth-anon", "L2": "norules", "L4": "givenset"}
+
+CAST_A = {(m, t): run_files.CAST_A[(m, _CODE[t])]
+          for m in run_files.EX1_MODELS for t in _CODE}
+CAST_B = {("gpt", t): run_files.CAST_B[("gpt", _CODE[t])]
+          for t in ("L3", "L3anon", "L3nw", "L1nw")}
+IMAGE_ON = run_files.IMAGE_ON
+
+PROBES_A = run_files.PROBES["casta"][0]
+PROBES_B = run_files.PROBES["castb"][0]
+FLOORS_A = run_files.FLOORS["casta"]
+FLOORS_B = run_files.FLOORS["castb"]
+
 
 NAME = {"L3": "Full Information", "L3anon": "Anonymous", "L3nw": "No Width",
         "L1nw": "No Width + Anonymous", "L2": "No Rules", "L4": "Legal-Arm Control"}
