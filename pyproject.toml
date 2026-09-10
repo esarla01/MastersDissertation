@@ -1,0 +1,55 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fourarm"
+version = "1.0.0"
+description = "Decision-level evaluation of capability reasoning in VLM task allocation for a heterogeneous four-arm cell"
+readme = "README.md"
+requires-python = ">=3.13,<3.14"
+
+# EMPTY ON PURPOSE. Both paths that produce a published number are standard
+# library only: the analysis reads frozen JSON and JSONL, and the collection
+# path posts through urllib.request rather than a provider SDK
+# (core/decision/vlm_allocator.py). So `pip install -e .` is enough to read
+# the data, and every extra below buys a capability, never a result.
+dependencies = []
+
+[project.optional-dependencies]
+# Executing the notebooks, which is how every table is rebuilt and checked.
+notebooks = [
+    "jupyterlab==4.6.3",
+    "nbconvert==7.17.1",
+    "nbformat==5.11.1",
+    "ipykernel==7.3.0",
+]
+
+# The regression gates in harness/.
+harness = [
+    "numpy==2.5.2",
+    "pillow==12.3.0",
+    "scipy==1.18.1",
+]
+
+# Prettier notebook tables and the cut figures. Every notebook falls back to
+# plain text when these are absent, so a reproduce run does not need them.
+display = [
+    "pandas>=2.2",
+    "matplotlib>=3.9",
+]
+
+# Harvesting new decision states. Isaac Lab and Isaac Sim are NOT installable
+# from PyPI and are deliberately absent: install them from NVIDIA's
+# distribution first, then add these. No published result needs this extra,
+# because the frozen probe sets are in the repository.
+sim = [
+    "torch",
+    "numpy==2.5.2",
+    "scipy==1.18.1",
+    "opencv-python",
+    "pillow==12.3.0",
+]
+
+[tool.setuptools]
+packages = ["fourarm"]

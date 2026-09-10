@@ -3,14 +3,15 @@
   \caption{Cast B, ten objects disjoint from cast A, GPT only, three repeats on 108 states. Width-blind reference line 69.2\%, chance floor 34.6\%. The direction of the width effect reproduces and the magnitude does not.}
   \label{tab:ex1:castb}
   \small
-  \begin{tabular}{lrrrrr}
+  \begin{tabular}{lrrrr}
     \toprule
-    Condition & Legality & n & Scene & Independent run & Gap from Full Info \\
+    Condition & Legality & Scenes & Independent run & Gap from Full Info \\
     \midrule
-    Full Information & 98.8 [95.8, 99.7] & 169 & 100.0 & 98.1 & -- \\
-    No Width & 90.1 [84.6, 93.8] & 162 & 87.5 & 88.5 & +8.7 [+3.9, +14.3] \\
-    No Width + Anon. & 88.5 [82.7, 92.5] & 165 & 86.0 & 92.2 & +10.3 [+5.3, +16.2] \\
+    Full Information & 100.0 [93.8, 100.0] & 58 & 98.1 & -- \\
+    Anonymous & 100.0 [93.8, 100.0] & 58 & 100.0 & +0.0 [-6.2, +6.2] \\
+    No Width & 87.5 [76.4, 93.8] & 56 & 88.5 & +12.5 [+3.6, +23.6] \\
+    No Width + Anon. & 86.0 [74.7, 92.7] & 57 & 92.2 & +14.0 [+4.9, +25.3] \\
     \bottomrule
   \end{tabular}
-  \begin{minipage}{\linewidth}\vspace{2pt}\footnotesize Reported as a generalisation check and not a replication. Cast B was run at one model for cost reasons, which is stated as a limitation rather than presented as a second experiment. The independent-run column is a separate single-repeat execution of the same three cells at the same prompt version. Its trials are not contained in the three-repeat run and it is not pooled with it, because cast A is three repeats throughout.\end{minipage}
+  \begin{minipage}{\linewidth}\vspace{2pt}\footnotesize Reported as a generalisation check and not a replication. Cast B was run at one model for cost reasons, which is stated as a limitation rather than presented as a second experiment. The independent-run column is a separate single-repeat execution of the same four cells at the same prompt version. Its trials are not contained in the three-repeat run and it is not pooled with it, because cast A is three repeats throughout.\end{minipage}
 \end{table}
