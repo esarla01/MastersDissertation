@@ -17,6 +17,7 @@ import json, os, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
+import _nb_build
 import nb_cells_a as A
 import nb_cells_b as B
 import nb_q3_cells as Q
@@ -119,16 +120,10 @@ def build(dest):
     for its CELLS list -- a driver that executes the cells wants the same
     composition the notebook has, and importing a script that writes a file
     as a side effect is how a test ends up clobbering its own argument."""
+    cells, carried, dropped = _nb_build.build_cells(
+        CELLS, dest, cell_id, lines)
     nb = {
-        "cells": [
-            ({"cell_type": "markdown", "id": cell_id(i, kind),
-              "metadata": {}, "source": lines(s)}
-             if kind == "md" else
-             {"cell_type": "code", "id": cell_id(i, kind),
-              "execution_count": None, "metadata": {},
-              "outputs": [], "source": lines(s)})
-            for i, (kind, s) in enumerate(CELLS)
-        ],
+        "cells": cells,
         "metadata": {
             "kernelspec": {"display_name": "Python 3", "language": "python",
                            "name": "python3"},
@@ -138,6 +133,11 @@ def build(dest):
         "nbformat_minor": 5,
     }
 
+    # Both guards run BEFORE the write, so a rejected notebook never
+    # reaches disk. They were a post-write check until 2026-09-10.
+    _nb_build.check_no_armed_spend(CELLS)
+    _nb_build.check_cells_parse(CELLS)
+
     with open(dest, "w") as fh:
         json.dump(nb, fh, indent=1)
         fh.write("\n")
@@ -145,15 +145,10 @@ def build(dest):
           % (dest, len(nb["cells"]),
              sum(1 for k, _ in CELLS if k == "code"),
              sum(1 for k, _ in CELLS if k == "md")))
-
-    import ast
-    for i, (kind, src) in enumerate(CELLS):
-        if kind == "code":
-            try:
-                ast.parse(src)
-            except SyntaxError as e:
-                raise SystemExit("cell %d does not parse: %s" % (i, e))
-    print("every code cell parses")
+    print("outputs carried over: %d" % carried)
+    for _src in dropped:
+        print("   DROPPED, its source changed and it must be "
+              "re-run: %s" % _src)
 
 
 if __name__ == "__main__":

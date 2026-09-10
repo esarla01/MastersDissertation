@@ -13,6 +13,7 @@ dest = sys.argv[1]
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
+import _nb_build
 import nb_cells_a as A
 import nb_cells_b as B
 
@@ -118,6 +119,11 @@ nb = {
     "nbformat_minor": 5,
 }
 
+# Both guards run BEFORE the write, so a rejected notebook never
+# reaches disk. They were a post-write check until 2026-09-10.
+_nb_build.check_no_armed_spend(CELLS)
+_nb_build.check_cells_parse(CELLS)
+
 with open(dest, "w") as fh:
     json.dump(nb, fh, indent=1)
     fh.write("\n")
@@ -131,13 +137,3 @@ for _src in STORED:
     for _ in STORED[_src]:
         print("   DROPPED, its source changed and it must be re-run: %s"
               % _src.split("\n")[0][:66])
-
-# Every code cell must at least parse.
-import ast
-for i, (kind, src) in enumerate(CELLS):
-    if kind == "code":
-        try:
-            ast.parse(src)
-        except SyntaxError as e:
-            raise SystemExit("cell %d does not parse: %s" % (i, e))
-print("every code cell parses")
