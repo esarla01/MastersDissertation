@@ -7,7 +7,9 @@ Writes tab_ex2_q3_ceiling_contrast.csv into the live Q3 tables directory.
 """
 import csv, os, sys, hashlib
 
-ROOT = "/Users/erinsarlak/Downloads/MastersDissertation/fourarm"
+# The fourarm package: the directory holding runs/ and tables/. Resolved
+# from this file rather than hardcoded, which pinned it to one machine.
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
 from analysis.ex2.ex2_q_common import (load_run, keep_analysable,
