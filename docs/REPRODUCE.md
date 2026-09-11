@@ -23,6 +23,11 @@ Around four minutes, almost all of it executing notebooks. No simulator, no
 network, no API key. `make verify` passes with networking disabled, which is
 the real proof the reproduce path never calls a model.
 
+`make setup` was exercised from empty on 11 September 2026: a fresh venv built
+from `requirements.lock` runs the notebooks and reports 13 of 13. The lock is a
+plain freeze of the environment the tables were rebuilt in — 94 packages,
+Python 3.13.7 — not a hash-pinned install.
+
 Individual targets: `make probes`, `make verify-ex1`, `make verify-ex2`,
 `make appendix`, `make harness`, `make manifest`, `make spend-check`.
 

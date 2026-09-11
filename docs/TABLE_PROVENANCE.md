@@ -223,8 +223,8 @@ The two figures the thesis does print are simulator captures, not plots:
 
 | Figure | What it shows | Generator |
 |---|---|---|
-| 3.1 | The four-arm cell, arms at rest, baskets and exchange pads | **Not identified.** Captured from Isaac Sim; no script in this repository produces it and none is recorded. Re-creating it would mean re-capturing the scene by hand. |
-| 5.1 | One position on each of the block's three resting faces | `ycb/capture_ex2_scene.py --spec ycb/ex2_block.txt`, which writes to `out/ex2_capture_block/` |
+| 3.1 | The four-arm cell, arms at rest, baskets and exchange pads | **No generator.** Captured by hand from Isaac Sim. The image is committed at `fourarm/figures/thesis/workspace.png`; see the README there |
+| 5.1 | One position on each of the block's three resting faces | `ycb/capture_ex2_scene.py --spec ycb/ex2_block.txt`. Its three panels are byte-identical to `out/ex2_capture_block/e00_{U,L,S}.png` |
 
 ---
 

@@ -98,7 +98,7 @@ m=[x for x in (re.search(r'(\d+) of (\d+) appendix tables', y) for y in t) if x]
 print(m[0].group(0) if m else 'no audit line')"); \
 	    rm -f notebooks/appendix/.verify.ipynb; \
 	    echo "  appendix_tables.ipynb: $$got"; \
-	    case "$$got" in "12 of 12"*) ;; *) echo "  EXPECTED 12 of 12."; exit 1;; esac; \
+	    case "$$got" in "13 of 13"*) ;; *) echo "  EXPECTED 13 of 13."; exit 1;; esac; \
 	  else rm -f notebooks/appendix/.verify.ipynb; echo "  appendix_tables.ipynb FAILED"; exit 1; fi
 
 harness:

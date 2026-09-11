@@ -418,6 +418,8 @@ C7 = r'''SPEC = [
      "the deployed validator, run twice"),
     ("E.4", "tab:appendix:replies", "11", "the nine Full Information replies",
      "3 cast A run files"),
+    ("5.2", "tab:ex2:object", "12", "the block's three resting faces",
+     "ycb/ycb_objects.py block variants"),
 ]
 rows = CK.audit_rows(SPEC)
 show(["Table", "Label", "Built in", "Reports", "Authority", "Against thesis"], rows)
@@ -448,6 +450,7 @@ CELLS = [
     ("md", A.MD9), ("code", A.C9),
     ("md", A.MD10), ("code", A.C10),
     ("md", A.MD11), ("code", A.C11),
+    ("md", A.MD12), ("code", A.C12),
     ("md", MD7), ("code", C7),
     ("md", MD8), ("code", C8),
 ]

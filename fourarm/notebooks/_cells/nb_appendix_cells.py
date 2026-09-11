@@ -277,3 +277,66 @@ print()
 print("%d of %d replies valid. The reasons are printed because a true reason "
       "can still give an illegal answer." % (n_valid, len(rows_e4)))
 '''
+
+
+MD12 = r"""---
+# 12. Table 5.2 — the block's three resting faces
+
+The only table in Chapter 5 with geometry rather than results in it, and the
+one the whole of Experiment 2 turns on: which face is down decides which
+extents lie horizontal, which decides the opening a gripper needs, which
+decides whether a Franka can take the object at all.
+
+Derived from the block's three dimensions rather than transcribed, and
+cross-checked against the three variants the scene registry actually spawns."""
+
+C12 = r'''
+# The block, 0.130 x 0.100 x 0.050 m. Taken from the registry rather than
+# typed: these are the numbers the simulator spawns.
+VARIANTS = {"small_face": "block_upright",   # smallest face down, so tallest
+            "edge": "block_small",
+            "large_face": "block_large"}
+DIMS = sorted({round(YCB[v]["height"], 3) for v in VARIANTS.values()}, reverse=True)
+assert len(DIMS) == 3, "the three variants must present three distinct heights"
+
+rows_52, body_52 = [], []
+for face in ("small_face", "edge", "large_face"):
+    spec = YCB[VARIANTS[face]]
+    vertical = round(spec["height"], 3)
+    # Whichever two dimensions are not vertical lie flat. The gripper closes
+    # on the smaller of them, so that is the opening the object needs.
+    horizontal = sorted((d for d in DIMS if d != vertical), reverse=True)
+    opening = min(horizontal)
+    # The registry's own grasp_m for this variant must agree, or the scene
+    # spawns an object the table does not describe.
+    assert abs(spec["grasp_m"] - opening) < 1e-9, \
+        "%s: registry grasp_m %.3f, geometry implies %.3f" % (
+            VARIANTS[face], spec["grasp_m"], opening)
+    feasible = {t: opening <= C.ARM_TYPES[t]["max_grasp_m"] for t in ("franka", "ur10")}
+    rows_52.append([face, "%.3f" % vertical, "%.3f" % horizontal[0],
+                    "%.3f" % horizontal[1], "%.3f" % opening,
+                    "yes" if feasible["franka"] else "no",
+                    "yes" if feasible["ur10"] else "no"])
+    body_52.append(r"\texttt{%s} & %.3f & %.3f & %.3f & %.3f & %s & %s \\"
+                   % (esc(face), vertical, horizontal[0], horizontal[1], opening,
+                      "yes" if feasible["franka"] else "no",
+                      "yes" if feasible["ur10"] else "no"))
+
+show(["Resting face", "Vertical (m)", "Horizontal (m)", "Horizontal (m)",
+      "Opening needed (m)", "Franka", "UR10"], rows_52)
+
+tex_52 = latex("tab:ex2:object", "The block's three resting faces.", "lccccc",
+               r"Resting face & Vertical (m) & \multicolumn{2}{c}{Horizontal extents (m)} "
+               r"& Opening needed (m) & Franka & UR10", body_52)
+write_tex("ex2_object.tex", tex_52)
+CK.check("tab:ex2:object", tex_52)
+
+# The design rests on exactly one face changing the answer. If all three
+# agreed, the experiment would have no contrast to measure.
+_franka = [r[5] for r in rows_52]
+assert _franka.count("no") == 1, \
+    "exactly one resting face must exclude the Franka; got %s" % _franka
+print()
+print("only %s excludes the Franka, which is the contrast Experiment 2 measures"
+      % [r[0] for r in rows_52 if r[5] == "no"][0])
+'''
