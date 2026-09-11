@@ -6,13 +6,16 @@ Six tables that no script produced: 3.1, 3.2, A.1, A.2, C.1 and D.1. Each is
 rebuilt from the module that is the authority for it and checked against the
 thesis, in the shape ex1_reproduce_tables.ipynb established for Chapter 4.
 
-Tables B.1, B.2 and E.1 to E.4 are not here yet; the README records that.
+Cells for B.1, B.2 and E.1 to E.4 live in nb_appendix_cells.py: they carry
+triple-quoted docstrings and LaTeX backslashes, which do not survive being
+nested inside this module's own string literals.
 """
 import json, os, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import _nb_build
+import nb_appendix_cells as A
 
 MD0 = r"""# The appendix tables, rebuilt from the modules that define them
 
@@ -67,6 +70,8 @@ from ycb_objects import YCB
 from layouts import LAYOUT_CASTS
 from experiments.ex1.mislabel import SWAP_PAIRS, CONTROLS, APERTURE_FRANKA
 from experiments.ex2 import prompts as P2
+from experiments.ex1 import prompts as P1
+from harvest.probe_store import legal_options
 
 TEX_OUT = os.path.join(ROOT, "tables", "appendix")
 os.makedirs(TEX_OUT, exist_ok=True)
@@ -401,6 +406,18 @@ C7 = r'''SPEC = [
      "experiments/ex2/prompts.py"),
     ("D.1", "tab:appendix:sources", "6", "where the 162 states came from",
      "probes/ex1_v2.json"),
+    ("B.1", "tab:appendix:rules", "9", "the four rule bodies R3 and R4 select",
+     "experiments/ex1/prompts.py"),
+    ("B.2", "tab:appendix:edits", "9", "the edit that produces each condition",
+     "experiments/ex1/prompts.py RUNGS"),
+    ("E.1", "tab:appendix:arms", "10", "the arms in the worked state",
+     "probes/ex1_v2.json, rec_decision_rich seq 13"),
+    ("E.2", "tab:appendix:tasks", "10", "the open tasks in that state",
+     "probes/ex1_v2.json, rec_decision_rich seq 13"),
+    ("E.3", "tab:appendix:widthblind", "10", "both validator passes",
+     "the deployed validator, run twice"),
+    ("E.4", "tab:appendix:replies", "11", "the nine Full Information replies",
+     "3 cast A run files"),
 ]
 rows = CK.audit_rows(SPEC)
 show(["Table", "Label", "Built in", "Reports", "Authority", "Against thesis"], rows)
@@ -428,6 +445,9 @@ CELLS = [
     ("md", MD4), ("code", C4),
     ("md", MD5), ("code", C5),
     ("md", MD6), ("code", C6),
+    ("md", A.MD9), ("code", A.C9),
+    ("md", A.MD10), ("code", A.C10),
+    ("md", A.MD11), ("code", A.C11),
     ("md", MD7), ("code", C7),
     ("md", MD8), ("code", C8),
 ]

@@ -3,6 +3,18 @@
  "written": "2026-09-11",
  "thesis_repo": "/Users/erinsarlak/Desktop/msc-paper",
  "tables": {
+  "tab:appendix:arms": [
+   10.0,
+   0.14,
+   10.0,
+   10.0,
+   0.14,
+   10.0,
+   0.08,
+   3.0,
+   0.08,
+   3.0
+  ],
   "tab:appendix:cast": [
    0.068,
    0.349,
@@ -49,6 +61,26 @@
    0.037,
    0.156
   ],
+  "tab:appendix:replies": [
+   9.0,
+   1.0,
+   9.0,
+   2.0,
+   9.0,
+   3.0,
+   10.0,
+   1.0,
+   10.0,
+   2.0,
+   10.0,
+   3.0,
+   7.0,
+   1.0,
+   9.0,
+   2.0,
+   9.0,
+   3.0
+  ],
   "tab:appendix:sources": [
    34.0,
    33.0,
@@ -66,6 +98,30 @@
    0.084,
    0.073
   ],
+  "tab:appendix:tasks": [
+   7.0,
+   0.03,
+   0.67,
+   9.0,
+   0.122,
+   0.358,
+   10.0,
+   0.09,
+   1.58
+  ],
+  "tab:appendix:widthblind": [
+   7.0,
+   7.0,
+   7.0,
+   9.0,
+   9.0,
+   9.0,
+   10.0,
+   10.0,
+   10.0,
+   2.0,
+   3.0
+  ],
   "tab:system:arms": [
    10.0,
    2.0,
@@ -80,6 +136,8 @@
  },
  "bodies": {
   "tab:appC:aliases": "\n    \\texttt{grasp\\_m}       & \\texttt{opening\\_needed\\_m} \\\\\n    \\texttt{max\\_grasp\\_m}  & \\texttt{opening\\_max\\_m} \\\\\n    \\texttt{payload\\_kg}    & \\texttt{max\\_load\\_kg} \\\\\n    \\texttt{delicate\\_ok}   & \\texttt{handles\\_delicate} \\\\\n    \\texttt{dims\\_m}        & \\texttt{size\\_upright\\_m} \\\\\n    \\texttt{reach\\_ok\\_arms} & \\texttt{arms\\_that\\_can\\_reach} \\\\\n    \\texttt{pose}           & \\texttt{resting\\_face} \\\\\n    ",
+  "tab:appendix:edits": "\n    Full Information & \\texttt{L3} & None. The deployed prompt, unchanged. \\\\\n    \\addlinespace\n    Anonymous & \\texttt{L3-anon} & State edit. Object names, object categories\n      and basket names replaced by neutral labels. Grouping is preserved in\n      the category field. \\\\\n    \\addlinespace\n    Swapped Names & \\texttt{L3-swap} & State edit. Three category-matched\n      object pairs, none delicate, are printed under each other's names across\n      the Franka aperture. Only the name field moves: \\texttt{grasp\\_m},\n      \\texttt{mass\\_kg}, \\texttt{delicate}, category, zone and\n      \\texttt{reach\\_ok\\_arms} all stay with the true object, so the correct\n      answer does not move. Four objects are left unswapped in the same prompt\n      as controls. \\\\\n    \\addlinespace\n    No Width & \\texttt{L3-nowidth} & State edit. The \\texttt{grasp\\_m} field is\n      removed from every object. \\\\\n    \\addlinespace\n    No Width $+$ Anon. & \\texttt{L1-nowidth} & Both state edits together. \\\\\n    \\addlinespace\n    No Width $+$ Swapped & \\texttt{L1-swap} & The name swap with\n      \\texttt{grasp\\_m} removed. \\\\\n    \\addlinespace\n    No Rules & \\texttt{L2} & Prompt edit. The bodies of R3 and R4 are replaced\n      by the withheld text in Section~\\ref{sec:appendix:withheld}. \\\\\n    \\addlinespace\n    Legal-Arm Control & \\texttt{L4} & The eligible rule variants are selected\n      and the task carries an \\texttt{eligible\\_arms} list. \\\\\n    ",
+  "tab:appendix:rules": "\n    R3 enriched & The arm must be able to handle the object, on every leg:\n      \\texttt{grasp\\_m} at most the arm's \\texttt{max\\_grasp\\_m},\n      \\texttt{mass\\_kg} at most the arm's \\texttt{payload\\_kg}, a\n      \\texttt{delicate} object needs an arm whose \\texttt{delicate\\_ok} is\n      true. \\\\\n    \\addlinespace\n    R4 enriched & The arm must appear in the \\texttt{reach\\_ok\\_arms} list of\n      the OBJECT. Every object, basket and pad carries one, and it is\n      authoritative for reach: use it, do not work reach out from\n      coordinates. It says nothing about R3: an arm can often reach an object\n      it cannot pick up. Reaching the destination is not required of you; see\n      R5. \\\\\n    \\addlinespace\n    R3 eligible & The arm must appear in the task's \\texttt{eligible\\_arms}\n      list. That list is authoritative and final: it already applies grasp\n      size, payload, the delicate rule, reach to the object, and the\n      existence of a delivery route. Do not re-derive it from the numbers. An\n      EMPTY list means no arm can start this task now, so wait. \\\\\n    \\addlinespace\n    R4 eligible & \\texttt{eligible\\_arms} already settles reach. For a basket\n      you choose under R7, use the \\texttt{reach\\_ok\\_arms} list on that\n      basket. \\\\\n    ",
   "tab:system:constraints": "\n    Reach    & The arm can reach both the object's current position and the\n               task's destination zone. \\\\\n    Grasp    & The object's grasp width in its current pose does not exceed the\n               arm's gripper aperture. \\\\\n    Delicacy & An object flagged delicate is assigned only to an arm cleared\n               for delicate handling. \\\\\n    Payload  & The object's mass does not exceed the arm's payload limit. \\\\\n    Route    & The path the task requires is available to that arm, accounting\n               for zone occupancy. \\\\\n    "
  }
 }

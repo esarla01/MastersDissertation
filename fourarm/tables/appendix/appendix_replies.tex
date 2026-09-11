@@ -1,0 +1,20 @@
+\begin{table}[H]
+\centering
+\caption{All nine replies at Full Information.}
+\label{tab:appendix:replies}
+\begin{tabular}{llcp{0.42\textwidth}l}
+\toprule
+Model & Answer & Rep & Stated reason & Verdict \\
+\midrule
+Gemini & task 9, ur\_w & 1 & ur\_w is the only available arm that satisfies the grasp size requirement for ycb\_large\_clamp. & valid \\
+Gemini & task 9, ur\_w & 2 & ur\_w is the only idle arm that can grip ycb\_large\_clamp and deliver it directly within the sw zone. & valid \\
+Gemini & task 9, ur\_w & 3 & Assigning ur\_w to deliver ycb\_large\_clamp directly within zone sw. & valid \\
+GPT & task 10, ur\_w & 1 & ur\_w is the only arm able to handle and reach the wood block. & valid \\
+GPT & task 10, ur\_w & 2 & ur\_w is the only arm able to handle the wood block. & valid \\
+GPT & task 10, ur\_w & 3 & ur\_w is the only idle arm able to handle the wood block. & valid \\
+Qwen & task 7, franka\_n & 1 & franka\_n can reach both the ycb\_bowl and its destination basket in ne. & rejected \\
+Qwen & task 9, franka\_s & 2 & franka\_s can reach and handle ycb\_large\_clamp, and the destination is in its reach zone. & rejected \\
+Qwen & task 9, ur\_w & 3 & ur\_w can reach ycb\_large\_clamp and deliver it directly to basket\_tools in the sw zone. & valid \\
+\bottomrule
+\end{tabular}
+\end{table}

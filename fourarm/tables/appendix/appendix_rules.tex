@@ -1,0 +1,15 @@
+\begin{table}[H]
+\centering
+\caption{The bodies of R3 and R4.}
+\label{tab:appendix:rules}
+\begin{tabular}{lp{0.78\textwidth}}
+\toprule
+Rule & Body \\
+\midrule
+R3 enriched & The arm must be able to handle the object, on every leg: "grasp\_m" at most the arm's "max\_grasp\_m" "mass\_kg" at most the arm's "payload\_kg" a "delicate" object needs an arm whose "delicate\_ok" is true \\
+R4 enriched & The arm must appear in the "reach\_ok\_arms" list of the OBJECT. Every object, basket and pad carries one, and it is authoritative for reach: use it, do not work reach out from coordinates. It says nothing about R3: an arm can often reach an object it cannot pick up. Reaching the destination is not required of you; see R5. \\
+R3 eligible & The arm must appear in the task's "eligible\_arms" list. That list is authoritative and final: it already applies grasp size, payload, the delicate rule, reach to the object, and the existence of a delivery route. Do not re-derive it from the numbers. An EMPTY list means no arm can start this task now, so wait. \\
+R4 eligible & "eligible\_arms" already settles reach. For a basket you choose under R7, use the "reach\_ok\_arms" list on that basket. \\
+\bottomrule
+\end{tabular}
+\end{table}
