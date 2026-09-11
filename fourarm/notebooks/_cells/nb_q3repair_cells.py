@@ -461,3 +461,158 @@ if long_rows:
     write_csv("tab_ex2_q3_repair_cells.csv", COLS, long_rows)
 else:
     print("nothing run yet, so no extract written")'''
+
+
+MDAUDIT = r"""---
+## Audit: Tables 5.12, 5.13 and 5.14 against the thesis
+
+The three E2-C tables, each cell checked against the number Chapter 5 prints.
+
+Table 5.14 is assembled from **two** notebooks. Its `N-CD` baseline and
+`+ description` rows come from this one; its `+ attention` row is `N-ACD`,
+bought and read in `ex2_q3_remediation.ipynb` and written to
+`tables/ex2_q3/`. Both are checked here so the split cannot hide a drift in
+half a table.
+
+One rung wears two labels. `N-CD` is "+ derivation" in Table 5.13 and the
+baseline in Table 5.14 — the same rows read for two different questions, which
+is correct and easy to misread.
+"""
+
+CAUDIT = r'''# --- Audit against the thesis. No model calls. ------------------------------
+# PUBLISHED VALUES, transcribed from Chapter 5 and never computed here.
+
+# Table 5.12, the two controls at one repeat: face %, conversion %, contrast.
+THESIS_512 = {
+    ("A", "congruent_face", "N-CD", "gpt_hi"):    (100.0, 96.9, 93.8),
+    ("A", "congruent_face", "N-CD", "claude_md"): (100.0, 78.1, 56.2),
+    ("B", "dims", "N-CD", "gpt_hi"):              (64.1, 97.6, 25.0),
+    ("B", "dims", "N-CD", "claude_md"):           (43.8, 96.4, 0.0),
+}
+
+# Table 5.13, mapping a face to an opening: conversion, Franka share on each
+# face, and the paired allocation contrast. All in dims.
+THESIS_513 = {
+    ("N-D", "gpt_hi"):     (65.1, 63.5, 60.4, 3.1),
+    ("N-D", "claude_md"):  (68.0, 67.7, 67.7, 0.0),
+    ("N-CD", "gpt_hi"):    (100.0, 100.0, 67.7, 32.3),
+    ("N-CD", "claude_md"): (94.8, 100.0, 100.0, 0.0),
+    ("N-S", "gpt_hi"):     (88.5, 88.5, 89.6, -1.0),
+    ("N-S", "claude_md"):  (81.2, 82.3, 70.8, 11.5),
+}
+
+# Table 5.14, reading the face: face accuracy, both Franka shares, contrast
+# and its paired interval. N-ACD comes from the remediation notebook.
+THESIS_514 = {
+    ("N-CD", "gpt_hi"):     (66.1, 100.0, 67.7, 32.3, 23.3, 41.3),
+    ("N-CD", "claude_md"):  (50.5, 100.0, 100.0, 0.0, 0.0, 0.0),
+    ("N-BCD", "gpt_hi"):    (75.0, 100.0, 50.0, 50.0, 39.8, 60.2),
+    ("N-BCD", "claude_md"): (50.0, 40.6, 38.5, 2.1, -12.6, 16.7),
+    ("N-ACD", "gpt_hi"):    (76.6, 100.0, 46.9, 53.1, 42.6, 63.6),
+    ("N-ACD", "claude_md"): (50.0, 100.0, 100.0, 0.0, 0.0, 0.0),
+}
+
+EPS = 0.06
+problems = []
+
+
+def agrees(label, got, want, eps=EPS):
+    if want is None:
+        return
+    if got is None or abs(got - want) > eps:
+        problems.append("%s: computed %s, thesis prints %s" % (label, got, want))
+
+
+def read_csv(path):
+    with open(path) as fh:
+        return list(csv.DictReader(fh))
+
+
+def num(row, field):
+    v = row.get(field, "")
+    return float(v) if v not in ("", "NA", None) else None
+
+
+cells = read_csv(TABLES / "tab_ex2_q3_repair_cells.csv")
+by = {(r["condition"], r["rung"], r["model"], r["role"]): r for r in cells}
+
+
+def pick(cond, rung, model, roles):
+    for role in roles:
+        if (cond, rung, model, role) in by:
+            return by[(cond, rung, model, role)]
+    return None
+
+
+# --- Table 5.12 ------------------------------------------------------------
+for (ctrl, cond, rung, model), (face, conv, d) in sorted(THESIS_512.items()):
+    row = pick(cond, rung, model, ("control A", "control B"))
+    tag = "5.12 control %s %s %s" % (ctrl, cond, model)
+    if row is None:
+        problems.append("%s: no row in tab_ex2_q3_repair_cells.csv" % tag)
+        continue
+    agrees(tag + " face", num(row, "face_pct"), face)
+    agrees(tag + " conversion", num(row, "conv_pct"), conv)
+    agrees(tag + " contrast", num(row, "delta"), d)
+
+# --- Table 5.13 ------------------------------------------------------------
+for (rung, model), (conv, fs, fl, d) in sorted(THESIS_513.items()):
+    row = pick("dims", rung, model, ("baseline", "treatment"))
+    tag = "5.13 %s %s" % (rung, model)
+    if row is None:
+        problems.append("%s: no row" % tag)
+        continue
+    agrees(tag + " conversion", num(row, "conv_pct"), conv)
+    agrees(tag + " franka small", num(row, "franka_small_pct"), fs)
+    agrees(tag + " franka large", num(row, "franka_large_pct"), fl)
+    agrees(tag + " contrast", num(row, "delta"), d)
+
+# --- Table 5.14, including the half this notebook does not produce ---------
+# N-ACD lives in tables/ex2_q3/, written by the remediation notebook: its face
+# accuracy in the ceiling table and its contrast in the ceiling-contrast one.
+Q3 = TABLES.parent / "ex2_q3"
+ceiling = {(r["model"], r["rung"]): r
+           for r in read_csv(Q3 / "tab_ex2_q3_ceiling.csv")}
+ceil_con = {(r["model"], r["rung"]): r
+            for r in read_csv(Q3 / "tab_ex2_q3_ceiling_contrast.csv")}
+
+for (rung, model), (face, fs, fl, d, lo, hi) in sorted(THESIS_514.items()):
+    tag = "5.14 %s %s" % (rung, model)
+    if rung == "N-ACD":
+        c, cc = ceiling.get((model, rung)), ceil_con.get((model, rung))
+        if not c or not cc:
+            problems.append("%s: missing from the remediation notebook's tables" % tag)
+            continue
+        agrees(tag + " face", num(c, "face_correct_pct"), face)
+        agrees(tag + " contrast", num(cc, "contrast_pts"), d)
+        agrees(tag + " paired lo", num(cc, "contrast_lo"), lo)
+        agrees(tag + " paired hi", num(cc, "contrast_hi"), hi)
+        # The shares are not tabled anywhere; the contrast is their difference,
+        # so checking both against it is the strongest available statement.
+        agrees(tag + " shares agree with the contrast", round(fs - fl, 1), d)
+        continue
+    row = pick("dims", rung, model, ("baseline", "treatment"))
+    if row is None:
+        problems.append("%s: no row" % tag)
+        continue
+    agrees(tag + " face", num(row, "face_pct"), face)
+    agrees(tag + " franka small", num(row, "franka_small_pct"), fs)
+    agrees(tag + " franka large", num(row, "franka_large_pct"), fl)
+    agrees(tag + " contrast", num(row, "delta"), d)
+    agrees(tag + " paired lo", num(row, "delta_lo"), lo)
+    agrees(tag + " paired hi", num(row, "delta_hi"), hi)
+
+n_checks = len(THESIS_512) * 3 + len(THESIS_513) * 4 + len(THESIS_514) * 5
+print("Experiment 2, Q3: tables checked against the thesis")
+show(["Table", "Reports", "Source"],
+     [["5.12", "the two controls", "tab_ex2_q3_repair_cells.csv"],
+      ["5.13", "step 2, mapping a face to an opening", "tab_ex2_q3_repair_cells.csv"],
+      ["5.14", "step 1, reading the face",
+       "repair_cells.csv + ex2_q3/ceiling*.csv"]])
+print()
+for p in problems:
+    print("  MISMATCH  %s" % p)
+print("%d checks against Chapter 5, %d disagreed" % (n_checks, len(problems)))
+assert not problems, "Q3 no longer reproduces the thesis: %s" % problems[:5]
+print("every Q3 table still matches what Chapter 5 prints")
+'''
