@@ -224,3 +224,61 @@ class Checker:
         return [[n, label, "§" + sec, reports, source,
                  status.get(label, ("NOT CHECKED", ""))[0]]
                 for n, label, sec, reports, source in spec]
+
+    def check_subsequence(self, label, values, note=""):
+        """Assert transcribed values appear in the thesis in the right order.
+
+        values: the numbers a notebook pins, in the order the thesis prints
+        them. They need not be every cell of the table -- a notebook may not
+        compute every column, and a row may come from a different run -- so
+        this checks ORDER and MEMBERSHIP rather than equality, and reports how
+        much of the table the values account for.
+
+        Weaker than check(), which compares a generated table cell for cell.
+        Used where the notebook holds transcribed constants rather than
+        emitting LaTeX: it catches a mis-transcription and it catches the
+        thesis changing, which is what those constants were exposed to.
+
+        Returns (matched, total) for the coverage line.
+        """
+        published = thesis_source(label, self.repo)
+        if published is not None:
+            theirs = table_numbers(published)
+            self.from_thesis[label] = theirs
+            vendored = self.expected.get(label)
+            if vendored is not None and vendored != theirs:
+                self.checks.append((label, "DIFFERS", "vendored copy is stale"))
+                raise AssertionError(
+                    "%s: the vendored copy disagrees with the thesis. Re-run "
+                    "the refresh cell with THESIS_REPO set." % label)
+            origin = "thesis"
+        elif label in self.expected:
+            theirs, origin = self.expected[label], "vendored"
+        else:
+            self.checks.append((label, "SKIPPED",
+                                "no thesis source and no vendored copy"))
+            print("%-28s SKIPPED  (no thesis source, no vendored copy)" % label)
+            return (0, 0)
+
+        # Walk both in order. A value that is not found where it should be is
+        # either mistyped or no longer what the thesis prints.
+        i, missing = 0, []
+        for v in values:
+            while i < len(theirs) and abs(theirs[i] - v) > 1e-9:
+                i += 1
+            if i == len(theirs):
+                missing.append(v)
+                break
+            i += 1
+        if missing:
+            detail = ("%s is not in the %s's sequence at or after the values "
+                      "before it" % (missing[0], origin))
+            self.checks.append((label, "DIFFERS", detail))
+            raise AssertionError("%s: %s" % (label, detail))
+
+        self.checks.append((label, "MATCHES", "%d of %d cells against the %s%s"
+                            % (len(values), len(theirs), origin,
+                               (" - " + note) if note else "")))
+        print("%-28s MATCHES the %s on %d of its %d cells"
+              % (label, origin, len(values), len(theirs)))
+        return (len(values), len(theirs))

@@ -1802,6 +1802,67 @@ for model, (d, lo, hi, vision) in sorted(THESIS_59.items()):
     agrees("5.9 %s with-image contrast" % model,
            float(row["vision_contrast_pts"]), vision)
 
+# --- The transcribed constants, against the thesis itself ------------------
+# Everything above compares the emitted CSVs to the constants at the top of
+# this cell. That verifies the pipeline still reproduces them and nothing
+# more: the constants are typed from the chapter, so a mis-transcription would
+# pass, and a change to the chapter would go unnoticed. This checks them
+# against the thesis LaTeX, in the order it prints them.
+import thesis_check as _TC
+
+# One vendored file per notebook. A shared one would be clobbered by
+# whichever notebook ran last, since each knows only its own tables.
+_CK = _TC.Checker(os.path.join(ROOT, "notebooks", "ex2",
+                               "thesis_expected_q1.json"))
+_covered = []
+
+# 5.6. The wrong-count columns are 60 minus the right count: 20 images at
+# three repeats.
+_seq = []
+for _m in ("gpt_hi", "gemini", "claude_md"):
+    _ns, _as = THESIS_56[(_m, "small_face")]
+    _nl, _al = THESIS_56[(_m, "large_face")]
+    _seq += [_ns, 60 - _ns, _as, 60 - _nl, _nl, _al, THESIS_56_ALL[_m]]
+_covered.append(("5.6", "tab:ex2:cue") + _CK.check_subsequence("tab:ex2:cue", _seq))
+
+# 5.7. Share on each face, the contrast, then its interval where one is
+# printed; saturated cells print a dagger instead.
+_seq = []
+for _c in ("congruent", "congruent_face", "dims"):
+    for _m in ("gpt_hi", "gemini", "claude_md"):
+        _s, _l, _d, _lo, _hi, _f = THESIS_57[(_c, _m)]
+        _seq += [_s, _l, _d] + ([_lo, _hi] if _lo is not None else []) + [_f]
+_covered.append(("5.7", "tab:ex2:q1:results")
+                + _CK.check_subsequence("tab:ex2:q1:results", _seq))
+
+# 5.8. Accuracy on each face. The thesis collapses congruent to a single
+# "all three" row, because all three models sit at 100 there, and every cell
+# carries a Wilson interval whose bounds this sequence skips over.
+_seq = [THESIS_58[("congruent", "gpt_hi", "small_face")],
+        THESIS_58[("congruent", "gpt_hi", "large_face")]]
+for _c in ("congruent_face", "dims"):
+    for _m in ("gpt_hi", "gemini", "claude_md"):
+        _seq += [THESIS_58[(_c, _m, "small_face")],
+                 THESIS_58[(_c, _m, "large_face")]]
+_covered.append(("5.8", "tab:ex2:q1:reported")
+                + _CK.check_subsequence("tab:ex2:q1:reported", _seq))
+
+# 5.9. Both no-image shares, the contrast, its interval, the with-image one.
+_seq = []
+for _m in ("gpt_hi", "gemini", "claude_md"):
+    _d, _lo, _hi, _v = THESIS_59[_m]
+    _row = [r for r in noimage_share_rows if r[0] == _m] if "noimage_share_rows" in dir() else []
+    _seq += [_d, _lo, _hi, _v]
+_covered.append(("5.9", "tab:ex2:q1:noimage")
+                + _CK.check_subsequence("tab:ex2:q1:noimage", _seq))
+
+print()
+for _num, _lab, _got, _tot in _covered:
+    print("  %-5s %-22s %d of %d thesis cells pinned%s"
+          % (_num, _lab, _got, _tot,
+             "" if _got == _tot else "   <-- the rest are not checked here"))
+print(_CK.refresh())
+
 # --- Verdict ---------------------------------------------------------------
 CHECKED = {"5.6": len(THESIS_56) * 2 + len(THESIS_56_ALL),
            "5.7": len(THESIS_57) * 5, "5.8": len(THESIS_58),

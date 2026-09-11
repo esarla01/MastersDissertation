@@ -602,6 +602,46 @@ for (rung, model), (face, fs, fl, d, lo, hi) in sorted(THESIS_514.items()):
     agrees(tag + " paired lo", num(row, "delta_lo"), lo)
     agrees(tag + " paired hi", num(row, "delta_hi"), hi)
 
+# --- The transcribed constants, against the thesis itself ------------------
+# The constants above are typed from the chapter. On their own a
+# mis-transcription would pass and a change to the chapter would go unnoticed.
+import thesis_check as _TC
+
+_CK = _TC.Checker(os.path.join(TABLES.parent.parent, "notebooks", "ex2",
+                               "thesis_expected_q3.json"))
+_covered = []
+
+# 5.12: face, conversion, contrast, per control then model. Gemini's rows are
+# in the thesis and not in this notebook's CSV -- the repair run drops Gemini,
+# which is at ceiling from N-D onward -- so they are skipped over here rather
+# than pinned, and the coverage line says so.
+_seq = []
+for _ctrl, _cond in (("A", "congruent_face"), ("B", "dims")):
+    for _m in ("gpt_hi", "claude_md"):
+        _seq += list(THESIS_512[(_ctrl, _cond, "N-CD", _m)])
+_covered.append(("5.12", "tab:ex2:q3:repair:controls")
+                + _CK.check_subsequence("tab:ex2:q3:repair:controls", _seq))
+
+# 5.13: conversion, both Franka shares, the allocation contrast.
+_seq = [v for _r in ("N-D", "N-CD", "N-S") for _m in ("gpt_hi", "claude_md")
+        for v in THESIS_513[(_r, _m)]]
+_covered.append(("5.13", "tab:ex2:q3")
+                + _CK.check_subsequence("tab:ex2:q3", _seq))
+
+# 5.14: face accuracy, both shares, the contrast and its interval.
+_seq = [v for _r in ("N-CD", "N-BCD", "N-ACD") for _m in ("gpt_hi", "claude_md")
+        for v in THESIS_514[(_r, _m)]]
+_covered.append(("5.14", "tab:ex2:q3:step1")
+                + _CK.check_subsequence("tab:ex2:q3:step1", _seq))
+
+print()
+for _num, _lab, _got, _tot in _covered:
+    print("  %-5s %-28s %d of %d thesis cells pinned%s"
+          % (_num, _lab, _got, _tot,
+             "" if _got == _tot else "   <-- the rest are not checked here"))
+print(_CK.refresh())
+print()
+
 n_checks = len(THESIS_512) * 3 + len(THESIS_513) * 4 + len(THESIS_514) * 5
 print("Experiment 2, Q3: tables checked against the thesis")
 show(["Table", "Reports", "Source"],

@@ -1652,6 +1652,43 @@ write_csv("tab_ex2_q2_conflict_source.csv",
           ["condition", "model", "direction", "n_trials", "n_scene", "n_text",
            "n_neither", "scene_pct", "text_pct", "neither_pct"], source_rows_all)
 
+# --- The transcribed constants, against the thesis itself ------------------
+# Everything above compares what this notebook computes to the constants at
+# the top of the cell. Those constants are typed from the chapter, so on their
+# own a mis-transcription would pass and a change to the chapter would go
+# unnoticed. This checks them against the thesis LaTeX, in its own row order,
+# and reports how much of each table they account for.
+import thesis_check as _TC
+
+_CK = _TC.Checker(os.path.join(ROOT, "notebooks", "ex2",
+                               "thesis_expected_q2.json"))
+_covered = []
+
+# 5.10: share on each captured face, then the contrast. The interval is
+# printed only where the cell is not saturated, and complete flips follow.
+_seq = []
+for _c in ("conflict", "conflict_face"):
+    for _m in ("gpt_hi", "gemini", "claude_md"):
+        _s, _l, _d, _lo, _hi, _f = THESIS_510[(_c, _m)]
+        _seq += [_s, _l, _d] + ([_lo, _hi] if _lo is not None else []) + [_f]
+_covered.append(("5.10", "tab:ex2:q2:results")
+                + _CK.check_subsequence("tab:ex2:q2:results", _seq))
+
+# 5.11: scene, text, neither, per condition then direction then model.
+_seq = [v for _c in ("conflict", "conflict_face")
+        for _d in ("text forbids Franka", "text permits Franka")
+        for _m in ("gpt_hi", "gemini", "claude_md")
+        for v in THESIS_511[(_c, _d, _m)]]
+_covered.append(("5.11", "tab:ex2:q2:source")
+                + _CK.check_subsequence("tab:ex2:q2:source", _seq))
+
+print()
+for _num, _lab, _got, _tot in _covered:
+    print("  %-5s %-22s %d of %d thesis cells pinned%s"
+          % (_num, _lab, _got, _tot,
+             "" if _got == _tot else "   <-- the rest are not checked here"))
+print(_CK.refresh())
+
 print()
 print("Experiment 2, Q2: tables checked against the thesis")
 show(["Table", "Reports", "Checks"],
