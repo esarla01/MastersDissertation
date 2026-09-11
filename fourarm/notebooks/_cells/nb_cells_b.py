@@ -1646,3 +1646,178 @@ for row in move_rows:
         print("  %-14s %-9s contrast for this model." % ("", ""))
     else:
         print("  %-14s %-9s %s points" % (cond, model, gap))'''
+
+
+MD17 = r"""---
+## Cell 17. Audit: every Q1 table against the thesis
+
+Each table Q1 backs, rebuilt here and checked cell by cell against the number
+printed in Chapter 5. A cell that completes silently is a table that still
+agrees with the write-up; an edited number breaks the assertion.
+
+This is the Experiment 2 counterpart of section 20 of
+`ex1_reproduce_tables.ipynb`. It also emits `tab_ex2_q1_opening.csv`, which
+Table 5.8 needed and which cell 12 only printed.
+"""
+
+C17 = r'''# --- Cell 17. Audit against the thesis. No model calls. ---------------------
+# PUBLISHED VALUES, transcribed from Chapter 5 and never computed here. The
+# whole point is that they are an independent statement of what the thesis
+# says, so deriving them from the same data the cells above use would check
+# nothing.
+
+THESIS_56 = {   # Table 5.6, cue validation: correct count and accuracy
+    ("gpt_hi", "small_face"): (57, 95.0), ("gpt_hi", "large_face"): (50, 83.3),
+    ("gemini", "small_face"): (60, 100.0), ("gemini", "large_face"): (60, 100.0),
+    ("claude_md", "small_face"): (38, 63.3), ("claude_md", "large_face"): (57, 95.0),
+}
+THESIS_56_ALL = {"gpt_hi": 89.2, "gemini": 100.0, "claude_md": 79.2}
+
+THESIS_57 = {   # Table 5.7: share small, share large, contrast, paired CI, flips
+    ("congruent", "gpt_hi"):         (100.0, 0.0, 100.0, None, None, 32),
+    ("congruent", "gemini"):         (100.0, 0.0, 100.0, None, None, 32),
+    ("congruent", "claude_md"):      (100.0, 0.0, 100.0, None, None, 32),
+    ("congruent_face", "gpt_hi"):    (90.6, 1.0, 89.6, 84.1, 95.0, 22),
+    ("congruent_face", "gemini"):    (100.0, 0.0, 100.0, None, None, 32),
+    ("congruent_face", "claude_md"): (47.9, 53.1, -5.2, -21.6, 11.2, 1),
+    ("dims", "gpt_hi"):              (94.8, 92.7, 2.1, -6.2, 10.3, 0),
+    ("dims", "gemini"):              (97.9, 51.0, 46.9, 34.5, 59.3, 6),
+    ("dims", "claude_md"):           (46.9, 57.3, -10.4, -24.3, 3.5, 2),
+}
+
+THESIS_58 = {   # Table 5.8, accuracy of the reported opening
+    ("congruent", "gpt_hi", "small_face"): 100.0,
+    ("congruent", "gpt_hi", "large_face"): 100.0,
+    ("congruent", "gemini", "small_face"): 100.0,
+    ("congruent", "gemini", "large_face"): 100.0,
+    ("congruent", "claude_md", "small_face"): 100.0,
+    ("congruent", "claude_md", "large_face"): 100.0,
+    ("congruent_face", "gpt_hi", "small_face"): 90.6,
+    ("congruent_face", "gpt_hi", "large_face"): 99.0,
+    ("congruent_face", "gemini", "small_face"): 100.0,
+    ("congruent_face", "gemini", "large_face"): 100.0,
+    ("congruent_face", "claude_md", "small_face"): 50.0,
+    ("congruent_face", "claude_md", "large_face"): 40.6,
+    ("dims", "gpt_hi", "small_face"): 94.8,
+    ("dims", "gpt_hi", "large_face"): 7.3,
+    ("dims", "gemini", "small_face"): 97.9,
+    ("dims", "gemini", "large_face"): 49.0,
+    ("dims", "claude_md", "small_face"): 56.2,
+    ("dims", "claude_md", "large_face"): 36.5,
+}
+
+THESIS_59 = {   # Table 5.9: no-image contrast, paired CI, and the with-image one
+    "gpt_hi":    (-2.1, -7.1, 2.9, 2.1),
+    "gemini":    (-6.2, -14.3, 1.8, 46.9),
+    "claude_md": (-3.1, -15.7, 9.4, -10.4),
+}
+
+# A tenth of a point: every value above is printed to one decimal, so this is
+# rounding tolerance and nothing more. It is NOT a tolerance on the result.
+EPS = 0.06
+problems = []
+
+
+def agrees(label, got, want, eps=EPS):
+    if want is None:
+        return True
+    if got is None or abs(got - want) > eps:
+        problems.append("%s: computed %s, thesis prints %s" % (label, got, want))
+        return False
+    return True
+
+
+# Read back the CSVs the cells above wrote. Checking the EMITTED table is the
+# point: that file is what the chapter's numbers were taken from, so a drift
+# between it and the thesis is the drift that matters.
+def emitted(name):
+    with open(TABLES / name) as fh:
+        return list(csv.DictReader(fh))
+
+
+# --- Table 5.6 -------------------------------------------------------------
+cue_csv = {(r["model"], r["resting_face"]): r for r in emitted("tab_ex2_q1_cue.csv")}
+for (model, face), (n_right, acc) in sorted(THESIS_56.items()):
+    row = cue_csv[(model, face)]
+    agrees("5.6 %s %s correct" % (model, face), float(row["correct_n"]),
+           float(n_right), 0.5)
+    agrees("5.6 %s %s accuracy" % (model, face), float(row["accuracy_pct"]), acc)
+for model, acc in sorted(THESIS_56_ALL.items()):
+    sub = [r for r in cue_csv.values() if r["model"] == model]
+    k = sum(int(r["correct_n"]) for r in sub)
+    n = sum(int(r["n_images"]) * 3 for r in sub)      # 20 images x three repeats
+    agrees("5.6 %s overall" % model, round(100.0 * k / n, 1) if n else None, acc)
+
+# --- Table 5.7 -------------------------------------------------------------
+share_csv = {(r["condition"], r["model"], r["resting_face"]): r
+             for r in emitted("tab_ex2_q1_share.csv")}
+con_csv = {(r["condition"], r["model"]): r
+           for r in emitted("tab_ex2_q1_contrasts.csv")}
+for (cond, model), (s_pct, l_pct, d, lo, hi, flips) in sorted(THESIS_57.items()):
+    for face, want in (("small_face", s_pct), ("large_face", l_pct)):
+        agrees("5.7 %s %s %s share" % (cond, model, face),
+               float(share_csv[(cond, model, face)]["franka_share_pct"]), want)
+    row = con_csv[(cond, model)]
+    agrees("5.7 %s %s contrast" % (cond, model), float(row["mean_diff_pts"]), d)
+    agrees("5.7 %s %s flips" % (cond, model), float(row["flip_n"]), float(flips), 0.5)
+    if lo is not None:
+        agrees("5.7 %s %s paired lo" % (cond, model), float(row["paired_lo"]), lo)
+        agrees("5.7 %s %s paired hi" % (cond, model), float(row["paired_hi"]), hi)
+
+# --- Table 5.8, which had no generator -------------------------------------
+# Scored against the opening the CAPTURED face implies, at the 6 mm tolerance
+# cell 12 uses. The denominator is trials, not replies that stated a number:
+# a reply with no opening is a failure to report it, not a missing datum.
+opening_rows = []
+for cond in CONDITIONS:
+    for model in MODELS:
+        for face in FACES:
+            sub = [r for r in ANALYSED if r["condition"] == cond
+                   and r["model"] == model and r["face"] == face]
+            true_open = FACTS[face]["grasp_m"]
+            right = sum(1 for r in sub
+                        if r.get("opening_needed_m") is not None
+                        and abs(r["opening_needed_m"] - true_open) <= 0.006)
+            lo, hi = wilson(right, len(sub))
+            pct = round(100.0 * right / len(sub), 1) if sub else None
+            opening_rows.append([cond, model, face, len(sub), right, pct,
+                                 round(lo, 1), round(hi, 1)])
+            agrees("5.8 %s %s %s" % (cond, model, face), pct,
+                   THESIS_58.get((cond, model, face)))
+
+print("Table 5.8, accuracy of the reported opening")
+show(["condition", "model", "face", "n", "correct", "pct", "lo", "hi"],
+     opening_rows)
+write_csv("tab_ex2_q1_opening.csv",
+          ["condition", "model", "resting_face", "n_trials", "n_correct",
+           "correct_pct", "wilson_lo", "wilson_hi"], opening_rows)
+
+# --- Table 5.9 -------------------------------------------------------------
+ni_csv = {r["model"]: r for r in emitted("tab_ex2_q1_noimage_contrast.csv")}
+for model, (d, lo, hi, vision) in sorted(THESIS_59.items()):
+    row = ni_csv[model]
+    agrees("5.9 %s no-image contrast" % model, float(row["floor_contrast_pts"]), d)
+    agrees("5.9 %s paired lo" % model, float(row["paired_lo"]), lo)
+    agrees("5.9 %s paired hi" % model, float(row["paired_hi"]), hi)
+    agrees("5.9 %s with-image contrast" % model,
+           float(row["vision_contrast_pts"]), vision)
+
+# --- Verdict ---------------------------------------------------------------
+CHECKED = {"5.6": len(THESIS_56) * 2 + len(THESIS_56_ALL),
+           "5.7": len(THESIS_57) * 5, "5.8": len(THESIS_58),
+           "5.9": len(THESIS_59) * 4}
+print("Experiment 2, Q1: tables checked against the thesis")
+show(["Table", "Reports", "Checks"],
+     [["5.6", "cue validation, both faces and overall", CHECKED["5.6"]],
+      ["5.7", "Franka share by face, paired contrast, complete flips", CHECKED["5.7"]],
+      ["5.8", "accuracy of the reported opening", CHECKED["5.8"]],
+      ["5.9", "the no-image floor", CHECKED["5.9"]]])
+
+print()
+for p in problems:
+    print("  MISMATCH  %s" % p)
+print("%d checks against Chapter 5, %d disagreed"
+      % (sum(CHECKED.values()), len(problems)))
+assert not problems, "Q1 no longer reproduces the thesis: %s" % problems[:5]
+print("every Q1 table still matches what Chapter 5 prints")
+'''
