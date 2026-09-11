@@ -16,6 +16,28 @@
 # and four of ten silently lost the flip, because franka_n cannot reach far
 # enough south to pick up an object bound for the north-west food basket.
 #
+# RETIRED, 2026-08-26. The flip object became the procedural block and this
+# spec was superseded by ex2_block.txt, which is what the reported Experiment
+# 2 ran. Kept for provenance; nothing reads it.
+#
+# Two things about it are wrong and are recorded rather than repaired, because
+# repairing a retired spec would mean re-deriving positions for an object the
+# experiment no longer uses:
+#
+#   The paragraph below says nine pairs. There are EIGHT, p01-p08. No ninth
+#   exists in any commit or any capture directory, so nine was the intent and
+#   never the content.
+#
+#   Only SIX were ever captured: p02-p05, p07, p08. p01 and p06 were not.
+#
+# The claim above that every position was verified through the real validator
+# is not reproducible from position reachability alone -- the reach sets at
+# these positions include franka_s, which the claim excludes -- so it must
+# have come from the full validator including the destination and route check.
+# No screening script for this spec survives. ex2_block.txt's equivalent claim
+# IS checkable, by ycb/screen_ex2_block.py, and the harness checks it.
+#
+# ---- original note, kept as written ----
 # Nine pairs, not ten. Only 34 positions in the whole cell satisfy the flip
 # and the arm clearance together, and after spacing them apart no tenth had
 # a partner position far enough away. That is a fact about the cell and it

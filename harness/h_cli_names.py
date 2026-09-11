@@ -248,23 +248,77 @@ check("a malformed spec line is refused by line number, not skipped",
       "line {n}" in _capsrc,
       "a silently dropped scene is a missing pair nobody notices")
 
-# The shipped spec must be internally consistent: every null id must have a
-# matching pair id at the same positions, or the noise floor is measured on
-# different scenes from the effect.
-_spec = os.path.join(_FA, "ycb", "ex2_scenes.txt")
+# ---------------------------------------------------------------------------
+# The scene spec. Points at ex2_block.txt, the spec the reported Experiment 2
+# actually ran: 34 positions, matching section 5.3.1.4. It used to point at
+# ex2_scenes.txt and assert nine pairs -- that file is the retired mustard
+# pilot, it holds eight, only six were ever captured, and no ninth has existed
+# in any commit. A gate pinned to a retired file checks nothing.
+# ---------------------------------------------------------------------------
+
+_spec = os.path.join(_FA, "ycb", "ex2_block.txt")
 if os.path.exists(_spec):
     _rows = [l.split() for l in open(_spec)
-             if l.strip() and not l.strip().startswith("#")]
-    _pairs = {r[1][1:]: (r[2], r[3]) for r in _rows if r[0] == "pair"}
-    _nulls = {r[1][1:]: (r[2], r[3]) for r in _rows if r[0] == "null"}
+             if l.split("#", 1)[0].strip()]
+    _ids = [r[1] for r in _rows]
+
     check("every scene line is well formed",
-          all(len(r) == 4 and r[0] in ("pair", "null") for r in _rows),
+          all(len(r) == 4 and r[0] == "pair" for r in _rows),
           str([r for r in _rows if len(r) != 4][:2]))
-    check("nulls mirror the pairs, same ids and same positions",
-          _pairs == _nulls,
-          "otherwise the noise floor is measured on different scenes")
-    check("the spec has the expected nine pairs", len(_pairs) == 9,
-          f"{len(_pairs)} pairs")
+    check("the spec has the 34 positions the chapter reports",
+          len(_rows) == 34, f"{len(_rows)} positions")
+    check("17 positions on each bank",
+          sum(1 for i in _ids if i[0] == "w") == 17
+          and sum(1 for i in _ids if i[0] == "e") == 17,
+          "the banks differ in which UR is idle, so an uneven split would "
+          "confound bank with idle arm")
+    check("no id appears twice", len(set(_ids)) == len(_ids),
+          "a duplicate id silently overwrites a capture")
+
+    # The header claims every position was pre-screened against the rasters the
+    # validator uses. Check the claim rather than trust it: the same failure
+    # went unnoticed in the mustard spec for the life of the file.
+    sys.path.insert(0, os.path.join(_FA, "ycb"))
+    import screen_ex2_block as _screen                          # REAL screen
+
+    _failed = []
+    for _r in _rows:
+        _ox, _oy = (float(v) for v in _r[2].split(","))
+        _cx, _cy = (float(v) for v in _r[3].split(","))
+        _good, _why = _screen.screen(_r[1][0], _ox, _oy, _cx, _cy)
+        if not _good:
+            _failed.append((_r[1], _why))
+
+    # e10 is expected to fail rule 5: it sits in the band the oblique camera
+    # occludes. That is not a defect in the spec -- it is the position section
+    # 5.3.1.4 excludes as "the block is hidden behind an arm", and the screen
+    # derives it from the rasters alone, without a model. Any OTHER failure is
+    # a position that was captured but should not have been.
+    check("only the known-occluded position fails the screen",
+          [f[0] for f in _failed] == ["e10"],
+          "; ".join("%s: %s" % (i, ", ".join(w)) for i, w in _failed)
+          or "nothing failed, so the expected e10 failure has gone")
+
+    # The two exclusions the chapter names, tied to the data that records them.
+    _inv = os.path.join(_FA, "tables", "ex2_q1", "tab_ex2_q1_inventory.csv")
+    if os.path.exists(_inv):
+        import csv as _csv
+        _rowsi = list(_csv.DictReader(open(_inv)))
+        _unusable = {r["position"]: r for r in _rowsi if r["usable"] != "True"}
+        check("the inventory holds all 34 positions", len(_rowsi) == 34,
+              f"{len(_rowsi)} rows")
+        check("exactly the two documented positions are excluded",
+              set(_unusable) == {"e02", "e10"},
+              f"excluded {sorted(_unusable)}, chapter names two")
+        check("each exclusion is excluded for the reason the chapter gives",
+              _unusable.get("e10", {}).get("occluded") == "True"
+              and "franka_n" not in _unusable.get("e02", {}).get(
+                  "legal_small_face", "franka_n"),
+              "e10 is the occluded one; e02 is the one where the Franka is "
+              "never legal, so no arm choice arises")
+
+# ex2_scenes.txt is the retired mustard pilot and is deliberately not asserted
+# on. ycb/README.md records what it is and why it stays.
 
 print("RESULT:", "ALL PASS" if not fails else f"{len(fails)} FAILURES: {fails}")
 sys.exit(1 if fails else 0)
