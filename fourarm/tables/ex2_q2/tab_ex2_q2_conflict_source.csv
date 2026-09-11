@@ -1,0 +1,13 @@
+condition,model,direction,n_trials,n_scene,n_text,n_neither,scene_pct,text_pct,neither_pct
+conflict,gpt_hi,text forbids Franka,96,0,96,0,0.0,100.0,0.0
+conflict,gpt_hi,text permits Franka,96,0,96,0,0.0,100.0,0.0
+conflict,gemini,text forbids Franka,96,0,96,0,0.0,100.0,0.0
+conflict,gemini,text permits Franka,96,0,96,0,0.0,100.0,0.0
+conflict,claude_md,text forbids Franka,96,0,96,0,0.0,100.0,0.0
+conflict,claude_md,text permits Franka,96,0,96,0,0.0,100.0,0.0
+conflict_face,gpt_hi,text forbids Franka,96,0,94,2,0.0,97.9,2.1
+conflict_face,gpt_hi,text permits Franka,96,10,86,0,10.4,89.6,0.0
+conflict_face,gemini,text forbids Franka,96,0,96,0,0.0,100.0,0.0
+conflict_face,gemini,text permits Franka,96,0,96,0,0.0,100.0,0.0
+conflict_face,claude_md,text forbids Franka,96,49,46,1,51.0,47.9,1.0
+conflict_face,claude_md,text permits Franka,96,49,46,1,51.0,47.9,1.0

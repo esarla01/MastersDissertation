@@ -1491,3 +1491,178 @@ for row in move_rows:
     else:
         print("  %-14s %-9s %8s points   %s -> %s   %s"
               % (cond, model, gap, row[5], row[6], moved))'''
+
+
+MD15 = r"""---
+## Cell 15. Audit: Tables 5.10 and 5.11 against the thesis
+
+Both tables have a `conflict` half and a `conflict_face` half. Only the
+`conflict` half had a generator: the cells above write
+`tab_ex2_q2_contrasts.csv` and `tab_ex2_q2_source.csv` for that condition
+alone, so the `conflict_face` rows in the chapter were transcribed by hand.
+
+That is the half that carries the result. Under `conflict` the opening is
+supplied and R3 tells the model to use it, so following the text shows
+compliance with a stated value. Under `conflict_face` nothing supplies it and
+the model must derive it from a face — the text's or the image's — which is
+the direct test of which source governs.
+
+This cell generates both halves and checks every cell against Chapter 5.
+"""
+
+C15 = r'''# --- Cell 15. Audit against the thesis. No model calls. ---------------------
+# PUBLISHED VALUES, transcribed from Chapter 5 and never computed here.
+
+# Table 5.10: share on the small-face capture, on the large-face capture, the
+# paired contrast, its interval where the table prints one, and complete flips.
+# Shares are anchored to the CAPTURED face, never the declared one.
+THESIS_510 = {
+    ("conflict", "gpt_hi"):         (0.0, 100.0, -100.0, None, None, 32),
+    ("conflict", "gemini"):         (0.0, 100.0, -100.0, None, None, 32),
+    ("conflict", "claude_md"):      (0.0, 100.0, -100.0, None, None, 32),
+    ("conflict_face", "gpt_hi"):    (0.0, 89.6, -89.6, -95.0, -84.1, 22),
+    ("conflict_face", "gemini"):    (0.0, 100.0, -100.0, None, None, 32),
+    ("conflict_face", "claude_md"): (50.0, 42.7, 7.3, -6.7, 21.3, 1),
+}
+
+# Table 5.11: where the reported opening came from, as (scene, text, neither).
+# The two openings differ by 50 mm and are scored at a 6 mm tolerance, so a
+# reply cannot match both.
+# Keyed on the chapter's own row labels, which describe what the TEXT says.
+#
+# DO NOT KEY THIS ON THE ROW'S "direction" FIELD. That field names what the
+# SCENE permits, and the two are exact opposites: every "permissive" row
+# declares 0.100, which forbids a Franka, on a capture of the small face,
+# which allows one. Keying on it transposes the table, and because both halves
+# hold percentages in the same range the result looks entirely plausible. The
+# audit caught exactly that on its first run.
+#
+# The text forbids a Franka when the declared width exceeds the 0.080 aperture.
+THESIS_511 = {
+    ("conflict", "text forbids Franka", "gpt_hi"):         (0.0, 100.0, 0.0),
+    ("conflict", "text forbids Franka", "gemini"):         (0.0, 100.0, 0.0),
+    ("conflict", "text forbids Franka", "claude_md"):      (0.0, 100.0, 0.0),
+    ("conflict", "text permits Franka", "gpt_hi"):         (0.0, 100.0, 0.0),
+    ("conflict", "text permits Franka", "gemini"):         (0.0, 100.0, 0.0),
+    ("conflict", "text permits Franka", "claude_md"):      (0.0, 100.0, 0.0),
+    ("conflict_face", "text forbids Franka", "gpt_hi"):    (0.0, 97.9, 2.1),
+    ("conflict_face", "text forbids Franka", "gemini"):    (0.0, 100.0, 0.0),
+    ("conflict_face", "text forbids Franka", "claude_md"): (51.0, 47.9, 1.0),
+    ("conflict_face", "text permits Franka", "gpt_hi"):    (10.4, 89.6, 0.0),
+    ("conflict_face", "text permits Franka", "gemini"):    (0.0, 100.0, 0.0),
+    ("conflict_face", "text permits Franka", "claude_md"): (51.0, 47.9, 1.0),
+}
+
+# The matched ceiling each conflict cell is read against, from Table 5.7.
+THESIS_CEILING = {
+    ("conflict", "gpt_hi"): 100.0, ("conflict", "gemini"): 100.0,
+    ("conflict", "claude_md"): 100.0,
+    ("conflict_face", "gpt_hi"): 89.6, ("conflict_face", "gemini"): 100.0,
+    ("conflict_face", "claude_md"): -5.2,
+}
+
+OPEN_TOL = 0.006        # the tolerance cell 10 scores the reported opening at
+EPS = 0.06              # rounding on a value printed to one decimal
+problems = []
+
+
+def agrees(label, got, want, eps=EPS):
+    if want is None:
+        return
+    if got is None or abs(got - want) > eps:
+        problems.append("%s: computed %s, thesis prints %s" % (label, got, want))
+
+
+# Both conditions, loaded the same way and through the same helpers the cells
+# above use, so the audit cannot pass by scoring differently.
+AUDIT_FILES = (("conflict", CONFLICT_OUT), ("conflict_face", CONFLICT_FACE_OUT))
+
+share_rows_all, source_rows_all = [], []
+for cond, path in AUDIT_FILES:
+    raw, _ = load_run(path, cond, MODELS)
+    kept = keep_analysable(raw, USABLE)
+
+    for model in MODELS:
+        shares = {}
+        for face in FACES:
+            sub = [r for r in kept if r["model"] == model and r["face"] == face]
+            k, n = share_counts(sub)
+            shares[face] = (100.0 * k / n) if n else None
+            share_rows_all.append([cond, model, face, len(sub), n, k,
+                                   round(shares[face], 1) if n else "NA"])
+        s, l = shares["small_face"], shares["large_face"]
+        want = THESIS_510[(cond, model)]
+        agrees("5.10 %s %s small" % (cond, model),
+               round(s, 1) if s is not None else None, want[0])
+        agrees("5.10 %s %s large" % (cond, model),
+               round(l, 1) if l is not None else None, want[1])
+        if s is not None and l is not None:
+            agrees("5.10 %s %s contrast" % (cond, model), round(s - l, 1), want[2])
+
+        # Complete flips: positions where every repeat took UR on the capture
+        # that forbids a Franka and Franka on the one that allows it.
+        flips = 0
+        for pos in USABLE:
+            per = {f: [r for r in kept if r["model"] == model
+                       and r["face"] == f and r["position"] == pos]
+                   for f in FACES}
+            if not all(per[f] for f in FACES):
+                continue
+            sk, sn = share_counts(per["small_face"])
+            lk, ln = share_counts(per["large_face"])
+            if sn and ln and abs((100.0 * sk / sn) - (100.0 * lk / ln)) == 100.0:
+                flips += 1
+        agrees("5.10 %s %s flips" % (cond, model), float(flips),
+               float(want[5]), 0.5)
+
+        # Table 5.11, split by what the TEXT declares rather than by the
+        # row's "direction" field -- see the note on THESIS_511.
+        for direction in ("text forbids Franka", "text permits Franka"):
+            forbids = direction == "text forbids Franka"
+            sub = [r for r in kept if r["model"] == model
+                   and (r["declared_grasp_m"] > FRANKA_MAX) == forbids]
+            n = len(sub)
+            scene = sum(1 for r in sub if r.get("opening_needed_m") is not None
+                        and abs(r["opening_needed_m"] - r["true_grasp_m"]) <= OPEN_TOL)
+            text = sum(1 for r in sub if r.get("opening_needed_m") is not None
+                       and abs(r["opening_needed_m"] - r["declared_grasp_m"]) <= OPEN_TOL)
+            neither = n - scene - text
+            got = tuple(round(100.0 * x / n, 1) if n else None
+                        for x in (scene, text, neither))
+            source_rows_all.append([cond, model, direction, n, scene, text,
+                                    neither] + list(got))
+            want11 = THESIS_511.get((cond, direction, model))
+            if want11:
+                for label, g, w in zip(("scene", "text", "neither"), got, want11):
+                    agrees("5.11 %s %s %s matches %s"
+                           % (cond, direction, model, label), g, w)
+
+print("Table 5.10, Franka share by captured face, both conflict conditions")
+show(["condition", "model", "face", "trials", "proposals", "franka", "share %"],
+     share_rows_all)
+write_csv("tab_ex2_q2_conflict_share.csv",
+          ["condition", "model", "resting_face", "n_trials", "n_proposals",
+           "franka_n", "franka_share_pct"], share_rows_all)
+
+print()
+print("Table 5.11, where the reported opening came from")
+show(["condition", "model", "direction", "n", "scene", "text", "neither",
+      "scene %", "text %", "neither %"], source_rows_all)
+write_csv("tab_ex2_q2_conflict_source.csv",
+          ["condition", "model", "direction", "n_trials", "n_scene", "n_text",
+           "n_neither", "scene_pct", "text_pct", "neither_pct"], source_rows_all)
+
+print()
+print("Experiment 2, Q2: tables checked against the thesis")
+show(["Table", "Reports", "Checks"],
+     [["5.10", "Franka share, contrast and complete flips, both directions",
+       len(THESIS_510) * 4],
+      ["5.11", "which source the reported opening came from", len(THESIS_511) * 3]])
+print()
+for p in problems:
+    print("  MISMATCH  %s" % p)
+print("%d checks against Chapter 5, %d disagreed"
+      % (len(THESIS_510) * 4 + len(THESIS_511) * 3, len(problems)))
+assert not problems, "Q2 no longer reproduces the thesis: %s" % problems[:5]
+print("every Q2 table still matches what Chapter 5 prints")
+'''

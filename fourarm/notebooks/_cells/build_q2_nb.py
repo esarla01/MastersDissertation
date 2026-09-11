@@ -99,6 +99,7 @@ CELLS = [
     ("md", MD12),   ("code", C12),       # figure, Q1's, repointed
     ("md", Q.MD13), ("code", Q.C13),     # provenance
     ("md", Q.MD14), ("code", Q.C14),     # the frame read-out
+    ("md", Q.MD15), ("code", Q.C15),     # the audit against Chapter 5
 ]
 
 
