@@ -13,7 +13,7 @@ points, and all three were stale. The gate reports the current number.
 > the results tables it does carry are `design`, `baseline`, `composition`,
 > `signatures`, `castb` and `swap`. For the current set, and for a table-by-table
 > rebuild from the raw data, run
-> `analysis/ex1/ex1_reproduce_tables.ipynb`. It regenerates all thirteen
+> `notebooks/ex1/ex1_reproduce_tables.ipynb`. It regenerates all thirteen
 > published tables and checks each against the thesis; its section 20 is the
 > up-to-date provenance list.
 

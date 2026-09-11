@@ -58,7 +58,7 @@ probes:
 verify-ex1:
 	@echo "== Experiment 1 =="
 	@cd fourarm && $(PY) analysis/ex1/ex1_verify_tables.py --quiet
-	@cd fourarm && cp analysis/ex1/ex1_reproduce_tables.ipynb analysis/ex1/.verify.ipynb; \
+	@cd fourarm && cp notebooks/ex1/ex1_reproduce_tables.ipynb analysis/ex1/.verify.ipynb; \
 	  if $(NBEXEC) --inplace analysis/ex1/.verify.ipynb >/dev/null 2>&1; then \
 	    got=$$($(PY) -c "import json,sys,re; nb=json.load(open('analysis/ex1/.verify.ipynb')); \
 t=[''.join(o.get('text',[])) for c in nb['cells'] for o in c.get('outputs',[]) if 'text' in o]; \
@@ -77,8 +77,8 @@ m=[x for x in m if x][-1:]; print(m[0].group(0) if m else 'no audit line')"); \
 # actually bought.
 verify-ex2:
 	@echo "== Experiment 2 =="
-	@cd fourarm && for nb in notebooks/ex2_q1_derivation notebooks/ex2_q2_precedence \
-	    notebooks/ex2_q3_remediation notebooks/ex2_q3_repair; do \
+	@cd fourarm && for nb in notebooks/ex2/ex2_q1_derivation notebooks/ex2/ex2_q2_precedence \
+	    notebooks/ex2/ex2_q3_remediation notebooks/ex2/ex2_q3_repair; do \
 	  cp $$nb.ipynb $$nb.verify.ipynb; \
 	  if $(NBEXEC) --inplace $$nb.verify.ipynb >/dev/null 2>&1; then \
 	    echo "  $$(basename $$nb) ok"; else echo "  $$(basename $$nb) FAILED"; \

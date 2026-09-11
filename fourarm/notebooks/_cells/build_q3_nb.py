@@ -1,6 +1,6 @@
 """Build ex2_q3_remediation.ipynb from the cell sources beside it.
 
-    python3 notebooks/build_q3_nb.py notebooks/ex2_q3_remediation.ipynb
+    python3 notebooks/_cells/build_q3_nb.py notebooks/ex2/ex2_q3_remediation.ipynb
 
 Q3 SHARES CELLS WITH Q1 RATHER THAN COPYING THEM. The key paste, the block
 geometry check and the capture inventory are Q1's own strings, used here

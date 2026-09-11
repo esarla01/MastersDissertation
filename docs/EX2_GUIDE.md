@@ -149,11 +149,11 @@ scenes are filtered via `r['seq'][0] in ('p','e')`.
 
 ## Question 1: derivation
 
-`notebooks/ex2_q1_derivation.ipynb` runs and analyses Q1 one cell at a time.
+`notebooks/ex2/ex2_q1_derivation.ipynb` runs and analyses Q1 one cell at a time.
 Regenerate it from source rather than hand-editing the JSON:
 
 ```bash
-python3 notebooks/build_q1_nb.py notebooks/ex2_q1_derivation.ipynb
+python3 notebooks/_cells/build_q1_nb.py notebooks/ex2/ex2_q1_derivation.ipynb
 ```
 
 Cells that spend money print the call count and refuse to run until
@@ -163,14 +163,14 @@ a cell costs nothing and destroys nothing. Outputs go to `tables/ex2_q1/` and
 
 ## Question 2: precedence
 
-`notebooks/ex2_q2_precedence.ipynb` asks which source governs when the text
+`notebooks/ex2/ex2_q2_precedence.ipynb` asks which source governs when the text
 states the capability-relevant quantity and the scene contradicts it. One new
 condition, `conflict`, already implemented in `transforms.py`: each face
 declares the other, so both the resting face and the opening are false and
 every trial crosses the Franka aperture.
 
 ```bash
-python3 notebooks/build_q2_nb.py notebooks/ex2_q2_precedence.ipynb
+python3 notebooks/_cells/build_q2_nb.py notebooks/ex2/ex2_q2_precedence.ipynb
 ```
 
 **It shares cells with Q1 rather than copying them.** The key paste, the block
@@ -255,12 +255,12 @@ text.
 
 ## Question 3: remediation
 
-`notebooks/ex2_q3_remediation.ipynb` asks which kind of instruction moves a
+`notebooks/ex2/ex2_q3_remediation.ipynb` asks which kind of instruction moves a
 model from following the text to using the scene. The six rungs come from
 `prompts.RUNGS` and are not redefined.
 
 ```bash
-python3 notebooks/build_q3_nb.py notebooks/ex2_q3_remediation.ipynb
+python3 notebooks/_cells/build_q3_nb.py notebooks/ex2/ex2_q3_remediation.ipynb
 ```
 
 **The gate is N-D, not N-CD.** The 2026-08-27 pilots already show Gemini going

@@ -6,8 +6,13 @@ Output: <thesis>/tables/ex2_q3_*.tex, filenames derived from the \\label.
 """
 import csv, os
 
-SRC = "/Users/erinsarlak/Downloads/MastersDissertation/fourarm/tables/ex2_q3"
-OUT = "/Users/erinsarlak/Desktop/msc-paper/tables"
+# Resolved from this file rather than hardcoded, which pinned both to one
+# machine. THESIS_REPO matches the variable ex1_reproduce_tables.ipynb uses.
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(
+    os.path.abspath(__file__))))
+SRC = os.path.join(ROOT, "tables", "ex2_q3")
+OUT = os.path.join(os.path.expanduser(
+    os.environ.get("THESIS_REPO", "~/Desktop/msc-paper")), "tables")
 
 MODELS = ["gpt_hi", "gemini", "claude_md"]
 RUNGS = ["N0", "N-A", "N-C", "N-order", "N-D", "N-CD"]

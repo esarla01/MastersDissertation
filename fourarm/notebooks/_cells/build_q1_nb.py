@@ -1,6 +1,6 @@
 """Build ex2_q1_derivation.ipynb from the cell sources beside it.
 
-    python3 notebooks/build_q1_nb.py notebooks/ex2_q1_derivation.ipynb
+    python3 notebooks/_cells/build_q1_nb.py notebooks/ex2/ex2_q1_derivation.ipynb
 
 
 nbformat is not installed in either project venv, so the notebook is emitted

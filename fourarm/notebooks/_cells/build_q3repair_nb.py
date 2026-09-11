@@ -1,6 +1,6 @@
 """Build ex2_q3_repair.ipynb from the cell sources beside it.
 
-    python3 notebooks/build_q3repair_nb.py notebooks/ex2_q3_repair.ipynb
+    python3 notebooks/_cells/build_q3repair_nb.py notebooks/ex2/ex2_q3_repair.ipynb
 
 SHARES CELLS 0 TO 3 WITH Q1 rather than copying them, for the same reason
 build_q1_nb.py's siblings do: a fix to the key loader, the root finder, the

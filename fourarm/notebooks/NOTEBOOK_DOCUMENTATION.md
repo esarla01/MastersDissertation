@@ -15,7 +15,7 @@ cd fourarm
 export OPENAI_API_KEY='...'      # for the `gpt` alias
 export GEMINI_API_KEY='...'      # for the `gemini` alias
 
-../.venv/bin/python -m jupyter lab notebooks/ex2_q1_derivation.ipynb
+../.venv/bin/python -m jupyter lab notebooks/ex2/ex2_q1_derivation.ipynb
 ```
 
 Then run cells 1–4 (free), read the cost printed by cell 5, set
@@ -192,7 +192,7 @@ from `ROOT`, so nothing depends on the launch directory beyond that.
 Edit the cell sources and rebuild rather than hand-editing JSON:
 
 ```bash
-python3 notebooks/build_q1_nb.py notebooks/ex2_q1_derivation.ipynb
+python3 notebooks/_cells/build_q1_nb.py notebooks/ex2/ex2_q1_derivation.ipynb
 ```
 
 `nbformat` is not installed in either venv, so the builder emits the notebook

@@ -8,7 +8,7 @@ finds later and has to re-derive.
 None of these changes a reported result. Every cell value in every table is
 correct; what is wrong is two pieces of surrounding text.
 
-Verified 11 September 2026 against `fourarm/analysis/ex1/ex1_reproduce_tables.ipynb`,
+Verified 11 September 2026 against `fourarm/notebooks/ex1/ex1_reproduce_tables.ipynb`,
 which regenerates all thirteen Experiment 1 tables from the frozen data.
 
 ---

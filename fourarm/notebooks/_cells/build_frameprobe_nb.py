@@ -1,6 +1,6 @@
 """Build ex2_frame_probe.ipynb from the cell sources beside it.
 
-    python3 notebooks/build_frameprobe_nb.py notebooks/ex2_frame_probe.ipynb
+    python3 notebooks/_cells/build_frameprobe_nb.py notebooks/ex2/ex2_frame_probe.ipynb
 
 SHARES CELLS 0 TO 3 WITH Q1 rather than copying them, for the same reason
 build_q3_nb.py does: a fix to the key loader, the root finder, the design check
