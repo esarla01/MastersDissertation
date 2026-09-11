@@ -14,7 +14,7 @@ Expected output:
 == Experiment 1 ==       303/303 checks passed
                          ex1_reproduce_tables.ipynb: 13 of 13 tables regenerated
 == Experiment 2 ==       q1, q2, q3_remediation, q3_repair ok
-== appendix tables ==    12 of 12 appendix tables
+== appendix tables ==    13 of 13 appendix tables
 == harness ==            49 passed, 0 failed
 all checks passed
 ```
@@ -41,8 +41,8 @@ Individual targets: `make probes`, `make verify-ex1`, `make verify-ex2`,
 | `manifest` | Every published run file is present and holds what it claims — row count, rung, probe-set hash — and nothing sits in `out/` or `runs/` that no list accounts for |
 | `probes` | All nine probe sets still hash to what they hashed when frozen, and the 278 → 185 → 162 derivation reproduces Appendix D |
 | `verify-ex1` | Tables 4.1–4.11, F.1 and G.1, by two independent routes (see below) |
-| `verify-ex2` | Tables 5.6–5.14, 216 checks against the chapter |
-| `appendix` | Tables 3.1, 3.2, A.1, A.2, B.1, B.2, C.1, D.1, E.1–E.4 |
+| `verify-ex2` | Tables 5.6–5.14: 216 checks against the emitted CSVs, and the transcribed constants checked against the thesis LaTeX |
+| `appendix` | Tables 3.1, 3.2, **5.2**, A.1, A.2, B.1, B.2, C.1, D.1, E.1–E.4 |
 | `harness` | 49 regression gates over the cell, the allocators, the prompts and the analysis helpers |
 
 Experiment 1 is checked twice on purpose. `ex1_verify_tables.py` recomputes
