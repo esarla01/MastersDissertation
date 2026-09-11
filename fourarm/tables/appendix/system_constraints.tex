@@ -1,0 +1,16 @@
+\begin{table}[H]
+\centering
+\caption{The five constraints the validator checks.}
+\label{tab:system:constraints}
+\begin{tabular}{ll}
+\toprule
+Constraint & The check \\
+\midrule
+Reach & The arm can reach both the object's current position and the task's destination zone. \\
+Grasp & The object's grasp width in its current pose does not exceed the arm's gripper aperture. \\
+Delicacy & An object flagged delicate is assigned only to an arm cleared for delicate handling. \\
+Payload & The object's mass does not exceed the arm's payload limit. \\
+Route & The path the task requires is available to that arm, accounting for zone occupancy. \\
+\bottomrule
+\end{tabular}
+\end{table}

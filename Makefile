@@ -16,7 +16,7 @@ VENV := $(CURDIR)/.venv/bin/python
 NBEXEC := $(VENV) -m jupyter nbconvert --to notebook --execute \
           --ExecutePreprocessor.timeout=900
 
-.PHONY: all verify verify-ex1 verify-ex2 harness manifest probes spend-check setup clean help
+.PHONY: all verify verify-ex1 verify-ex2 appendix harness manifest probes spend-check setup clean help
 
 all: verify
 
@@ -25,7 +25,7 @@ help:
 
 # ---------------------------------------------------------------------------
 
-verify: spend-check manifest probes verify-ex1 verify-ex2 harness
+verify: spend-check manifest probes verify-ex1 verify-ex2 appendix harness
 	@echo
 	@echo "all checks passed"
 
@@ -85,6 +85,21 @@ verify-ex2:
 	    rm -f $$nb.verify.ipynb; exit 1; fi; \
 	  rm -f $$nb.verify.ipynb; \
 	done
+
+# The appendix and Chapter 3 tables, rebuilt from the modules that define
+# them and checked against the thesis.
+appendix:
+	@echo "== appendix tables =="
+	@cd fourarm && cp notebooks/appendix/appendix_tables.ipynb notebooks/appendix/.verify.ipynb; \
+	  if $(NBEXEC) --inplace notebooks/appendix/.verify.ipynb >/dev/null 2>&1; then \
+	    got=$$($(PY) -c "import json,re; nb=json.load(open('notebooks/appendix/.verify.ipynb')); \
+t=[''.join(o.get('text',[])) for c in nb['cells'] for o in c.get('outputs',[]) if 'text' in o]; \
+m=[x for x in (re.search(r'(\d+) of (\d+) appendix tables', y) for y in t) if x][-1:]; \
+print(m[0].group(0) if m else 'no audit line')"); \
+	    rm -f notebooks/appendix/.verify.ipynb; \
+	    echo "  appendix_tables.ipynb: $$got"; \
+	    case "$$got" in "6 of 6"*) ;; *) echo "  EXPECTED 6 of 6."; exit 1;; esac; \
+	  else rm -f notebooks/appendix/.verify.ipynb; echo "  appendix_tables.ipynb FAILED"; exit 1; fi
 
 harness:
 	@echo "== harness =="
