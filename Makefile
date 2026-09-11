@@ -47,9 +47,13 @@ manifest:
 
 # The frozen probe sets: content hashes, the 278 -> 185 -> 162 derivation
 # Appendix D describes, and the six per-source counts in Table D.1.
+# Output is captured rather than piped. "cmd | tail -1" takes the pipeline's
+# exit status from tail, which is always 0, so this target could not fail --
+# a tampered probe set passed it while the audit itself exited 1.
 probes:
 	@echo "== probe sets =="
-	@cd fourarm && $(PY) harvest/probe_audit.py | tail -1
+	@cd fourarm && out=$$($(PY) harvest/probe_audit.py) \
+	  || { echo "$$out"; exit 1; }; echo "$$out" | tail -1
 
 # The notebook's table checks read the thesis LaTeX. Without it they report
 # SKIPPED, print "0 of 13", and still exit 0 -- so the count is extracted and
