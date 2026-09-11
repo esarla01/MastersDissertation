@@ -51,14 +51,26 @@ probes:
 	@echo "== probe sets =="
 	@cd fourarm && $(PY) harvest/probe_audit.py | tail -1
 
+# The notebook's table checks read the thesis LaTeX. Without it they report
+# SKIPPED, print "0 of 13", and still exit 0 -- so the count is extracted and
+# required to be 13, rather than printed as a constant. A green verify that
+# checked nothing is worse than a red one.
 verify-ex1:
 	@echo "== Experiment 1 =="
 	@cd fourarm && $(PY) analysis/ex1/ex1_verify_tables.py --quiet
-	@cd fourarm && cp analysis/ex1/ex1_reproduce_tables.ipynb analysis/ex1/.verify.ipynb \
-	  && $(NBEXEC) --inplace analysis/ex1/.verify.ipynb >/dev/null 2>&1 \
-	  && rm -f analysis/ex1/.verify.ipynb \
-	  && echo "  ex1_reproduce_tables.ipynb: 13 of 13 tables matched" \
-	  || { rm -f analysis/ex1/.verify.ipynb; echo "  ex1_reproduce_tables.ipynb FAILED"; exit 1; }
+	@cd fourarm && cp analysis/ex1/ex1_reproduce_tables.ipynb analysis/ex1/.verify.ipynb; \
+	  if $(NBEXEC) --inplace analysis/ex1/.verify.ipynb >/dev/null 2>&1; then \
+	    got=$$($(PY) -c "import json,sys,re; nb=json.load(open('analysis/ex1/.verify.ipynb')); \
+t=[''.join(o.get('text',[])) for c in nb['cells'] for o in c.get('outputs',[]) if 'text' in o]; \
+m=[re.search(r'(\d+) of (\d+) tables regenerated', x) for x in t]; \
+m=[x for x in m if x][-1:]; print(m[0].group(0) if m else 'no audit line')"); \
+	    rm -f analysis/ex1/.verify.ipynb; \
+	    echo "  ex1_reproduce_tables.ipynb: $$got"; \
+	    case "$$got" in "13 of 13"*) ;; *) \
+	      echo "  EXPECTED 13 of 13. Tables are checked against the thesis LaTeX;"; \
+	      echo "  set THESIS_REPO to it (default ~/Desktop/msc-paper) or they SKIP."; \
+	      exit 1;; esac; \
+	  else rm -f analysis/ex1/.verify.ipynb; echo "  ex1_reproduce_tables.ipynb FAILED"; exit 1; fi
 
 # The paid cells are inert with CONFIRM_SPEND unset, so this is offline. It
 # executes copies: the tracked notebooks keep the outputs of the runs that were
