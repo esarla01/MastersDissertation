@@ -55,26 +55,43 @@ thesis is not.
 
 ```
 .
-├── README.md
-├── docs/                     how to reproduce each experiment
-│   ├── TABLE_PROVENANCE.md   Experiment 1 tables, sources, commands
-│   └── EX2_GUIDE.md          Experiment 2 pipeline, in running order
-├── harness/                  regression gates, one per subsystem
+├── Makefile                  make verify runs everything, offline
+├── pyproject.toml            deps; requirements.lock pins them
+├── docs/
+│   ├── REPRODUCE.md          clean checkout -> every number
+│   ├── SIMULATION.md         the cell, and how a probe set is made
+│   ├── TABLE_PROVENANCE.md   Experiment 1, table by table
+│   ├── PROVENANCE_EX2.md     Experiment 2, table by table
+│   ├── DATA_DICTIONARY.md    every field, with units
+│   ├── ERRATA.md             where the code is right and the thesis is not
+│   ├── EX2_GUIDE.md          the Experiment 2 pipeline, in running order
+│   └── history/              superseded working notes
+├── harness/                  49 regression gates
 ├── attic/                    superseded code, kept for provenance only
-└── fourarm/                  the package
-    ├── core/                 cell, control and decision layers
-    ├── experiments/          ex1/ and ex2/ prompt and runner modules
-    ├── analysis/             harvest, replay, scoring, reporting
-    │   ├── ex1/ ex2/         one directory per experiment
-    │   ├── episode/ cell/    pre-reframe episode tools, cell geometry
-    │   ├── retired/          dead, kept for one import
-    │   └── *.py              shared infrastructure, imported by the rest
-    ├── ycb/                  scene assembly and the episode runner
-    ├── instrumentation/      episode logging and recording
+└── fourarm/
+    ├── run_files.py          WHICH run file backs which published result
+    ├── thesis_check.py       comparing a generated table against the thesis
+    ├── core/                 cell, control, allocators
+    ├── ycb/                  scene assembly, episode and capture runners
+    ├── instrumentation/      episode logging
+    ├── harvest/              episode trail -> frozen probe set, and replay
+    ├── experiments/          ex1/ and ex2/ prompt modules
+    ├── analysis/             scoring helpers, and the EX1 verify script
+    ├── notebooks/
+    │   ├── ex1/              all thirteen Chapter 4 tables
+    │   ├── ex2/              one notebook per Chapter 5 sub-question
+    │   ├── appendix/         Chapter 3 and appendix tables
+    │   ├── _cells/           the sources the EX2 notebooks are built from
+    │   └── publish/          CSV and runs -> the .tex the thesis inputs
     ├── probes/               frozen, content-hashed decision states
     ├── out/                  Experiment 1 run files (see out/README.md)
-    └── runs/                 Experiment 2 run files (see runs/README.md)
+    ├── runs/                 Experiment 2 run files (see runs/README.md)
+    └── tables/  figures/     generated output, one directory per experiment
 ```
+
+The split that matters is which code needs a simulator. Only `ycb/run_*` and
+`ycb/capture_*` import Isaac Lab; everything else is plain Python, which is
+what lets a frozen state be re-rendered and re-judged offline.
 
 `out/` holds Experiment 1 results and `runs/` holds Experiment 2 results, with
 no exceptions: the image-on cell that earlier notes place in `runs/` was moved
@@ -89,26 +106,31 @@ accounts for.
 
 ## Finding your way around
 
-Four README files carry the map. Each sits next to what it describes.
+Start with the question, not the directory.
 
-| File | Answers |
+| Question | Read |
 |---|---|
-| `docs/TABLE_PROVENANCE.md` | Where does each published number come from, and how do I check it |
-| `fourarm/analysis/README.md` | What is each script for, which are shared, which belong to which experiment |
-| `fourarm/out/README.md` | What do the Experiment 1 run filenames mean, which must never be used |
-| `fourarm/runs/README.md` | The same for Experiment 2 |
-| `docs/EX2_GUIDE.md` | How do I run the Experiment 2 pipeline end to end |
+| How do I reproduce every number? | `docs/REPRODUCE.md` |
+| Where does this Chapter 4 number come from? | `docs/TABLE_PROVENANCE.md` |
+| Where does this Chapter 5 number come from? | `docs/PROVENANCE_EX2.md` |
+| What is this field, and in what units? | `docs/DATA_DICTIONARY.md` |
+| How does the cell work, and how is a probe set made? | `docs/SIMULATION.md` |
+| Which notebook produces which table? | `fourarm/notebooks/README.md` |
+| What do these run filenames mean? | `fourarm/out/README.md`, `fourarm/runs/README.md` |
+| How do I re-run the Experiment 2 pipeline? | `docs/EX2_GUIDE.md` |
+| Where is the code right and the thesis wrong? | `docs/ERRATA.md` |
 
-Scripts in `analysis/` are grouped by scope into `ex1/`, `ex2/`, `episode/`
-for pre-reframe episode tools used by no reported result, `cell/` for
-geometry, and `retired/` for dead code. Shared infrastructure that other
-modules import stays at the top of `analysis/`. Run every script from
-`fourarm/`, as in the command above, not from its own directory.
+Run everything from the repository root through `make`. Scripts and notebooks
+assume the working directory is `fourarm/` or below, which the Makefile
+handles.
 
-**Data files are never renamed.** Their names appear in the thesis, in the
-provenance record and in the verification script, so a rename would break the
-trail from a published number to the data behind it. The README in each data
-directory does the decoding instead.
+**Data files are never renamed or moved.** Their names appear in the thesis, in
+the provenance record and in the verification script, so a rename breaks the
+trail from a published number to the data behind it. The August 2026 rename was
+recorded with md5s in `out/RENAME_MANIFEST.json` and still broke the verify
+script, six harness gates and the provenance document, because its consumers
+were never updated. `run_files.py` exists so that a rename now means editing one
+file.
 
 ---
 
