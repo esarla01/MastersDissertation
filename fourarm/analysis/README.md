@@ -51,36 +51,20 @@ directly fails on `No module named 'core'`, which is expected.
 
 ## ex1/
 
-Run in roughly this order. All read from `out/` and `probes/`.
+Three files. Everything else that was here is in `attic/analysis_ex1_pipeline/`
+or deleted; `git log -- fourarm/analysis/ex1/` has the reasons.
 
 | Module | Does |
 |---|---|
-| `ex1_reproduce_tables.ipynb` | **Start here.** Rebuilds all thirteen published Experiment 1 tables from the frozen probe sets and the run files, explains each population and statistic, and checks every generated table against the numbers printed in the thesis. Self-contained: standard library only, no analysis script imported except the validator and the condition roster |
-| `ex1_chance_floor.py` | Computes the chance floor and width-blind reference lines. Writes `out/ex1_chance_floor.json` |
-| `ex1_report.py` | The main tables, one pass over every run file |
-| `ex1_verify_tables.py` | Regenerates every published table from raw data and diffs it against the thesis. **Start here.** See `docs/TABLE_PROVENANCE.md` |
-| `ex1_effects.py` | Effect sizes and intervals for the results section. Standard library only |
-| `ex1_audit_states.py` | Checks the probe set and pipeline before spending on a run |
-| `ex1_audit_rows.py` | Independently re-scores a finished run |
-| `ex1_explain_route.py` | Why a handover was or was not available, pad by pad. The R5 sensitivity check |
-| `ex1_check_swap.py` | Whether the swap happened, and was scored against the true state |
-| `ex1_repair_failures.py` | Feedback on rejections in a finished run |
-| `ex1_find_missing_rows.py` | Finds states a run did not cover |
-| `ex1_rename_runs.py` | Puts the run files under decodable names. See `out/README.md` |
-| `mislabel.py` | Swaps object names across the Franka aperture. The text-channel version of the Experiment 2 image/field conflict |
+| `ex1_reproduce_tables.ipynb` | **Start here.** Rebuilds all thirteen published Experiment 1 tables from the frozen probe sets and the run files, explains each population and statistic, and asserts every generated table against the numbers printed in the thesis. Imports nothing from the analysis scripts except the deployed validator and the condition roster, so it is not checking its own arithmetic |
+| `ex1_verify_tables.py` | The second opinion. Recomputes the same quantities with the standard library only. It and the notebook share `run_files.py` and nothing else, so a disagreement between them is a real finding |
+| `ex1_chance_floor.py` | Computes the chance floor and width-blind reference lines into `out/ex1_chance_floor.json`. The notebook re-derives both and asserts they agree with the cached file |
 
-`mislabel.py` carries no `ex1_` prefix for historical reasons but belongs to
-Experiment 1 and is imported by nothing.
+Run both with `make verify-ex1` from the repository root.
 
-The four older notebooks in this directory (`ex1_tables.ipynb`,
-`ex1_plan_tables.ipynb`, `ex1_plan_tables_new.ipynb`, `ex1_recompute.ipynb`) are
-working notes from the period when the results structure was being decided. They
-still refer to tables that the chapter no longer carries. Read
-`ex1_reproduce_tables.ipynb` instead: it is the one that builds what the thesis
-actually prints.
-
-`ex1_report.py` hardcodes the cast A reference lines, so its cast B output
-prints the wrong header. Use `out/ex1_setb_floors.json` for cast B.
+Which run files each reads is not decided here. `fourarm/run_files.py` is the
+single manifest, and its audit fails if a listed file is missing or if a
+`.jsonl` appears under `out/` that no list accounts for.
 
 ## ex2/
 

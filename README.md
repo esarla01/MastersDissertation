@@ -1,8 +1,12 @@
-# Grounded or Memorised?
+# Grounded, Memorised, or Declared?
 
-Code and data for *Grounded or Memorised? A Decision-Level Evaluation of
-Capability Reasoning and Judgement in VLM Task Allocation for a Heterogeneous
+Code and data for *Grounded, Memorised, or Declared? A Decision-Level
+Evaluation of Capability Reasoning in VLM Task Allocation for a Heterogeneous
 Four-Arm Cell* (MSc, Imperial College London).
+
+Across two experiments and three models the answer is **declared**: the model
+follows the value stated in the text, over the object's name and over the
+scene image.
 
 The cell is a four-arm sorting workspace in Isaac Lab: two UR10 arms with a
 0.140 m gripper aperture and two Franka arms with a 0.080 m aperture, sorting
@@ -17,23 +21,33 @@ the prompt carries.
 
 Every reported number comes from frozen run files and content-hashed probe
 sets that are in this repository. Isaac Lab is **not** required to reproduce
-the analysis, only to harvest new states.
+the analysis, only to harvest new states. Neither is a network: the reproduce
+path never calls a model.
 
 ```bash
-cd fourarm
-python3 analysis/ex1/ex1_verify_tables.py
+make setup      # .venv from requirements.lock, once
+make verify     # every check, offline, non-zero exit on any mismatch
 ```
 
-That regenerates every table in the Experiment 1 chapter from the raw data
-and diffs it against the published values. It uses only the standard library,
-so it is an independent check on `analysis/ex1/ex1_report.py` rather than a re-run
-of it. Exit status is 0 when everything passes.
+`make verify` runs, in order:
 
-Expected output ends with `264/264 checks passed`.
+| | What it checks |
+|---|---|
+| spend gates | no notebook cell has a filled-in `CONFIRM_SPEND`, which would turn Run All into a paid sweep |
+| run-file manifest | every published run file present and holding what it claims, and nothing on disk that no list accounts for |
+| Experiment 1 | `ex1_verify_tables.py`, then `ex1_reproduce_tables.ipynb`, which rebuilds all thirteen tables and asserts each against the thesis |
+| Experiment 2 | the four EX2 notebooks execute clean |
+| harness | the regression gates |
+
+The two Experiment 1 checks are deliberately independent. The script uses only
+the standard library and the notebook computes everything from the probe sets
+and the deployed validator; they share only `run_files.py`, the list of which
+files to read. If they ever disagree, the disagreement is the finding.
 
 See [`docs/TABLE_PROVENANCE.md`](docs/TABLE_PROVENANCE.md) for what each table
-reports, which files it comes from, and the definitions that are easy to get
-wrong.
+reports and the definitions that are easy to get wrong, and
+[`docs/ERRATA.md`](docs/ERRATA.md) for the two places the code is right and the
+thesis is not.
 
 ---
 
@@ -59,12 +73,17 @@ wrong.
     ├── instrumentation/      episode logging and recording
     ├── probes/               frozen, content-hashed decision states
     ├── out/                  Experiment 1 run files (see out/README.md)
-    └── runs/                 Experiment 2 run files, plus the EX1 image cell
+    └── runs/                 Experiment 2 run files (see runs/README.md)
 ```
 
-`out/` holds Experiment 1 results and `runs/` holds Experiment 2 results. The
-one exception is the Experiment 1 image-on cell, `runs/ex1_L1-nowidth_V_gpt.jsonl`,
-which sits with the Experiment 2 files for historical reasons.
+`out/` holds Experiment 1 results and `runs/` holds Experiment 2 results, with
+no exceptions: the image-on cell that earlier notes place in `runs/` was moved
+to `out/` by the August rename.
+
+Which of them backs a published result is decided in one place,
+`fourarm/run_files.py`. Its audit fails if a listed file is missing, if one
+holds the wrong row count or rung, or if a `.jsonl` turns up that no list
+accounts for.
 
 ---
 

@@ -1,7 +1,11 @@
 # Experiment 1: table and figure provenance
 
 Every number in the Experiment 1 chapter, where it comes from, and how to
-regenerate it. Verified 20 August 2026: **303 of 303 checks pass**.
+regenerate it.
+
+Run `make verify` from the repository root rather than trusting a count written
+here: three different totals were quoted in this file and the README at various
+points, and all three were stale. The gate reports the current number.
 
 > **The table list below uses the labels the chapter carried in August.** Six of
 > them have since been renamed or dropped: `spine`, `gaps`, `offspine`,
@@ -28,8 +32,8 @@ python3 analysis/ex1/ex1_verify_tables.py --quiet          # failures only
 
 Exit status is 0 when everything passes and 1 otherwise, so it works as a
 pre-submission gate. The script uses only the standard library and reads the
-frozen data directly, so it is an independent check on `analysis/ex1/ex1_report.py` rather
-than a re-run of it. If the two ever disagree, one of them has a bug and the
+frozen data directly, so it is an independent check on
+`ex1_reproduce_tables.ipynb` rather than a re-run of it. If the two ever disagree, one of them has a bug and the
 disagreement is the finding.
 
 ---
@@ -58,7 +62,7 @@ run filenames and lists the files that must never be passed to a report.
 | `out/ex1_setb_floors.json` | Cast B reference lines | derived from `ex1_setb_v1` |
 | `out/ex1_<model>_<cond>.jsonl` | Cast A runs, 18 files, 6804 rows | see below |
 | `out/ex1_setb_gpt_<cond>_r3.jsonl` | Cast B runs, 3 files, 972 rows | |
-| `runs/ex1_L1-nowidth_V_gpt.jsonl` | Image-on cell, GPT, 486 rows | |
+| `out/ex1_casta_gpt_nowidth-anon_r3_image.jsonl` | Image-on cell, GPT, 486 rows. Backs no table | |
 
 ### The 18 cast A run files
 
@@ -114,10 +118,10 @@ hardcodes the 18 good files for this reason.
 | `route` | How much of the R5 limitation is real. Rebuilds the deployed router with each unstated rule disabled and re-runs all 52 route rejections | `--table route` |
 | `effects` | Contrasts the Results section quotes with intervals: the interaction, correct-refusal falls, Franka-share rises, the bound on reasons admitting the gap, and the width-ordering violation | `--table effects` |
 
-`analysis/ex1/ex1_effects.py` computes the same quantities for reporting, and
-writes a tidy CSV per block with `--csv figures/` for plotting. The harness
-pins the published values; the effects script is what you run when a number
-changes.
+`ex1_effects.py` used to compute the same quantities for reporting. It is now
+in `attic/analysis_ex1_pipeline/`: the `effects` block here and section 18 of
+`ex1_reproduce_tables.ipynb` both cover what it did, from two independent
+implementations.
 
 The `route` check runs a control first: with the threshold left at 0.05 m the
 rebuilt router must reproduce the deployed verdict on all 52 rejections. If
@@ -182,10 +186,10 @@ not.** Pairs sum to 1196, which is exactly the rejected pairs (1732 candidate
 minus 536 legal), because each rejected pair carries one cause. States sum to
 392 against 162 states, because a state can have several binding constraints.
 
-**`analysis/ex1/ex1_report.py` hardcodes the cast A reference lines.** Its cast B output
-prints "grasp 30.5, width-blind 74.9" in the header when the correct cast B
-lines are 34.6 and 69.2. Use `out/ex1_setb_floors.json` for cast B, not the
-report header.
+**Cast A and cast B have different reference lines.** Cast A is chance 30.5,
+width-blind 74.9; cast B is 34.6 and 69.2. The retired `ex1_report.py`
+hardcoded cast A's and printed them over cast B output. Take them from
+`out/ex1_setb_floors.json`, which the notebook re-derives and asserts against.
 
 ---
 
@@ -202,15 +206,25 @@ version and is reported alongside for exactly that reason.
 
 ## Figures
 
-Figure sources are not in this repository. Each is listed with the table whose
-numbers it plots, so a figure can be checked against verified data.
+**Chapter 4 carries no figures.** The four listed below were planned, their data
+was generated, and they were cut before submission. Their CSVs are kept under
+`fourarm/figures/` and plot verified numbers, but nothing in the thesis prints
+them. They are recorded so the CSVs are not mistaken for the source of a
+published figure.
 
-| Figure | Plots | Check against |
+| Cut figure | Would have plotted | Data |
 |---|---|---|
-| `ex1_legality` | Legality across the four main conditions | `tab:ex1:spine` |
-| `ex1_interaction` | The two removals crossed, with the width-blind line at 74.9% | `tab:ex1:gaps`, `tab:ex1:floors` |
-| `ex1_objects` | Grasp errors per opportunity by object | `tab:ex1:objects` |
-| `ex1_setb` | The width effect on both object casts | `tab:ex1:setb:floors`, cast B in-text figures |
+| `ex1_legality` | Legality across the four main conditions | `figures/ex1_design_data.csv` |
+| `ex1_interaction` | The two removals crossed, with the width-blind line at 74.9% | `figures/ex1_convergence_data.csv` |
+| `ex1_objects` | Grasp errors per opportunity by object | `figures/ex1_gaps_trial.csv` |
+| `ex1_setb` | The width effect on both object casts | `figures/ex1_gaps_scene.csv` |
+
+The two figures the thesis does print are simulator captures, not plots:
+
+| Figure | What it shows | Generator |
+|---|---|---|
+| 3.1 | The four-arm cell, arms at rest, baskets and exchange pads | **Not identified.** Captured from Isaac Sim; no script in this repository produces it and none is recorded. Re-creating it would mean re-capturing the scene by hand. |
+| 5.1 | One position on each of the block's three resting faces | `ycb/capture_ex2_scene.py --spec ycb/ex2_block.txt`, which writes to `out/ex2_capture_block/` |
 
 ---
 

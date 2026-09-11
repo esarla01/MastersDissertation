@@ -5,24 +5,42 @@ in the write-up and in the analysis scripts. Not renamed.
 
 See `docs/EX2_GUIDE.md` for the pipeline that produces them.
 
-## The one Experiment 1 file that lives here
+## No Experiment 1 file lives here any more
 
-`ex1_L1-nowidth_V_gpt.jsonl` — 486 rows, GPT, No Width + Anonymous, **image
-on** (`_V_` means the overhead frame was supplied). It is the image ablation,
-and it belongs to Experiment 1 rather than Experiment 2. It sits here for
-historical reasons and is not moved, because `docs/TABLE_PROVENANCE.md` and
-`analysis/ex1/ex1_verify_tables.py` both reference this path.
+Earlier notes describe `ex1_L1-nowidth_V_gpt.jsonl` sitting in this directory.
+It does not. The August rename moved it to
+`out/ex1_casta_gpt_nowidth-anon_r3_image.jsonl`, recorded with before and after
+md5s in `out/RENAME_MANIFEST.json`, and every Experiment 1 run file is now
+under `out/`.
 
-The result is a clean null: 75.4% against 76.7% text-only, a difference of
--1.3 points [-8.3, 5.7].
+It is the image-on cell: GPT, No Width + Anonymous, 486 rows, with the rendered
+frame supplied. The result is a clean null -- 75.4% against 76.7% text-only, a
+difference of -1.3 points [-8.3, 5.7] -- and Chapter 4 reports no image
+condition, so it backs no table. `run_files.IMAGE_ON` names it.
 
-## Main Experiment 2 datasets
+## The earlier P-rung design — not what Chapter 5 reports
+
+These files are a **superseded** design and none of them backs a reported
+result. They are kept because the write-up's account of how the experiment
+arrived at its final shape rests on them.
+
+Read the numbers here against Chapter 5's and the difference is the point:
+
+| | P-rung design (these files) | Reported design |
+|---|---|---|
+| Rungs | 7: `P0 P1 P2 P2a P3 P3a P4` | `N0 N-A N-C N-order N-D N-CD`, plus ceiling and repair |
+| Scenes | 22 (`e01_A` … `e11_B`) | 32 positions x 2 faces = 64 |
+| Models | gemini, gpt, **qwen** | gemini, gpt, **claude** |
+| Object | mustard bottle | the procedural block |
 
 | File | Rows | Role |
 |---|---|---|
-| `All_conflict.jsonl` | 2,827 | The main conflict dataset. Three models, seven rungs, 22 scenes, three repeats. About 55 rows are filtered in hygiene |
+| `All_conflict.jsonl` | 2,827 | The P-rung conflict dataset. Verified 2026-09-11: 7 rungs, 22 scenes, 3 models. About 55 rows are filtered in hygiene |
 | `piece_dims_P2.jsonl` | 1,759 | The dimension-only condition |
 | `piece_dims_P2_ur.jsonl` | 396 | The same under UR preference |
+
+`All_conflict.jsonl` is listed in `run_files.EXCLUDED`, so the manifest audit
+will not let it be read as a result.
 
 Some earlier notes name a `piece_dims_P2-2.jsonl`. No such file exists in this
 tree.
