@@ -64,9 +64,9 @@ for _p in (_ROOT, os.path.join(_ROOT, "ycb")):
         sys.path.insert(0, _p)
 
 from core.cell import cell_config as C                            # noqa: E402
-from analysis.frozen_coord import from_record, idle_arms          # noqa: E402
-from analysis.probe_store import load                             # noqa: E402
-from analysis import probe_replay as pr                           # noqa: E402
+from harvest.frozen_coord import from_record, idle_arms          # noqa: E402
+from harvest.probe_store import load                             # noqa: E402
+from harvest import probe_replay as pr                           # noqa: E402
 
 IDLE_RE = re.compile(r"Idle arms right now:\s*([^.\n]*)")
 

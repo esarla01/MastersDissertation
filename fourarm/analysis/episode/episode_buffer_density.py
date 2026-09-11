@@ -45,9 +45,9 @@ for _p in (_ROOT, os.path.join(_ROOT, "ycb")):
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
-from analysis.probe_store import legal_options                     # noqa: E402
+from harvest.probe_store import legal_options                     # noqa: E402
 from analysis.retired.retired_trap_check import classify_decision                  # noqa: E402
-from analysis.probe_replay import _consult_entries                 # noqa: E402
+from harvest.probe_replay import _consult_entries                 # noqa: E402
 
 
 def _baskets():

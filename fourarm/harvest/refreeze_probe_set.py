@@ -2,7 +2,7 @@
 
 WHY THIS EXISTS
 
-analysis/frozen_coord.py rebuilds each object's capability spec FROM THE
+harvest/frozen_coord.py rebuilds each object's capability spec FROM THE
 SAVED STATE, and refuses to register an object twice with different
 numbers. The registry is process-global, so a set containing two harvests
 that disagree about one object cannot be replayed at all: whichever value
@@ -34,12 +34,12 @@ one thing a frozen set should be filtered on.
 
 Usage:
 
-    python3 analysis/refreeze_probe_set.py --in probes/ex1_v1.json \\
+    python3 harvest/refreeze_probe_set.py --in probes/ex1_v1.json \\
         --out probes/ex1_v2.json --exclude-source probe_seed_v3 \\
         --reason "stale ycb_mustard grasp_m 0.058, corrected to 0.096 on
                   2026-08-02; states predate the fix"
 
-    python3 analysis/refreeze_probe_set.py --in probes/ex1_v1.json --check
+    python3 harvest/refreeze_probe_set.py --in probes/ex1_v1.json --check
 """
 
 import argparse
@@ -54,7 +54,7 @@ for _p in (_ROOT, os.path.join(_ROOT, "ycb")):
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
-from analysis.probe_store import load, save, content_hash    # noqa: E402
+from harvest.probe_store import load, save, content_hash    # noqa: E402
 
 SPEC_FIELDS = ("grasp_m", "mass_kg", "delicate")
 

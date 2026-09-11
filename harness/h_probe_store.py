@@ -52,8 +52,8 @@ from core.cell import cell_config as C                          # noqa: E402
 from core.cell.zones import ZoneMap                             # noqa: E402
 from core.decision import state_builder as sb                   # noqa: E402
 from core.decision.vlm_allocator import validate_decision       # noqa: E402
-from analysis import probe_store as store                       # noqa: E402
-from analysis.frozen_coord import from_record, idle_arms        # noqa: E402
+from harvest import probe_store as store                       # noqa: E402
+from harvest.frozen_coord import from_record, idle_arms        # noqa: E402
 from ycb_objects import register_specs                          # noqa: E402
 from ycb_scene import BASKETS                                   # noqa: E402
 

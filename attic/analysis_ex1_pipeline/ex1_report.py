@@ -42,7 +42,7 @@ for _p in (_ROOT, os.path.join(_ROOT, "ycb")):
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
-from analysis.probe_store import load, legal_options              # noqa: E402
+from harvest.probe_store import load, legal_options              # noqa: E402
 
 SPINE = ("L3", "L3-nowidth", "L1-nowidth")
 OFF = ("L4", "L2")

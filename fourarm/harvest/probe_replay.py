@@ -52,10 +52,10 @@ any model spend.
 
 Usage:
 
-    python3 analysis/probe_replay.py --probes probes/seed_v2.json \\
+    python3 harvest/probe_replay.py --probes probes/seed_v2.json \\
         --rung L3 --condition A --model qwen --out runs/ex1_L3_qwen.jsonl
 
-    python3 analysis/probe_replay.py --verify \\
+    python3 harvest/probe_replay.py --verify \\
         out/probe_seed_v2_frames/consults.jsonl
 """
 
@@ -82,8 +82,8 @@ from core.decision.vlm_allocator import (validate_decision,        # noqa: E402
                                          classify, openai_chat,
                                          _pad_name, VIOLATION_RULE)
 from core.cell import cell_config as C                             # noqa: E402
-from analysis.frozen_coord import from_record, idle_arms           # noqa: E402
-from analysis.probe_store import (load as load_probes,             # noqa: E402
+from harvest.frozen_coord import from_record, idle_arms           # noqa: E402
+from harvest.probe_store import (load as load_probes,             # noqa: E402
                                   capability_cause)
 from experiments.ex1 import prompts as EX1P                        # noqa: E402
 from experiments.ex1 import anonymise as EX1A                      # noqa: E402

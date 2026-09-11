@@ -594,7 +594,7 @@ def t_route(root):
     sys.path.insert(0, root)
     sys.path.insert(0, os.path.join(root, "ycb"))
     try:
-        from analysis.probe_store import legal_options
+        from harvest.probe_store import legal_options
         from core.cell.zones import ZoneMap
     except ImportError as exc:
         RESULTS.append(("route", "project imports", str(exc), "available", False))

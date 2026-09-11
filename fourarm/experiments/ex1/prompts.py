@@ -63,7 +63,7 @@ which L2 also withholds.
 WHAT THIS MODULE DOES NOT DO.
 
 The width removal is a STATE edit, not a prompt edit, and lives in
-analysis/probe_replay.py's state_at_rung. Anonymisation is both a state
+harvest/probe_replay.py's state_at_rung. Anonymisation is both a state
 edit and a prompt edit; its state half and its own text substitutions live
 in experiments/ex1/anonymise.py. This module owns the rung table, so there
 is one place that answers "what is L1-nowidth", and the rules axis.
@@ -367,7 +367,7 @@ def build_ex1_prompt(state, rung, condition, image_b64=None, mapping=None):
 
     The state passed in must ALREADY carry the state-level edits for this
     rung: eligible_arms present or absent, grasp_m present or absent, names
-    real or anonymised. state_at_rung in analysis/probe_replay.py does that
+    real or anonymised. state_at_rung in harvest/probe_replay.py does that
     work, because it owns the frozen-coordinator rebuild that L4 needs.
     This function applies the PROMPT-level part and nothing else.
 

@@ -74,7 +74,7 @@ BOTH members):
     python3 ycb/capture_ex2_scene.py --headless --spec ycb/ex2_block.txt
 
 Writes out/ex2_capture_block/consults.jsonl plus one PNG per capture, which
-analysis/probe_store.py harvests with no changes.
+harvest/probe_store.py harvests with no changes.
 """
 
 import argparse

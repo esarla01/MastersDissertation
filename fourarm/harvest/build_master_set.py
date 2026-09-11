@@ -30,8 +30,8 @@ does. That is what makes a cross-rung comparison genuinely paired: every
 rung is answered on demonstrably the same states.
 
 Usage:
-    python3 analysis/build_master_set.py
-    python3 analysis/build_master_set.py --out probes/master_v1.json
+    python3 harvest/build_master_set.py
+    python3 harvest/build_master_set.py --out probes/master_v1.json
 """
 
 import argparse
@@ -43,7 +43,7 @@ from collections import Counter
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from analysis.probe_store import (harvest_trail, load, make_set,  # noqa: E402
+from harvest.probe_store import (harvest_trail, load, make_set,  # noqa: E402
                                   save, select)
 
 # The harvest. random is the backbone: it has no systematic arm preference,

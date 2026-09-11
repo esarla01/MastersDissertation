@@ -149,7 +149,7 @@ Isaac Lab is required for this part only.
 ```bash
 cd fourarm
 python3 ycb/run_ycb_sort.py --allocator b1 --layout capability_trap
-python3 analysis/probe_store.py   # harvest the trail into a frozen probe set
+python3 harvest/probe_store.py   # harvest the trail into a frozen probe set
 ```
 
 Note that `--allocator b2` wires a retired contention-aware design. The

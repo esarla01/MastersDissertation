@@ -1,9 +1,9 @@
 role,path,rows,sha256,prompt_version,model_string,run_date
-captures,out/ex2_capture_block/consults.jsonl,102,b1579d5d8d1fcb53b09c60f285a1f1a52489908badd6f504b5b664fbdba42dba,2026-08-27b,,2026-09-10
-congruent,runs/ex2_q1_congruent_N0.jsonl,626,ff8833e493a292b1ca5fe0f286481916ead3d90b56b481d4dac9f5a9d247acce,2026-08-27b,claude_md;gemini;gpt_hi,2026-09-10
-congruent_face,runs/ex2_q1_congruent_face_N0.jsonl,837,853979e16f25ecb57890f9e3e72c4d07e2f5b9aca7dce3a5d48994e91c82f0b6,2026-08-27b,claude_md;gemini;gpt_hi,2026-09-10
-conflict,runs/ex2_q2_conflict_N0.jsonl,612,f8be5e5da135922683560f04a5c53f7b90ccdecd06056898b0b1c28f986ec7a8,2026-08-27b,claude_md;gemini;gpt_hi,2026-09-10
-conflict_face,runs/ex2_q2_conflict_face_N0.jsonl,612,bf1ca02d9b596c262837e6aa36ff37b6006794395c9dfcfa21c2f96c882a0d3e,2026-08-27b,claude_md;gemini;gpt_hi,2026-09-10
-dims,runs/ex2_q1_dims_N0.jsonl,615,01a58e0f75577512968dbebff622aaa9e8de6b9674bfde0b7ef40bf979c66889,2026-08-27b,claude_md;gemini;gpt_hi,2026-09-10
-conflict_extents,runs/ex2_q2_conflict_N0_extents.jsonl,612,2b26a06bc794149a20f8b054267698fd14b7060abe2ed836509eb36ac17a2f54,2026-08-27b,claude_md;gemini;gpt_hi,2026-09-10
-conflict_face_extents,runs/ex2_q2_conflict_face_N0_extents.jsonl,612,75fe19c6ed765838a3c02e47b5085491465f2b86694dfdcff5cd354600360142,2026-08-27b,claude_md;gemini;gpt_hi,2026-09-10
+captures,out/ex2_capture_block/consults.jsonl,102,b1579d5d8d1fcb53b09c60f285a1f1a52489908badd6f504b5b664fbdba42dba,2026-08-27b,,2026-09-11
+congruent,runs/ex2_q1_congruent_N0.jsonl,626,ff8833e493a292b1ca5fe0f286481916ead3d90b56b481d4dac9f5a9d247acce,2026-08-27b,claude_md;gemini;gpt_hi,2026-09-11
+congruent_face,runs/ex2_q1_congruent_face_N0.jsonl,837,853979e16f25ecb57890f9e3e72c4d07e2f5b9aca7dce3a5d48994e91c82f0b6,2026-08-27b,claude_md;gemini;gpt_hi,2026-09-11
+conflict,runs/ex2_q2_conflict_N0.jsonl,612,f8be5e5da135922683560f04a5c53f7b90ccdecd06056898b0b1c28f986ec7a8,2026-08-27b,claude_md;gemini;gpt_hi,2026-09-11
+conflict_face,runs/ex2_q2_conflict_face_N0.jsonl,612,bf1ca02d9b596c262837e6aa36ff37b6006794395c9dfcfa21c2f96c882a0d3e,2026-08-27b,claude_md;gemini;gpt_hi,2026-09-11
+dims,runs/ex2_q1_dims_N0.jsonl,615,01a58e0f75577512968dbebff622aaa9e8de6b9674bfde0b7ef40bf979c66889,2026-08-27b,claude_md;gemini;gpt_hi,2026-09-11
+conflict_extents,runs/ex2_q2_conflict_N0_extents.jsonl,612,2b26a06bc794149a20f8b054267698fd14b7060abe2ed836509eb36ac17a2f54,2026-08-27b,claude_md;gemini;gpt_hi,2026-09-11
+conflict_face_extents,runs/ex2_q2_conflict_face_N0_extents.jsonl,612,75fe19c6ed765838a3c02e47b5085491465f2b86694dfdcff5cd354600360142,2026-08-27b,claude_md;gemini;gpt_hi,2026-09-11

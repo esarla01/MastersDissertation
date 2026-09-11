@@ -102,7 +102,7 @@ for _p in (_ROOT, os.path.join(_ROOT, "ycb")):
         sys.path.insert(0, _p)
 
 from core.cell import cell_config as C                        # noqa: E402
-from analysis.probe_store import load, legal_options          # noqa: E402
+from harvest.probe_store import load, legal_options          # noqa: E402
 
 CAUSES = ("grasp", "reach", "delicate", "payload", "no_route")
 

@@ -70,7 +70,7 @@ prompt, which is the only artefact that actually matters.
 
 WHY THE VALIDATOR NEVER SEES AN ALIAS
 
-analysis/probe_replay.py rebuilds the coordinator with from_record(probe),
+harvest/probe_replay.py rebuilds the coordinator with from_record(probe),
 which reads the ORIGINAL probe, so the validator, the router and the
 scorer all work in real names throughout. Only the model's reply comes
 back in aliases, and of its fields only "basket" is affected: task_id is

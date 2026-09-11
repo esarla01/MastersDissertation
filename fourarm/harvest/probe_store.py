@@ -30,7 +30,7 @@ the point: whatever the validator would accept live is what gets counted.
 
 Usage:
 
-    from analysis.probe_store import harvest_trail, save, load, select
+    from harvest.probe_store import harvest_trail, save, load, select
     ps = harvest_trail("out/probe_seed_v2_frames/consults.jsonl",
                        source="probe_seed_v2")
     save(ps, "probes/seed_v2.json")
@@ -47,7 +47,7 @@ import sys
 from core.cell import cell_config as C
 from core.cell.zones import ZoneMap
 from core.decision.vlm_allocator import validate_decision
-from analysis.frozen_coord import from_record, idle_arms
+from harvest.frozen_coord import from_record, idle_arms
 
 SCHEMA = 1
 

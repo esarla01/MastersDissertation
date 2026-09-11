@@ -37,7 +37,7 @@ twice.
 
 Usage:
 
-    from analysis.frozen_coord import from_record
+    from harvest.frozen_coord import from_record
     coord = from_record(record)                 # one consults.jsonl line
     ok, target, sub, why = validate_decision(decision, coord, zm, baskets)
 """

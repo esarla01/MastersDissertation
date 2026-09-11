@@ -16,7 +16,7 @@ VENV := $(CURDIR)/.venv/bin/python
 NBEXEC := $(VENV) -m jupyter nbconvert --to notebook --execute \
           --ExecutePreprocessor.timeout=900
 
-.PHONY: all verify verify-ex1 verify-ex2 harness manifest spend-check setup clean help
+.PHONY: all verify verify-ex1 verify-ex2 harness manifest probes spend-check setup clean help
 
 all: verify
 
@@ -25,7 +25,7 @@ help:
 
 # ---------------------------------------------------------------------------
 
-verify: spend-check manifest verify-ex1 verify-ex2 harness
+verify: spend-check manifest probes verify-ex1 verify-ex2 harness
 	@echo
 	@echo "all checks passed"
 
@@ -44,6 +44,12 @@ spend-check:
 manifest:
 	@echo "== run-file manifest =="
 	@cd fourarm && $(PY) run_files.py
+
+# The frozen probe sets: content hashes, the 278 -> 185 -> 162 derivation
+# Appendix D describes, and the six per-source counts in Table D.1.
+probes:
+	@echo "== probe sets =="
+	@cd fourarm && $(PY) harvest/probe_audit.py | tail -1
 
 verify-ex1:
 	@echo "== Experiment 1 =="

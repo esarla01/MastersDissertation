@@ -50,7 +50,7 @@ from core.decision.vlm_allocator import (VIOLATIONS,            # noqa: E402
                                          VIOLATION_RULE,
                                          classify, _reason,
                                          validate_decision)
-from analysis.frozen_coord import from_record                   # noqa: E402
+from harvest.frozen_coord import from_record                   # noqa: E402
 from ycb_objects import register_specs                          # noqa: E402
 from ycb_scene import BASKETS                                   # noqa: E402
 

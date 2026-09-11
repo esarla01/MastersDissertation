@@ -53,7 +53,7 @@ from core.cell import cell_config as C                            # noqa: E402
 from core.cell.zones import ZoneMap                               # noqa: E402
 from core.decision.vlm_allocator import (validate_decision,       # noqa: E402
                                          chat)
-from analysis.frozen_coord import from_record                     # noqa: E402
+from harvest.frozen_coord import from_record                     # noqa: E402
 from experiments.ex2 import grade as G                            # noqa: E402
 from experiments.ex2 import prompts as P                          # noqa: E402
 from experiments.ex2 import transforms as T                       # noqa: E402
