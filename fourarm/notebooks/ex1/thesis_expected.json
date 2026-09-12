@@ -1,6 +1,6 @@
 {
  "note": "Numeric tokens of each Experiment 1 table as printed in the thesis, in order. Written by section 21 of ex1_reproduce_tables.ipynb from the LaTeX at THESIS_REPO. Do not hand-edit: section 14 checks this against the thesis whenever the thesis is present.",
- "written": "2026-09-11",
+ "written": "2026-09-12",
  "thesis_repo": "/Users/erinsarlak/Desktop/msc-paper",
  "tables": {
   "tab:ex1:baseline": [

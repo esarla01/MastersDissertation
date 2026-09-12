@@ -1,3 +1,20 @@
+"""Cells 5b to 17 of the Experiment 2 Q1 notebook: the runs and the analysis.
+
+Continues nb_cells_a.py, which holds the setup cells. Named MD/C by the cell
+number they carry in the notebook, with letter suffixes where a cell was
+inserted later: 5b is the cue read-out, 6b and 7b the second condition and
+the no-image floor, 7c and 7d the extents-frame control.
+
+Cells labelled MAKES MODEL CALLS are inert unless CONFIRM_SPEND is set to the
+exact call count the cell has just printed, and that value must never be
+committed. C17 is the audit: it checks the emitted CSVs against the numbers
+Chapter 5 prints, and those transcribed constants against the thesis LaTeX.
+
+Assemble with:
+
+    python3 notebooks/_cells/build_q1_nb.py notebooks/ex2/ex2_q1_derivation.ipynb
+"""
+
 MD5B = r"""### Cue validation results
 
 Accuracy per face with Wilson intervals, and the `small_face` / `large_face`

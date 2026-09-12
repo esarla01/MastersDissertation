@@ -110,6 +110,7 @@ Start with the question, not the directory.
 
 | Question | Read |
 |---|---|
+| How does the whole thing work? | **`docs/WALKTHROUGH.md`** — start here |
 | How do I reproduce every number? | `docs/REPRODUCE.md` |
 | Where does this Chapter 4 number come from? | `docs/TABLE_PROVENANCE.md` |
 | Where does this Chapter 5 number come from? | `docs/PROVENANCE_EX2.md` |
@@ -118,6 +119,7 @@ Start with the question, not the directory.
 | Which notebook produces which table? | `fourarm/notebooks/README.md` |
 | What do these run filenames mean? | `fourarm/out/README.md`, `fourarm/runs/README.md` |
 | How do I re-run the Experiment 2 pipeline? | `docs/EX2_GUIDE.md` |
+| What do the 49 regression gates check? | `harness/README.md` |
 | Where is the code right and the thesis wrong? | `docs/ERRATA.md` |
 
 Run everything from the repository root through `make`. Scripts and notebooks

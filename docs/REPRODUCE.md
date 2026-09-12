@@ -1,5 +1,8 @@
 # From a clean checkout to every number
 
+For how the pieces fit together rather than how to check them, read
+`docs/WALKTHROUGH.md` first.
+
 ```bash
 make setup      # .venv from requirements.lock, once
 make verify     # every check, offline, non-zero exit on any mismatch

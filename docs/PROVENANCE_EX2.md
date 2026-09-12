@@ -6,11 +6,18 @@ Where every number in Chapter 5 comes from, and how to check it.
 make verify-ex2
 ```
 
-Each notebook ends in an audit section that rebuilds its tables and asserts
-every cell against the number the chapter prints. **216 checks across Tables
-5.6 to 5.14**, all passing: Q1 90, Q2 60, Q3 66. Expected values are
-transcribed from the chapter and never computed — deriving them from the same
-data the cells use would check nothing.
+Each notebook ends in an audit section that does two things. It rebuilds its
+tables and asserts every cell against the number the chapter prints — **216
+checks across Tables 5.6 to 5.14**, Q1 90, Q2 60, Q3 66. Then it checks those
+transcribed constants against the **thesis LaTeX itself**, in the order the
+thesis prints them, pinning **229 of 341** thesis cells.
+
+The second half matters because the constants are typed from the chapter: on
+their own a mis-transcription would pass and an edit to the thesis would go
+unnoticed. Coverage is reported per table rather than implied, since the
+constants do not account for every cell — the shortfalls are Wilson bounds the
+notebooks do not transcribe, and Gemini's rows in 5.12, which come from the
+ladder rather than the repair run.
 
 Tolerance is 0.06 throughout. Every published value is printed to one decimal,
 so that is rounding, not slack on the result.
@@ -22,16 +29,16 @@ so that is rounding, not slack on the result.
 | Table | Reports | Notebook | Emits |
 |---|---|---|---|
 | 5.1 | Decision logic for the target block | — | prose |
-| 5.2 | The block's three resting faces | — | **untraced**, block geometry |
+| 5.2 | The block's three resting faces | `notebooks/appendix/appendix_tables.ipynb` §12 | `tables/appendix/ex2_object.tex` |
 | 5.3–5.5 | The condition and treatment definitions | — | **untraced**, `experiments/ex2/prompts.py` |
-| 5.6 | Cue validation | `ex2/ex2_q1_derivation` | `tab_ex2_q1_cue.csv`, `..._cue_confusion.csv` |
-| 5.7 | Franka share by face, paired contrast, complete flips | `ex2/ex2_q1_derivation` | `tab_ex2_q1_share.csv`, `..._contrasts.csv` |
-| 5.8 | Accuracy of the reported opening | `ex2/ex2_q1_derivation` | `tab_ex2_q1_opening.csv` |
-| 5.9 | The no-image floor | `ex2/ex2_q1_derivation` | `..._noimage_share.csv`, `..._noimage_contrast.csv` |
-| 5.10 | The two conflict conditions | `ex2/ex2_q2_precedence` | `tab_ex2_q2_conflict_share.csv` |
-| 5.11 | Where the reported opening came from | `ex2/ex2_q2_precedence` | `tab_ex2_q2_conflict_source.csv` |
-| 5.12 | The two controls | `ex2/ex2_q3_repair` | `tab_ex2_q3_repair_cells.csv` |
-| 5.13 | Step 2, mapping a face to an opening | `ex2/ex2_q3_repair` | the same CSV |
+| 5.6 | Cue validation | `notebooks/ex2/ex2_q1_derivation.ipynb` | `tab_ex2_q1_cue.csv`, `..._cue_confusion.csv` |
+| 5.7 | Franka share by face, paired contrast, complete flips | `notebooks/ex2/ex2_q1_derivation.ipynb` | `tab_ex2_q1_share.csv`, `..._contrasts.csv` |
+| 5.8 | Accuracy of the reported opening | `notebooks/ex2/ex2_q1_derivation.ipynb` | `tab_ex2_q1_opening.csv` |
+| 5.9 | The no-image floor | `notebooks/ex2/ex2_q1_derivation.ipynb` | `..._noimage_share.csv`, `..._noimage_contrast.csv` |
+| 5.10 | The two conflict conditions | `notebooks/ex2/ex2_q2_precedence.ipynb` | `tab_ex2_q2_conflict_share.csv` |
+| 5.11 | Where the reported opening came from | `notebooks/ex2/ex2_q2_precedence.ipynb` | `tab_ex2_q2_conflict_source.csv` |
+| 5.12 | The two controls | `notebooks/ex2/ex2_q3_repair.ipynb` | `tab_ex2_q3_repair_cells.csv` |
+| 5.13 | Step 2, mapping a face to an opening | `notebooks/ex2/ex2_q3_repair.ipynb` | the same CSV |
 | 5.14 | Step 1, reading the face | **two notebooks** | see below |
 
 All under `fourarm/notebooks/` and `fourarm/tables/`.

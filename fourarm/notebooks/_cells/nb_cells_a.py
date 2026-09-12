@@ -1,5 +1,21 @@
-# Cells 1-5 of the Q1 notebook. Kept as plain strings so the notebook can be
-# regenerated from source rather than hand-edited as JSON.
+"""Cells 0 to 5 of the Experiment 2 Q1 notebook: setup and the design checks.
+
+Held as plain strings, named MD0..MD5 for markdown and C0..C5 for code, so
+the notebook is REGENERATED from source rather than hand-edited as JSON.
+Editing the .ipynb directly is how the two drift, and it is how six armed
+CONFIRM_SPEND values reached git.
+
+These five cells are shared: build_q1_nb.py, build_q2_nb.py, build_q3_nb.py
+and build_q3repair_nb.py all import them, so a fix to the key loader, the
+root finder, the design check or the visibility exclusion reaches every
+Experiment 2 notebook and cannot reach only one. build_q3repair_nb.py
+substitutes five lines into C1 and fails the build if any substitution does
+not match exactly once.
+
+Assemble with, for example:
+
+    python3 notebooks/_cells/build_q1_nb.py notebooks/ex2/ex2_q1_derivation.ipynb
+"""
 
 MD0 = r"""## Cell 0. API keys
 

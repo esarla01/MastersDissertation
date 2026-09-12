@@ -5,8 +5,8 @@ rather than plots.
 
 | Figure | File in the thesis | Source here | Reproducible |
 |---|---|---|---|
-| 3.1, the four-arm cell | `figures/workspace.png` | `workspace.png`, beside this README | **No generator.** Captured by hand from Isaac Sim |
-| 5.1, the three resting faces | `figures/e00_{U,L,S}.png` | `out/ex2_capture_block/e00_{U,L,S}.png` | `ycb/capture_ex2_scene.py --spec ycb/ex2_block.txt` |
+| 3.1, the four-arm cell | `figures/workspace.png` *(in the thesis tree)* | `workspace.png`, beside this README | **No generator.** Captured by hand from Isaac Sim |
+| 5.1, the three resting faces | `figures/e00_{U,L,S}.png` *(in the thesis tree)* | `out/ex2_capture_block/e00_{U,L,S}.png` | `ycb/capture_ex2_scene.py --spec ycb/ex2_block.txt` |
 
 Figure 5.1's three panels are **byte-identical** to the committed captures, so
 that figure traces end to end: spec, script, output, thesis.
